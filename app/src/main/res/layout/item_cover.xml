@@ -13,7 +13,7 @@
         app:cardElevation="2dp"
         app:cardUseCompatPadding="false"
         app:cardPreventCornerOverlap="false">
-        <com.evenless.tersicore.SquareImageView
+        <com.evenless.tersicore.view.SquareImageView
             android:id="@+id/image_cover"
             android:layout_gravity="center"
             android:layout_width="match_parent"

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evenless.tersicore;
+package com.evenless.tersicore.view;
 
 import android.content.Context;
 import android.util.AttributeSet;

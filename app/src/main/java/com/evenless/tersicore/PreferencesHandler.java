@@ -19,4 +19,10 @@ public class PreferencesHandler {
     public static String getToken(Context ctx) {
         return getSharedPreferences(ctx).getString(PREF_TOKEN_KEY, null);
     }
+
+    public static void setServer(Context ctx, String str){
+        SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
+        editor.putString(str, PREF_SERVER_KEY);
+        editor.commit();
+    }
 }

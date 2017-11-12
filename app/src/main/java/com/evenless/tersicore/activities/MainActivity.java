@@ -1,34 +1,29 @@
-package com.evenless.tersicore;
+package com.evenless.tersicore.activities;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.graphics.Palette;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import com.evenless.tersicore.R;
+import com.evenless.tersicore.view.SquareImageView;
 
 import me.crosswall.lib.coverflow.CoverFlow;
-import me.crosswall.lib.coverflow.core.PageItemClickListener;
 import me.crosswall.lib.coverflow.core.PagerContainer;
 
 public class MainActivity extends AppCompatActivity {
@@ -43,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
 
         PagerContainer container = (PagerContainer) findViewById(R.id.pager_container);
         final ViewPager pager = container.getViewPager();
-        pager.setAdapter(new com.evenless.tersicore.MainActivity.MyPagerAdapter());
+        pager.setAdapter(new MainActivity.MyPagerAdapter());
         pager.setClipChildren(false);
         //
         pager.setOffscreenPageLimit(15);
@@ -92,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public Object instantiateItem(ViewGroup container, int position) {
 
-            View view = LayoutInflater.from(com.evenless.tersicore.MainActivity.this).inflate(R.layout.item_cover,null);
+            View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.item_cover,null);
             SquareImageView imageView = (SquareImageView) view.findViewById(R.id.image_cover);
             imageView.setImageDrawable(getResources().getDrawable(covers[position]));
             imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/vinylback"
+    android:elevation="14dp"
+    tools:context="com.evenless.tersicore.activities.Main2Activity">
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="48dp"
+        android:text="Tersicore"
+        android:textAppearance="@android:style/TextAppearance.Material.Large.Inverse"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="90dp"
+        android:layout_margin="8dp"
+        android:layout_marginStart="8dp"
+        android:padding="8dp"
+        android:text="You can remove this server or add more servers \n later in the Settings page"
+        android:textAppearance="@style/TextAppearance.AppCompat.Notification"
+        android:textColor="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:fadeScrollbars="false"
+            android:orientation="vertical"
+            android:padding="50dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:background="#88FFFFFF">
+
+        <EditText
+            android:id="@+id/editText2"
+            style="@android:style/Widget.Material.EditText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:layout_marginTop="20dp"
+            android:ems="10"
+            android:hint="Insert server IP:Port here "
+            android:inputType="text"
+            android:singleLine="false" />
+
+        <Button
+            android:id="@+id/buttonBegin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:layout_marginTop="30dp"
+            android:text="Begin"
+            android:textAppearance="@android:style/TextAppearance.Material.Widget.Button"
+            tools:layout_editor_absoluteX="148dp"
+            tools:layout_editor_absoluteY="358dp" />
+        </LinearLayout>
+
+
+</android.support.constraint.ConstraintLayout>

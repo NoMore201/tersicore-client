@@ -5,4 +5,6 @@
     <color name="colorTextGrey">#66484848</color>
     <color name="colorButtonDark">#4B4B4B</color>
     <color name="colorButtonGrey">#424242</color>
+
+    <color name="black_overlay">#66000000</color>
 </resources>
