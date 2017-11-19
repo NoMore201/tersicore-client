@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Music Player</string>
+    <string name="app_name">Tersicore</string>
 
     <string name="title_activity_fullscreen">FullscreenActivity</string>
     <string name="ipb">IP Background</string>
@@ -20,4 +20,11 @@
         completions."
     </string>
     <string name="title_activity_main2">Main2Activity</string>
+    <string name="title_activity_home">HomeActivity</string>
+    <string name="title_activity_main3">Home</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
 </resources>
