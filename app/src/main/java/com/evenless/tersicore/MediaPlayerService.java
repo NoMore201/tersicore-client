@@ -11,8 +11,12 @@ import android.os.PowerManager;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.evenless.tersicore.exceptions.InvalidUrlException;
+import com.evenless.tersicore.model.Track;
+
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 
 public class MediaPlayerService extends Service implements MediaPlayer.OnPreparedListener,
@@ -21,7 +25,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     private MediaPlayer mMediaPlayer;
     private WifiManager.WifiLock mWifiLock;
     private final IBinder mBinder = new LocalBinder();
-    private ArrayList<String> mCurrentPlaylist = new ArrayList<>();
+    private MediaPlayerServiceListener mListener;
+    private ArrayList<Track> mCurrentPlaylist;
+    private int mCurrentIndex;
 
     public class LocalBinder extends Binder {
         public MediaPlayerService getService() {
@@ -48,7 +54,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         mWifiLock = ((WifiManager) getApplicationContext()
                 .getSystemService(Context.WIFI_SERVICE))
                 .createWifiLock(WifiManager.WIFI_MODE_FULL, "mylock");
-
     }
 
     @Override
@@ -61,12 +66,13 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         }
     }
 
-    /*
-     * Implementation
-     */
+    public void setMediaPlayerServiceListener(MediaPlayerServiceListener listener) {
+        mListener = listener;
+    }
 
-    public void updatePlaylist(ArrayList<String> playlist) {
-        mCurrentPlaylist = playlist;
+    public void updatePlaylist(Track[] tracks) {
+        mCurrentPlaylist = new ArrayList<>(Arrays.asList(tracks));
+        mCurrentIndex = 0;
         updateState();
     }
 
@@ -80,24 +86,27 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         }
     }
 
-    private void updateState() {
-        mMediaPlayer.reset();
-        if (!mCurrentPlaylist.isEmpty()) {
-            // fetch and play next song in the list
-            Log.d("DEBUG", "updateState: triggered");
-            try {
-                mMediaPlayer.setDataSource(mCurrentPlaylist.remove(0));
-            } catch (IOException e) {
-                Log.e("ERROR", "updateState: cannot open url");
-                e.printStackTrace();
-            }
-            mMediaPlayer.prepareAsync();
-        }
+    public ArrayList<Track> getCurrentPlaylist() {
+        return mCurrentPlaylist;
     }
 
-    /*
-     * Listeners
-     */
+    private void updateState() {
+        mMediaPlayer.reset();
+        if (mCurrentIndex >= mCurrentPlaylist.size()) {
+            mListener.onPlaylistComplete();
+        } else {
+            Track current = mCurrentPlaylist.get(mCurrentIndex);
+            try {
+                mListener.onNewTrackPlaying(current);
+                mMediaPlayer.setDataSource(current.resources[0].path);
+                mMediaPlayer.prepareAsync();
+                mCurrentIndex += 1;
+            } catch (IOException e) {
+                e.printStackTrace();
+                mListener.onPlaybackError(new InvalidUrlException());
+            }
+        }
+    }
 
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {

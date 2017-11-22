@@ -1,10 +1,10 @@
 package com.evenless.tersicore.model;
 
 public class TrackResources {
-    int bitrate;
-    String codec;
-    String path;
-    int sample_rate;
-    String track_uuid;
-    String uuid;
+    public int bitrate;
+    public String codec;
+    public String path;
+    public int sample_rate;
+    public String track_uuid;
+    public String uuid;
 }
