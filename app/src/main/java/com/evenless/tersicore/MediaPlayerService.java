@@ -81,6 +81,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     public void updatePlaylist(Track[] tracks) {
         mCurrentPlaylist = new ArrayList<>(Arrays.asList(tracks));
+        fetchAllCovers();
         mCurrentIndex = 0;
         updateState();
     }
