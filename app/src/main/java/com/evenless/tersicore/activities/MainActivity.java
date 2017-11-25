@@ -64,7 +64,6 @@ public class MainActivity extends AppCompatActivity
             Track track1 = new Track();
             TrackResources temp = new TrackResources();
             TrackResources[] tempArray = new TrackResources[1];
-            temp.path = "http://casa.izzo.li:8888/stream/881f51d2f478418fb9b595623528c55b";
             temp.uuid = "881f51d2f478418fb9b595623528c55b";
             tempArray[0] = temp;
             track1.resources = tempArray;
@@ -72,7 +71,6 @@ public class MainActivity extends AppCompatActivity
             track1.album_artist="Flume";
             temp = new TrackResources();
             tempArray = new TrackResources[1];
-            temp.path = "http://casa.izzo.li:8888/stream/af49dd2f3ef04b1f8687e092d0a83bc0";
             temp.uuid = "af49dd2f3ef04b1f8687e092d0a83bc0";
             tempArray[0] = temp;
             Track track2 = new Track();
@@ -191,7 +189,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onNewTrackPlaying(Track newTrack) {
-        Log.d("TAG", "onNewTrackPlaying: " + newTrack.resources[0].path);
+        Log.d("TAG", "onNewTrackPlaying: " + newTrack.title);
         ImageButton vie = findViewById(R.id.playbutton);
         vie.setImageResource(R.drawable.ic_pause);
         TextView tv_song = findViewById(R.id.tv_song);

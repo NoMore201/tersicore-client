@@ -10,4 +10,9 @@ public class Track {
     public int track_number;
     public String uuid;
     public TrackResources[] resources;
+    public String artist;
+    public int total_tracks;
+    public int total_discs;
+    public String label;
+    public String isrc;
 }

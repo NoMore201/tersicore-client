@@ -24,6 +24,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         CoverRetrieveTaskListener
 {
     private static final String TAG = "MediaPlayerService";
+    private static String STREAM_URL = "http://casa.izzo.li:8888/stream/";
 
     private MediaPlayer mMediaPlayer;
     private WifiManager.WifiLock mWifiLock;
@@ -177,7 +178,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             Track current = mCurrentPlaylist.get(mCurrentIndex);
             try {
                 newTrackPlaying(current);
-                mMediaPlayer.setDataSource(current.resources[0].path);
+                mMediaPlayer.setDataSource(STREAM_URL +  current.resources[0].uuid);
                 mMediaPlayer.prepareAsync();
             } catch (IOException e) {
                 e.printStackTrace();
