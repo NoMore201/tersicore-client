@@ -12,5 +12,6 @@ import com.evenless.tersicore.model.Track;
 public interface MediaPlayerServiceListener {
     void onNewTrackPlaying(Track newTrack);
     void onPlaylistComplete();
+    void onCoverFetched(Track track);
     void onPlaybackError(Exception exception);
 }

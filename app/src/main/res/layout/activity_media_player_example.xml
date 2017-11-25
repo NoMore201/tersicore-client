@@ -40,4 +40,15 @@
         app:layout_constraintEnd_toStartOf="@+id/buttonStop"
         app:layout_constraintStart_toEndOf="@+id/buttonPlay"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="369dp"
+        android:layout_height="342dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonPlay" />
 </android.support.constraint.ConstraintLayout>

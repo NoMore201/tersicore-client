@@ -9,17 +9,25 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
+import com.evenless.tersicore.ApiRequestTaskListener;
+import com.evenless.tersicore.CoverRetrieveTaskListener;
 import com.evenless.tersicore.MediaPlayerService;
 import com.evenless.tersicore.MediaPlayerServiceListener;
 import com.evenless.tersicore.R;
+import com.evenless.tersicore.TaskHandler;
 import com.evenless.tersicore.exceptions.InvalidUrlException;
 import com.evenless.tersicore.model.Track;
 import com.evenless.tersicore.model.TrackResources;
 
+import java.net.MalformedURLException;
+
 public class MediaPlayerExampleActivity extends AppCompatActivity
-        implements MediaPlayerServiceListener
+        implements MediaPlayerServiceListener,
+        ApiRequestTaskListener
 {
+    private static final String TAG = "ExampleActivity";
 
     private MediaPlayerService mService;
     private boolean mBound;
@@ -46,6 +54,11 @@ public class MediaPlayerExampleActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_media_player_example);
+        try {
+            TaskHandler.getTracks(this);
+        } catch (MalformedURLException e) {
+            Log.e(TAG, "onCreate: malformed url", e);
+        }
     }
 
     @Override
@@ -115,5 +128,22 @@ public class MediaPlayerExampleActivity extends AppCompatActivity
         if (exception.getClass().equals(InvalidUrlException.class)) {
             Log.e("TAG", "onPlaybackError: invalid url" );
         }
+    }
+
+    @Override
+    public void onApiRequestError(Exception e) {
+        e.printStackTrace();
+    }
+
+    @Override
+    public void onRequestComplete(String response) {
+        TextView view = findViewById(R.id.textView4);
+        view.append(response);
+    }
+
+    @Override
+    public void onCoverFetched(Track track) {
+        boolean check = track.resources[0].cover_data != null;
+        Log.d(TAG, "onCoverFetched: " + check);
     }
 }

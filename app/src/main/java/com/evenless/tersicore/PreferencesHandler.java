@@ -8,7 +8,7 @@ public class PreferencesHandler {
     private static final String PREF_SERVER_KEY = "TersicoreServer";
     private static final String PREF_TOKEN_KEY = "TersicoreToken";
 
-    static SharedPreferences getSharedPreferences(Context ctx) {
+    private static SharedPreferences getSharedPreferences(Context ctx) {
         return PreferenceManager.getDefaultSharedPreferences(ctx);
     }
 
@@ -23,6 +23,6 @@ public class PreferencesHandler {
     public static void setServer(Context ctx, String str){
         SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
         editor.putString(str, PREF_SERVER_KEY);
-        editor.commit();
+        editor.apply();
     }
 }

@@ -20,7 +20,8 @@ import java.util.Arrays;
 
 
 public class MediaPlayerService extends Service implements MediaPlayer.OnPreparedListener,
-        MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener
+        MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener,
+        CoverRetrieveTaskListener
 {
     private static final String TAG = "MediaPlayerService";
 
@@ -140,7 +141,15 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         return true;
     }
 
+    @Override
+    public void onCoverRetrieveComplete(Track track, byte[] cover) {
+        int index = mCurrentPlaylist.indexOf(track);
+        if (index != -1) {
+            mCurrentPlaylist.get(index).resources[0].cover_data = cover;
+            mListener.onCoverFetched(mCurrentPlaylist.get(index));
+        }
 
+    }
 
     private void playlistCompleted() {
         if (mListener != null) {
@@ -174,6 +183,15 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                 e.printStackTrace();
                 playbackError(e);
             }
+        }
+    }
+
+    private void fetchAllCovers() {
+        if (mCurrentPlaylist.size() == 0) {
+            return;
+        }
+        for (Track t: mCurrentPlaylist) {
+            TaskHandler.getCover(this, t);
         }
     }
 }

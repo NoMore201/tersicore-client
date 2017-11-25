@@ -5,6 +5,7 @@ public class TrackResources {
     public String codec;
     public String path;
     public int sample_rate;
+    public byte[] cover_data;
     public String track_uuid;
     public String uuid;
 }
