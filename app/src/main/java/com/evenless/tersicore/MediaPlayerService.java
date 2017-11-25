@@ -11,7 +11,7 @@ import android.os.PowerManager;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.evenless.tersicore.exceptions.InvalidUrlException;
+import com.evenless.tersicore.exceptions.MediaPlayerException;
 import com.evenless.tersicore.model.Track;
 
 import java.io.IOException;
@@ -22,12 +22,16 @@ import java.util.Arrays;
 public class MediaPlayerService extends Service implements MediaPlayer.OnPreparedListener,
         MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener
 {
+    private static final String TAG = "MediaPlayerService";
+
     private MediaPlayer mMediaPlayer;
     private WifiManager.WifiLock mWifiLock;
     private final IBinder mBinder = new LocalBinder();
     private MediaPlayerServiceListener mListener;
     private ArrayList<Track> mCurrentPlaylist;
     private int mCurrentIndex;
+
+    public enum SkipDirection { SKIP_FORWARD, SKIP_BACKWARD }
 
     public class LocalBinder extends Binder {
         public MediaPlayerService getService() {
@@ -51,9 +55,13 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         mMediaPlayer.setOnCompletionListener(this);
         mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
 
-        mWifiLock = ((WifiManager) getApplicationContext()
-                .getSystemService(Context.WIFI_SERVICE))
-                .createWifiLock(WifiManager.WIFI_MODE_FULL, "mylock");
+        try {
+            mWifiLock = ((WifiManager) getApplicationContext()
+                    .getSystemService(Context.WIFI_SERVICE))
+                    .createWifiLock(WifiManager.WIFI_MODE_FULL, "mylock");
+        } catch (NullPointerException e) {
+            Log.w(TAG, "onCreate: unable to lock Wifi", e);
+        }
     }
 
     @Override
@@ -86,41 +94,86 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         }
     }
 
+    public void skip(SkipDirection direction) {
+        if (direction == SkipDirection.SKIP_FORWARD) {
+            mCurrentIndex += 1;
+        }
+        if (direction == SkipDirection.SKIP_BACKWARD) {
+            mCurrentIndex -= 1;
+        }
+        updateState();
+    }
+
+    public void seekTo(int index) {
+        mCurrentIndex = index;
+        updateState();
+    }
+
+    public boolean isPlaying() {
+        return mMediaPlayer.isPlaying();
+    }
+
     public ArrayList<Track> getCurrentPlaylist() {
         return mCurrentPlaylist;
     }
 
-    private void updateState() {
-        mMediaPlayer.reset();
-        if (mCurrentIndex >= mCurrentPlaylist.size()) {
-            mListener.onPlaylistComplete();
-        } else {
-            Track current = mCurrentPlaylist.get(mCurrentIndex);
-            try {
-                mListener.onNewTrackPlaying(current);
-                mMediaPlayer.setDataSource(current.resources[0].path);
-                mMediaPlayer.prepareAsync();
-                mCurrentIndex += 1;
-            } catch (IOException e) {
-                e.printStackTrace();
-                mListener.onPlaybackError(new InvalidUrlException());
-            }
-        }
+    public int getCurrentTrackIndex() {
+        return mCurrentIndex;
     }
 
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
+        Log.d(TAG, "onPrepared: called");
         mediaPlayer.start();
     }
 
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
-        Log.d("DEBUG", "onCompletion: triggered");
+        Log.d(TAG, "onCompletion: called");
+        mCurrentIndex += 1;
         updateState();
     }
 
     @Override
     public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-        return false;
+        playbackError(new MediaPlayerException());
+        return true;
+    }
+
+
+
+    private void playlistCompleted() {
+        if (mListener != null) {
+            mListener.onPlaylistComplete();
+        }
+    }
+
+    private void newTrackPlaying(Track current) {
+        if (mListener != null) {
+            mListener.onNewTrackPlaying(current);
+        }
+    }
+
+    private void playbackError(Exception e) {
+        if (mListener != null) {
+            mListener.onPlaybackError(e);
+        }
+    }
+
+    private void updateState() {
+        mMediaPlayer.reset();
+        if (mCurrentIndex >= mCurrentPlaylist.size()) {
+            playlistCompleted();
+        } else {
+            Track current = mCurrentPlaylist.get(mCurrentIndex);
+            try {
+                newTrackPlaying(current);
+                mMediaPlayer.setDataSource(current.resources[0].path);
+                mMediaPlayer.prepareAsync();
+            } catch (IOException e) {
+                e.printStackTrace();
+                playbackError(e);
+            }
+        }
     }
 }
