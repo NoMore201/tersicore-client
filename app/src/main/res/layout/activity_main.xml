@@ -4,7 +4,7 @@
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.uiresource.musicplayer.MainActivity">
+    tools:context="com.evenless.tersicore.activities.MainActivity">
     <ToggleButton
         android:id="@+id/tb_love"
         android:layout_width="24dp"
@@ -38,13 +38,16 @@
             android:layout_gravity="center"
             android:src="@drawable/ic_backward"
             android:background="@null"/>
+
         <ImageButton
-            android:layout_weight="1"
+            android:id="@+id/playbutton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:src="@drawable/ic_play"
-            android:background="@null"/>
+            android:layout_weight="1"
+            android:background="@null"
+            android:onClick="onClickPlay"
+            android:src="@drawable/ic_play" />
 
         <ImageButton
             android:layout_weight="1"
@@ -100,25 +103,25 @@
             style="@style/Widget.AppCompat.ProgressBar.Horizontal"
             android:progressDrawable="@drawable/progress_bar"/>
     </RelativeLayout>
+
     <TextView
         android:id="@+id/tv_artist"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@id/rl_progress"
         android:layout_centerHorizontal="true"
-        android:text="by From First to Last "
-        android:textSize="14sp"
-        android:textColor="@color/colorTextGrey" />
+        android:textColor="@color/colorTextGrey"
+        android:textSize="14sp" />
+
     <TextView
         android:id="@+id/tv_song"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@id/tv_artist"
-        android:layout_marginBottom="@dimen/space8"
         android:layout_centerHorizontal="true"
-        android:text="Make War"
-        android:textSize="18sp"
-        android:textColor="@color/colorTextDark" />
+        android:layout_marginBottom="@dimen/space8"
+        android:textColor="@color/colorTextDark"
+        android:textSize="18sp" />
     <me.crosswall.lib.coverflow.core.PagerContainer
         android:id="@+id/pager_container"
         android:layout_width="match_parent"

@@ -1,84 +1,221 @@
 package com.evenless.tersicore.activities;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.media.Image;
+import android.media.MediaMetadataRetriever;
 import android.os.Build;
+import android.os.IBinder;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.graphics.Palette;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.evenless.tersicore.MediaPlayerService;
+import com.evenless.tersicore.MediaPlayerServiceListener;
 import com.evenless.tersicore.R;
+import com.evenless.tersicore.exceptions.InvalidUrlException;
+import com.evenless.tersicore.model.Track;
+import com.evenless.tersicore.model.TrackResources;
 import com.evenless.tersicore.view.SquareImageView;
+
+import java.util.HashMap;
 
 import me.crosswall.lib.coverflow.CoverFlow;
 import me.crosswall.lib.coverflow.core.PagerContainer;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity
+    implements MediaPlayerServiceListener {
 
-    public static int[] covers = {R.drawable.peach, R.drawable.album2, R.drawable.album3, R.drawable.peach, R.drawable.album2, R.drawable.album3 };
-    public static String[] song = {"Make War", "Shadow", "Black Parade","Make War", "Shadow", "Black Parade" };
+    private MediaPlayerService mService;
+    private boolean mBound;
+    private boolean playing=false;
+    private final MediaPlayerServiceListener ctx = this;
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            MediaPlayerService.LocalBinder binder = (MediaPlayerService.LocalBinder) service;
+            mService = binder.getService();
+            mBound = true;
+
+            mService.setMediaPlayerServiceListener(ctx);
+
+            Track track1 = new Track();
+            TrackResources temp = new TrackResources();
+            TrackResources[] tempArray = new TrackResources[1];
+            temp.path = "http://casa.izzo.li:8888/stream/881f51d2f478418fb9b595623528c55b";
+            tempArray[0] = temp;
+            track1.resources = tempArray;
+            track1.title="Oh Bella!";
+            track1.album_artist="Flume";
+            temp = new TrackResources();
+            tempArray = new TrackResources[1];
+            temp.path = "http://casa.izzo.li:8888/stream/af49dd2f3ef04b1f8687e092d0a83bc0";
+            tempArray[0] = temp;
+            Track track2 = new Track();
+            track2.resources = tempArray;
+            track2.title="OMG";
+            track2.album_artist="Sconosciuto";
+
+            Track[] list = {track1, track2};
+
+            mService.updatePlaylist(list);
+
+            PagerContainer container = (PagerContainer) findViewById(R.id.pager_container);
+            final ViewPager pager = container.getViewPager();
+            pager.setAdapter(new MainActivity.MyPagerAdapter());
+            pager.setClipChildren(false);
+
+            pager.setOffscreenPageLimit(15);
+
+            boolean showTransformer = getIntent().getBooleanExtra("showTransformer",true);
+
+
+            if(showTransformer){
+
+                new CoverFlow.Builder()
+                        .with(pager)
+                        .scale(0.3f)
+                        .pagerMargin(getResources().getDimensionPixelSize(R.dimen.pager_margin))
+                        .spaceSize(0f)
+                        .build();
+
+            }else{
+                pager.setPageMargin(30);
+            }
+            final TextView tv_song = (TextView) findViewById(R.id.tv_song);
+            pager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+                @Override
+                public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+                }
+
+                @Override
+                public void onPageSelected(int position) {
+                    tv_song.setText(mService.getCurrentPlaylist().get(position).title);
+                    RelativeLayout relativeLayout = (RelativeLayout) pager.getAdapter().instantiateItem(pager, 0);
+                    ViewCompat.setElevation(relativeLayout.getRootView(), 8.0f);
+                    Palette palette = Palette.from(getCover(mService.getCurrentPlaylist().get(position))).generate();
+                    setStatusBar(palette);
+                    TextView tv_artist = findViewById(R.id.tv_artist);
+                    tv_artist.setText(mService.getCurrentPlaylist().get(position).album_artist);
+                }
+
+                @Override
+                public void onPageScrollStateChanged(int state) {
+
+                }
+            });
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            mBound = false;
+        }
+    };
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Intent intent = new Intent(this, MediaPlayerService.class);
+        startService(intent);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unbindService(mConnection);
+        mBound = false;
+    }
+
+    public void onClickPlay(View v) {
+        if (mBound) {
+            if(playing) {
+                ImageButton vie = (ImageButton) v;
+                vie.setImageResource(R.drawable.ic_play);
+                mService.pause();
+                playing=false;
+            }
+            else {
+                ImageButton vie = (ImageButton) v;
+                vie.setImageResource(R.drawable.ic_pause);
+                mService.play();
+                playing=true;
+            }
+        }
+    }
+
+
+
+    @Override
+    public void onPlaylistComplete() {
+        //do something
+    }
+
+    @Override
+    public void onNewTrackPlaying(Track newTrack) {
+        Log.d("TAG", "onNewTrackPlaying: " + newTrack.resources[0].path);
+        playing= true;
+        ImageButton vie = findViewById(R.id.playbutton);
+        vie.setImageResource(R.drawable.ic_pause);
+        TextView tv_song = findViewById(R.id.tv_song);
+        tv_song.setText(newTrack.title);
+        TextView tv_artist = findViewById(R.id.tv_artist);
+        tv_artist.setText(newTrack.album_artist);
+    }
+
+    @Override
+    public void onPlaybackError(Exception exception) {
+        if (exception.getClass().equals(InvalidUrlException.class)) {
+            Log.e("TAG", "onPlaybackError: invalid url" );
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        PagerContainer container = (PagerContainer) findViewById(R.id.pager_container);
-        final ViewPager pager = container.getViewPager();
-        pager.setAdapter(new MainActivity.MyPagerAdapter());
-        pager.setClipChildren(false);
-        //
-        pager.setOffscreenPageLimit(15);
+    }
 
-        boolean showTransformer = getIntent().getBooleanExtra("showTransformer",true);
+    private Bitmap getCover(Track tr){
+        android.media.MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+        mmr.setDataSource(tr.resources[0].path, new HashMap<String, String>());
 
+        byte [] data = mmr.getEmbeddedPicture();
+        //coverart is an Imageview object
 
-        if(showTransformer){
-
-            new CoverFlow.Builder()
-                    .with(pager)
-                    .scale(0.3f)
-                    .pagerMargin(getResources().getDimensionPixelSize(R.dimen.pager_margin))
-                    .spaceSize(0f)
-                    .build();
-
-        }else{
-            pager.setPageMargin(30);
-        }
-        final TextView tv_song = (TextView) findViewById(R.id.tv_song);
-        pager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
-            }
-
-            @Override
-            public void onPageSelected(int position) {
-                tv_song.setText(song[position]);
-                RelativeLayout relativeLayout = (RelativeLayout) pager.getAdapter().instantiateItem(pager, 0);
-                ViewCompat.setElevation(relativeLayout.getRootView(), 8.0f);
-                Palette palette = Palette.from(drawableToBitmap(covers[position])).generate();
-                setStatusBar(palette);
-            }
-
-            @Override
-            public void onPageScrollStateChanged(int state) {
-
-            }
-        });
+        // convert the byte array to a bitmap
+        if(data != null)
+            return BitmapFactory.decodeByteArray(data, 0, data.length);
+         else
+            return BitmapFactory.decodeResource(this.getResources(), R.drawable.peach);
     }
 
 
@@ -89,7 +226,8 @@ public class MainActivity extends AppCompatActivity {
 
             View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.item_cover,null);
             SquareImageView imageView = (SquareImageView) view.findViewById(R.id.image_cover);
-            imageView.setImageDrawable(getResources().getDrawable(covers[position]));
+            //Peach will contain the cover of the actual track
+            imageView.setImageBitmap(getCover(mService.getCurrentPlaylist().get(position)));
             imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             container.addView(view);
             return view;
@@ -102,7 +240,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            return covers.length;
+            return mService.getCurrentPlaylist().size();
         }
 
         @Override
@@ -122,30 +260,5 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
-
-
-    public Bitmap drawableToBitmap(int id) {
-        Bitmap bitmap = null;
-        Drawable drawable = getResources().getDrawable(id);
-        if (drawable instanceof BitmapDrawable) {
-            BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
-            if(bitmapDrawable.getBitmap() != null) {
-                return bitmapDrawable.getBitmap();
-            }
-        }
-
-        if(drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
-            bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888); // Single color bitmap will be created of 1x1 pixel
-        } else {
-            bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-        }
-
-        Canvas canvas = new Canvas(bitmap);
-        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-        drawable.draw(canvas);
-        return bitmap;
-    }
-
-
 
 }

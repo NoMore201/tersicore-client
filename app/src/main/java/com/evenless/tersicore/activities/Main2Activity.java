@@ -2,6 +2,7 @@ package com.evenless.tersicore.activities;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -34,8 +35,8 @@ public class Main2Activity extends AppCompatActivity {
                         {
                             EditText mEdit = findViewById(R.id.editText2);
                             String IP = mEdit.getText().toString();
-                            if(false) {
-                                PreferencesHandler.setServer(ctx, IP);
+                            if(true) {
+                                //PreferencesHandler.setServer(ctx, IP);
                                 goToNextActivity();
                             } else {
                                 AlertDialog alertDialog = new AlertDialog.Builder(ctx).create();
@@ -57,7 +58,8 @@ public class Main2Activity extends AppCompatActivity {
     }
 
     private void goToNextActivity() {
-
+        Intent asd = new Intent(this, MainActivity.class);
+        startActivity(asd);
     }
 
 }
