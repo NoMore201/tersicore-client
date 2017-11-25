@@ -1,5 +1,7 @@
 package com.evenless.tersicore;
 
+import android.util.Log;
+
 import com.evenless.tersicore.model.Track;
 import com.evenless.tersicore.tasks.ApiRequestTask;
 import com.evenless.tersicore.tasks.CoverRetrieveTask;

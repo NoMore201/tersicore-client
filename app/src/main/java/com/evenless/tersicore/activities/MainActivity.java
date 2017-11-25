@@ -11,6 +11,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.Image;
 import android.media.MediaMetadataRetriever;
+import android.nfc.Tag;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.v4.view.PagerAdapter;
@@ -48,7 +49,6 @@ public class MainActivity extends AppCompatActivity
 
     private MediaPlayerService mService;
     private boolean mBound;
-    private boolean playing=false;
     private final MediaPlayerServiceListener ctx = this;
 
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -60,13 +60,12 @@ public class MainActivity extends AppCompatActivity
             MediaPlayerService.LocalBinder binder = (MediaPlayerService.LocalBinder) service;
             mService = binder.getService();
             mBound = true;
-
             mService.setMediaPlayerServiceListener(ctx);
-
             Track track1 = new Track();
             TrackResources temp = new TrackResources();
             TrackResources[] tempArray = new TrackResources[1];
             temp.path = "http://casa.izzo.li:8888/stream/881f51d2f478418fb9b595623528c55b";
+            temp.uuid = "881f51d2f478418fb9b595623528c55b";
             tempArray[0] = temp;
             track1.resources = tempArray;
             track1.title="Oh Bella!";
@@ -74,35 +73,27 @@ public class MainActivity extends AppCompatActivity
             temp = new TrackResources();
             tempArray = new TrackResources[1];
             temp.path = "http://casa.izzo.li:8888/stream/af49dd2f3ef04b1f8687e092d0a83bc0";
+            temp.uuid = "af49dd2f3ef04b1f8687e092d0a83bc0";
             tempArray[0] = temp;
             Track track2 = new Track();
             track2.resources = tempArray;
             track2.title="OMG";
             track2.album_artist="Sconosciuto";
-
             Track[] list = {track1, track2};
-
             mService.updatePlaylist(list);
-
             PagerContainer container = (PagerContainer) findViewById(R.id.pager_container);
             final ViewPager pager = container.getViewPager();
             pager.setAdapter(new MainActivity.MyPagerAdapter());
             pager.setClipChildren(false);
-
             pager.setOffscreenPageLimit(15);
-
             boolean showTransformer = getIntent().getBooleanExtra("showTransformer",true);
-
-
             if(showTransformer){
-
                 new CoverFlow.Builder()
                         .with(pager)
                         .scale(0.3f)
                         .pagerMargin(getResources().getDimensionPixelSize(R.dimen.pager_margin))
                         .spaceSize(0f)
                         .build();
-
             }else{
                 pager.setPageMargin(30);
             }
@@ -115,6 +106,7 @@ public class MainActivity extends AppCompatActivity
 
                 @Override
                 public void onPageSelected(int position) {
+                    mService.seekTo(position);
                     tv_song.setText(mService.getCurrentPlaylist().get(position).title);
                     RelativeLayout relativeLayout = (RelativeLayout) pager.getAdapter().instantiateItem(pager, 0);
                     ViewCompat.setElevation(relativeLayout.getRootView(), 8.0f);
@@ -152,24 +144,45 @@ public class MainActivity extends AppCompatActivity
         mBound = false;
     }
 
+    @Override
+    public void onCoverFetched(Track tr){
+        PagerContainer container = findViewById(R.id.pager_container);
+        ViewPager pager = container.getViewPager();
+        pager.setAdapter(new MainActivity.MyPagerAdapter());
+        pager.setCurrentItem(mService.getCurrentTrackIndex(), false);
+    }
+
     public void onClickPlay(View v) {
         if (mBound) {
-            if(playing) {
+            if(mService.isPlaying()) {
                 ImageButton vie = (ImageButton) v;
                 vie.setImageResource(R.drawable.ic_play);
                 mService.pause();
-                playing=false;
             }
             else {
                 ImageButton vie = (ImageButton) v;
                 vie.setImageResource(R.drawable.ic_pause);
                 mService.play();
-                playing=true;
             }
         }
     }
 
+    public void onClickForward(View v) {
+        int temp = mService.getCurrentTrackIndex() + 1;
+        if(temp<mService.getCurrentPlaylist().size()){
+            PagerContainer container = findViewById(R.id.pager_container);
+            ViewPager pager = container.getViewPager();
+            pager.setCurrentItem(temp, true);
+        }
+    }
 
+    public void onClickBackward(View v) {
+        if(mService.getCurrentTrackIndex()!=0){
+            PagerContainer container = findViewById(R.id.pager_container);
+            ViewPager pager = container.getViewPager();
+            pager.setCurrentItem(mService.getCurrentTrackIndex() - 1, true);
+        }
+    }
 
     @Override
     public void onPlaylistComplete() {
@@ -179,7 +192,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onNewTrackPlaying(Track newTrack) {
         Log.d("TAG", "onNewTrackPlaying: " + newTrack.resources[0].path);
-        playing= true;
         ImageButton vie = findViewById(R.id.playbutton);
         vie.setImageResource(R.drawable.ic_pause);
         TextView tv_song = findViewById(R.id.tv_song);
@@ -205,17 +217,11 @@ public class MainActivity extends AppCompatActivity
     }
 
     private Bitmap getCover(Track tr){
-        android.media.MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-        mmr.setDataSource(tr.resources[0].path, new HashMap<String, String>());
-
-        byte [] data = mmr.getEmbeddedPicture();
-        //coverart is an Imageview object
-
         // convert the byte array to a bitmap
-        if(data != null)
-            return BitmapFactory.decodeByteArray(data, 0, data.length);
+        if(tr.resources[0].cover_data != null)
+            return BitmapFactory.decodeByteArray(tr.resources[0].cover_data, 0, tr.resources[0].cover_data.length);
          else
-            return BitmapFactory.decodeResource(this.getResources(), R.drawable.peach);
+            return BitmapFactory.decodeResource(this.getResources(), R.drawable.nocover);
     }
 
 
@@ -223,10 +229,8 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         public Object instantiateItem(ViewGroup container, int position) {
-
             View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.item_cover,null);
-            SquareImageView imageView = (SquareImageView) view.findViewById(R.id.image_cover);
-            //Peach will contain the cover of the actual track
+            SquareImageView imageView = view.findViewById(R.id.image_cover);
             imageView.setImageBitmap(getCover(mService.getCurrentPlaylist().get(position)));
             imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             container.addView(view);

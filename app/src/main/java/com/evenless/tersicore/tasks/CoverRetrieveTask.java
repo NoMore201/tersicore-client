@@ -2,9 +2,12 @@ package com.evenless.tersicore.tasks;
 
 import android.media.MediaMetadataRetriever;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.evenless.tersicore.CoverRetrieveTaskListener;
 import com.evenless.tersicore.model.Track;
+
+import java.util.HashMap;
 
 public class CoverRetrieveTask extends AsyncTask<String, Integer, byte[]> {
 
@@ -18,9 +21,16 @@ public class CoverRetrieveTask extends AsyncTask<String, Integer, byte[]> {
 
     @Override
     protected byte[] doInBackground(String... urls) {
-        MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-        mmr.setDataSource(urls[0]);
-        return mmr.getEmbeddedPicture();
+        byte [] data = null;
+        try {
+            MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+            mmr.setDataSource(urls[0], new HashMap<String, String>());
+            data = mmr.getEmbeddedPicture();
+        } catch (Exception e) {
+            Log.e("CoverRetrieveTask", e.getMessage());
+        } finally {
+            return data;
+        }
     }
 
     @Override

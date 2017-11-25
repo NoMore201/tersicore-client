@@ -149,7 +149,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             mCurrentPlaylist.get(index).resources[0].cover_data = cover;
             mListener.onCoverFetched(mCurrentPlaylist.get(index));
         }
-
     }
 
     private void playlistCompleted() {

@@ -15,6 +15,8 @@ import com.evenless.tersicore.PreferencesHandler;
 
 public class Main2Activity extends AppCompatActivity {
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         final Context ctx = this;
