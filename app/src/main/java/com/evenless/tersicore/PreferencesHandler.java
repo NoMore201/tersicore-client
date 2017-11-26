@@ -22,7 +22,7 @@ public class PreferencesHandler {
 
     public static void setServer(Context ctx, String str){
         SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
-        editor.putString(str, PREF_SERVER_KEY);
+        editor.putString(PREF_SERVER_KEY, str);
         editor.apply();
     }
 }

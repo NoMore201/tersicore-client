@@ -24,8 +24,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         CoverRetrieveTaskListener
 {
     private static final String TAG = "MediaPlayerService";
-    private static String STREAM_URL = "http://casa.izzo.li:8888/stream/";
-
     private MediaPlayer mMediaPlayer;
     private WifiManager.WifiLock mWifiLock;
     private final IBinder mBinder = new LocalBinder();
@@ -178,7 +176,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             Track current = mCurrentPlaylist.get(mCurrentIndex);
             try {
                 newTrackPlaying(current);
-                mMediaPlayer.setDataSource(STREAM_URL +  current.resources[0].uuid);
+                mMediaPlayer.setDataSource("http://" + PreferencesHandler.getServer(this) + "/stream/" +  current.resources[0].uuid);
                 mMediaPlayer.prepareAsync();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -192,7 +190,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             return;
         }
         for (Track t: mCurrentPlaylist) {
-            TaskHandler.getCover(this, t);
+            TaskHandler.getCover(this, t, PreferencesHandler.getServer(this));
         }
     }
 }

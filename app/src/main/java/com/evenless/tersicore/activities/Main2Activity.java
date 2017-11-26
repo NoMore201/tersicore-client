@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -38,7 +39,7 @@ public class Main2Activity extends AppCompatActivity {
                             EditText mEdit = findViewById(R.id.editText2);
                             String IP = mEdit.getText().toString();
                             if(true) {
-                                //PreferencesHandler.setServer(ctx, IP);
+                                PreferencesHandler.setServer(ctx, "casa.izzo.li:8888");
                                 goToNextActivity();
                             } else {
                                 AlertDialog alertDialog = new AlertDialog.Builder(ctx).create();
