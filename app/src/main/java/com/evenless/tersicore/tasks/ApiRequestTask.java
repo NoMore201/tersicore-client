@@ -1,6 +1,5 @@
 package com.evenless.tersicore.tasks;
 
-
 import android.os.AsyncTask;
 
 import com.evenless.tersicore.ApiRequestTaskListener;
