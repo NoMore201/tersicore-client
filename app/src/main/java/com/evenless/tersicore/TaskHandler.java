@@ -18,7 +18,7 @@ public class TaskHandler {
     public static void getCover(CoverRetrieveTaskListener listener,
                                 Track track, String server)
     {
-        String url = "http://" + server + "/stream/" + track.resources[0].uuid;
+        String url = "http://" + server + "/stream/" + track.resources.get(0).uuid;
         CoverRetrieveTask task = new CoverRetrieveTask(listener, track);
         task.execute(url);
     }

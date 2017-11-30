@@ -13,10 +13,15 @@ import android.util.Log;
 
 import com.evenless.tersicore.exceptions.MediaPlayerException;
 import com.evenless.tersicore.model.Track;
+import com.evenless.tersicore.model.TrackResources;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+
+import io.realm.Realm;
+import io.realm.RealmList;
 
 
 public class MediaPlayerService extends Service implements MediaPlayer.OnPreparedListener,
@@ -85,6 +90,13 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         updateState();
     }
 
+    public void updatePlaylist(List<Track> tracks) {
+        mCurrentPlaylist = new ArrayList<>(tracks);
+        fetchAllCovers();
+        mCurrentIndex = 0;
+        updateState();
+    }
+
     public void play() {
         mMediaPlayer.start();
     }
@@ -143,10 +155,19 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     @Override
     public void onCoverRetrieveComplete(Track track, byte[] cover) {
-        int index = mCurrentPlaylist.indexOf(track);
-        if (index != -1) {
-            mCurrentPlaylist.get(index).resources[0].cover_data = cover;
-            mListener.onCoverFetched(mCurrentPlaylist.get(index));
+        final int index = mCurrentPlaylist.indexOf(track);
+        if (index != -1 && track.resources != null && track.resources.size() != 0) {
+            final Track toUpdate = track;
+            final byte[] newCover = cover;
+            final MediaPlayerServiceListener parentListener = mListener;
+            DataBackend.customUpdate(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    toUpdate.resources.get(0).cover_data = newCover;
+                    realm.insertOrUpdate(toUpdate);
+                    parentListener.onCoverFetched(toUpdate);
+                }
+            });
         }
     }
 
@@ -176,7 +197,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             Track current = mCurrentPlaylist.get(mCurrentIndex);
             try {
                 newTrackPlaying(current);
-                mMediaPlayer.setDataSource("http://" + PreferencesHandler.getServer(this) + "/stream/" +  current.resources[0].uuid);
+                mMediaPlayer.setDataSource("http://" + PreferencesHandler.getServer(this) + "/stream/" +  current.resources.get(0).uuid);
                 mMediaPlayer.prepareAsync();
             } catch (IOException e) {
                 e.printStackTrace();

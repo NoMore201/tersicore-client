@@ -6,12 +6,6 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.media.Image;
-import android.media.MediaMetadataRetriever;
-import android.nfc.Tag;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.v4.view.PagerAdapter;
@@ -31,6 +25,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.MediaPlayerService;
 import com.evenless.tersicore.MediaPlayerServiceListener;
 import com.evenless.tersicore.R;
@@ -39,13 +34,17 @@ import com.evenless.tersicore.model.Track;
 import com.evenless.tersicore.model.TrackResources;
 import com.evenless.tersicore.view.SquareImageView;
 
-import java.util.HashMap;
+import java.util.Arrays;
+import java.util.List;
 
+import io.realm.Realm;
+import io.realm.RealmList;
 import me.crosswall.lib.coverflow.CoverFlow;
 import me.crosswall.lib.coverflow.core.PagerContainer;
 
 public class MainActivity extends AppCompatActivity
     implements MediaPlayerServiceListener {
+    private static final String TAG = "MainActivity";
 
     private MediaPlayerService mService;
     private boolean mBound;
@@ -61,23 +60,41 @@ public class MainActivity extends AppCompatActivity
             mService = binder.getService();
             mBound = true;
             mService.setMediaPlayerServiceListener(ctx);
-            Track track1 = new Track();
-            TrackResources temp = new TrackResources();
-            TrackResources[] tempArray = new TrackResources[1];
-            temp.uuid = "881f51d2f478418fb9b595623528c55b";
-            tempArray[0] = temp;
-            track1.resources = tempArray;
-            track1.title="Oh Bella!";
-            track1.album_artist="Flume";
-            temp = new TrackResources();
-            tempArray = new TrackResources[1];
-            temp.uuid = "af49dd2f3ef04b1f8687e092d0a83bc0";
-            tempArray[0] = temp;
-            Track track2 = new Track();
-            track2.resources = tempArray;
-            track2.title="OMG";
-            track2.album_artist="Sconosciuto";
-            Track[] list = {track1, track2};
+            List<Track> list;
+            if (DataBackend.getTracks().size() != 0) {
+                Log.d(TAG, "onServiceConnected: found track in db");
+                list = DataBackend.getTracks();
+            } else {
+                Track track1 = new Track();
+                TrackResources temp = new TrackResources();
+                temp.uuid = "881f51d2f478418fb9b595623528c55b";
+                track1.uuid = "1";
+                track1.resources = new RealmList<>();
+                track1.resources.add(temp);
+                track1.title = "Oh Bella!";
+                track1.album_artist = "Flume";
+                temp = new TrackResources();
+                temp.uuid = "af49dd2f3ef04b1f8687e092d0a83bc0";
+                Track track2 = new Track();
+                track2.uuid = "2";
+                track2.resources = new RealmList<>();
+                track2.resources.add(temp);
+                track2.title = "OMG";
+                track2.album_artist = "Sconosciuto";
+                list = Arrays.asList(track1, track2);
+                DataBackend.addTracks(list, new Realm.Transaction.OnSuccess() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d(TAG, "onSuccess: added tracks");
+                    }
+                }, new Realm.Transaction.OnError() {
+                    @Override
+                    public void onError(Throwable error) {
+                        error.printStackTrace();
+                    }
+                });
+            }
+
             mService.updatePlaylist(list);
             PagerContainer container = (PagerContainer) findViewById(R.id.pager_container);
             final ViewPager pager = container.getViewPager();
@@ -207,8 +224,6 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -216,8 +231,10 @@ public class MainActivity extends AppCompatActivity
 
     private Bitmap getCover(Track tr){
         // convert the byte array to a bitmap
-        if(tr.resources[0].cover_data != null)
-            return BitmapFactory.decodeByteArray(tr.resources[0].cover_data, 0, tr.resources[0].cover_data.length);
+        if(tr.resources.get(0).cover_data != null)
+            return BitmapFactory.decodeByteArray(
+                    tr.resources.get(0).cover_data, 0,
+                    tr.resources.get(0).cover_data.length);
          else
             return BitmapFactory.decodeResource(this.getResources(), R.drawable.nocover);
     }
