@@ -6,18 +6,45 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.ListView;
 
+import com.evenless.tersicore.ApiRequestTaskListener;
+import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
+import com.evenless.tersicore.TaskHandler;
+import com.evenless.tersicore.model.Track;
+
+import java.util.ArrayList;
+
+import com.google.gson.Gson;
 
 public class Main3Activity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener,
+        ApiRequestTaskListener, SearchView.OnQueryTextListener {
+
+    Track[] listTracks = new Track[0];
+    ArrayList<Track> listTracksFiltered = new ArrayList<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        try {
+            TaskHandler.getTracks(this, PreferencesHandler.getServer(this));
+        } catch (Exception e) {
+            listTracks = new Track[0];
+        }
         setContentView(R.layout.activity_main3);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -30,6 +57,50 @@ public class Main3Activity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        // This is the array adapter, it takes the context of the activity as a
+        // first parameter, the type of list view as a second parameter and your
+        // array as a third parameter.
+        ArrayAdapter<Track> arrayAdapter = new ArrayAdapter<Track>(
+                this,
+                android.R.layout.simple_list_item_1,
+                listTracksFiltered );
+
+        EditText editit = findViewById(R.id.searchone);
+        editit.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                Log.i("Main3Activity", s.toString());
+                try {
+                    onQueryTextChange(s.toString());
+                } catch (Exception e) {
+                    Log.e("Main3Activity", e.getMessage());
+                }
+            }
+        });
+
+        ListView lsv = findViewById(R.id.listtr);
+        lsv.setAdapter(arrayAdapter);
+        // register onClickListener to handle click events on each item
+        lsv.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+            // argument position gives the index of item which is clicked
+            public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3)
+            {
+                //Cose
+            }
+        });
+        lsv.setAdapter(arrayAdapter);
     }
 
     @Override
@@ -93,5 +164,69 @@ public class Main3Activity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    /*@Override
+    public void onNewTrackPlaying(Track newTrack) {
+        // Update miniplayer
+    }
+
+    @Override
+    public void onPlaylistComplete() {
+        //Hide Miniplayer
+    }
+
+    @Override
+    public void onCoverFetched(Track track) {
+        //Update Miniplayer
+    }
+
+    @Override
+    public void onPlaybackError(Exception exception) {
+        //Alert?
+    }*/
+
+    @Override
+    public void onRequestComplete(String response) {
+        Log.i("Main3Activity", response.substring(0,100));
+        try {
+            listTracks = new Gson().fromJson(response, Track[].class);
+        } catch (Exception e) {
+            Log.e("Main3Activity", e.getMessage());
+        }
+        Log.i("Main3Activity", listTracks[0].toString());
+    }
+
+    @Override
+    public void onApiRequestError(Exception e) {
+        //Alert?
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(final String newT) {
+        listTracksFiltered = new ArrayList<>();
+        if(newT.length()!=0) {
+            for (int i = 0; i < listTracks.length; i++)
+                if (asd(listTracks[i], newT))
+                    listTracksFiltered.add(listTracks[i]);
+        }
+        ListView lsv = findViewById(R.id.listtr);
+        ArrayAdapter<Track> arrayAdapter = new ArrayAdapter<Track>(
+                this,
+                android.R.layout.simple_list_item_1,
+                listTracksFiltered );
+        lsv.setAdapter(arrayAdapter);
+        return false;
+    }
+
+    public boolean asd(Track s, String t){
+        String newText = t.toLowerCase();
+        return (s.title!=null && s.title.toLowerCase().contains(newText)) || (s.album!=null && s.album.toLowerCase().contains(newText)) ||
+                (s.artist!=null && s.artist.toLowerCase().contains(newText));
     }
 }
