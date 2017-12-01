@@ -64,6 +64,9 @@ public class Main3Activity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Intent intent = new Intent(this, MediaPlayerService.class);
+        startService(intent);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
         try {
             TaskHandler.getTracks(this, PreferencesHandler.getServer(this));
         } catch (Exception e) {
@@ -262,6 +265,7 @@ public class Main3Activity extends AppCompatActivity
         return (s.title!=null && s.title.toLowerCase().contains(newText)) || (s.album!=null && s.album.toLowerCase().contains(newText)) ||
                 (s.artist!=null && s.artist.toLowerCase().contains(newText));
     }
+
     @Override
     protected void onStop() {
         super.onStop();

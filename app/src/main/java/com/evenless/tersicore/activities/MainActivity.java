@@ -128,7 +128,8 @@ public class MainActivity extends AppCompatActivity
 
                 @Override
                 public void onPageSelected(int position) {
-                    mService.seekToTrack(position);
+                    Log.i("Player", position + "");
+                    mService.seekTo(position);
                     tv_song.setText(mService.getCurrentPlaylist().get(position).title);
                     RelativeLayout relativeLayout = (RelativeLayout) pager.getAdapter().instantiateItem(pager, 0);
                     ViewCompat.setElevation(relativeLayout.getRootView(), 8.0f);
