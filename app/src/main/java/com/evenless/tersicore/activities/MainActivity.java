@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity
 
                 @Override
                 public void onPageSelected(int position) {
-                    mService.seekTo(position);
+                    mService.seekToTrack(position);
                     tv_song.setText(mService.getCurrentPlaylist().get(position).title);
                     RelativeLayout relativeLayout = (RelativeLayout) pager.getAdapter().instantiateItem(pager, 0);
                     ViewCompat.setElevation(relativeLayout.getRootView(), 8.0f);
@@ -216,6 +216,12 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onPlaybackProgressUpdate(Track track, int currentMilliseconds) {
+        // update seekbar
+        Log.d(TAG, "onPlaybackProgressUpdate: current milliseconds is " + currentMilliseconds);
+    }
+
+    @Override
     public void onPlaybackError(Exception exception) {
         if (exception.getClass().equals(InvalidUrlException.class)) {
             Log.e("TAG", "onPlaybackError: invalid url" );
@@ -235,8 +241,10 @@ public class MainActivity extends AppCompatActivity
             return BitmapFactory.decodeByteArray(
                     tr.resources.get(0).cover_data, 0,
                     tr.resources.get(0).cover_data.length);
-         else
+        else {
+            mService.fetchCover(tr);
             return BitmapFactory.decodeResource(this.getResources(), R.drawable.nocover);
+        }
     }
 
 

@@ -10,6 +10,7 @@ import com.evenless.tersicore.model.Track;
 import java.util.HashMap;
 
 public class CoverRetrieveTask extends AsyncTask<String, Integer, byte[]> {
+    private final static String TAG = "CoverRetrieveTask";
 
     private CoverRetrieveTaskListener mListener;
     private Track mTrack;
@@ -36,6 +37,7 @@ public class CoverRetrieveTask extends AsyncTask<String, Integer, byte[]> {
     @Override
     protected void onPostExecute(byte[] image) {
         super.onPostExecute(image);
+        Log.d(TAG, "onPostExecute: get cover api request succeded");
         mListener.onCoverRetrieveComplete(mTrack, image);
     }
 

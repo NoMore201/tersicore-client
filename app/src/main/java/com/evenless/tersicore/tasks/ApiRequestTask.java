@@ -1,6 +1,7 @@
 package com.evenless.tersicore.tasks;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.evenless.tersicore.ApiRequestTaskListener;
 
@@ -12,7 +13,10 @@ import java.net.URL;
 
 import javax.net.ssl.HttpsURLConnection;
 
+
+
 public class ApiRequestTask extends AsyncTask<URL, Integer, String> {
+    private final static String TAG = "ApiRequestTask";
 
     private ApiRequestTaskListener mListener;
 
@@ -28,7 +32,10 @@ public class ApiRequestTask extends AsyncTask<URL, Integer, String> {
     @Override
     protected void onPostExecute(String result) {
         super.onPostExecute(result);
-        mListener.onRequestComplete(result);
+        if (result != null) {
+            Log.d(TAG, "onPostExecute: get track api request succeded");
+            mListener.onRequestComplete(result);
+        }
     }
 
     @Override

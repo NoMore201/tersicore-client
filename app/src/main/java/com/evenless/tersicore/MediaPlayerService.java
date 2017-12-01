@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import io.realm.Realm;
 import io.realm.RealmList;
@@ -35,6 +37,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     private MediaPlayerServiceListener mListener;
     private ArrayList<Track> mCurrentPlaylist;
     private int mCurrentIndex;
+    private Timer mCurrentTimer = new Timer();
 
     public enum SkipDirection { SKIP_FORWARD, SKIP_BACKWARD }
 
@@ -85,14 +88,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     public void updatePlaylist(Track[] tracks) {
         mCurrentPlaylist = new ArrayList<>(Arrays.asList(tracks));
-        fetchAllCovers();
         mCurrentIndex = 0;
         updateState();
     }
 
     public void updatePlaylist(List<Track> tracks) {
         mCurrentPlaylist = new ArrayList<>(tracks);
-        fetchAllCovers();
         mCurrentIndex = 0;
         updateState();
     }
@@ -117,9 +118,13 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         updateState();
     }
 
-    public void seekTo(int index) {
+    public void seekToTrack(int index) {
         mCurrentIndex = index;
         updateState();
+    }
+
+    public void seekTo(int milliseconds) {
+        mMediaPlayer.seekTo(milliseconds);
     }
 
     public boolean isPlaying() {
@@ -160,7 +165,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             final Track toUpdate = track;
             final byte[] newCover = cover;
             final MediaPlayerServiceListener parentListener = mListener;
-            DataBackend.customUpdate(new Realm.Transaction() {
+            DataBackend.customUpdateSync(new Realm.Transaction() {
                 @Override
                 public void execute(Realm realm) {
                     toUpdate.resources.get(0).cover_data = newCover;
@@ -169,6 +174,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                 }
             });
         }
+        //TODO: update similar track
     }
 
     private void playlistCompleted() {
@@ -194,11 +200,24 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         if (mCurrentIndex >= mCurrentPlaylist.size()) {
             playlistCompleted();
         } else {
-            Track current = mCurrentPlaylist.get(mCurrentIndex);
+            final Track current = mCurrentPlaylist.get(mCurrentIndex);
             try {
                 newTrackPlaying(current);
                 mMediaPlayer.setDataSource("http://" + PreferencesHandler.getServer(this) + "/stream/" +  current.resources.get(0).uuid);
                 mMediaPlayer.prepareAsync();
+                final MediaPlayerServiceListener context = mListener;
+                final MediaPlayer mediaPlayerInstance = mMediaPlayer;
+                mCurrentTimer.cancel();
+                mCurrentTimer = new Timer();
+                mCurrentTimer.scheduleAtFixedRate(new TimerTask() {
+                    @Override
+                    public void run() {
+                        if (mMediaPlayer.isPlaying()) {
+                            context.onPlaybackProgressUpdate(current,
+                                    mediaPlayerInstance.getCurrentPosition());
+                        }
+                    }
+                }, 0, 1000);
             } catch (IOException e) {
                 e.printStackTrace();
                 playbackError(e);
@@ -206,12 +225,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         }
     }
 
-    private void fetchAllCovers() {
-        if (mCurrentPlaylist.size() == 0) {
-            return;
-        }
-        for (Track t: mCurrentPlaylist) {
-            TaskHandler.getCover(this, t, PreferencesHandler.getServer(this));
-        }
+    public void fetchCover(Track track) {
+        TaskHandler.getCover(this, track, PreferencesHandler.getServer(this));
     }
 }

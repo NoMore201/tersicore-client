@@ -39,6 +39,10 @@ public class DataBackend {
     }
 
     public static void customUpdate(Realm.Transaction transaction) {
+        getInstance().executeTransactionAsync(transaction);
+    }
+
+    public static void customUpdateSync(Realm.Transaction transaction) {
         getInstance().executeTransaction(transaction);
     }
 
