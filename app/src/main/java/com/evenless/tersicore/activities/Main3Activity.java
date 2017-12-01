@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import java.util.Arrays;
 import com.google.gson.Gson;
 
 public class Main3Activity extends AppCompatActivity
@@ -281,7 +282,6 @@ public class Main3Activity extends AppCompatActivity
         return (s.title!=null && s.title.toLowerCase().contains(newText)) || (s.album!=null && s.album.toLowerCase().contains(newText)) ||
                 (s.artist!=null && s.artist.toLowerCase().contains(newText));
     }
-
 
     @Override
     protected void onStop() {
