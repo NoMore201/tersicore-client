@@ -59,6 +59,7 @@ public class MainActivity extends AppCompatActivity
             mService = binder.getService();
             mBound = true;
             mService.setMediaPlayerServiceListener(ctx);
+            /*
             List<Track> list;
             if (DataBackend.getTracks().size() != 0) {
                 Log.d(TAG, "onServiceConnected: found track in db");
@@ -87,6 +88,9 @@ public class MainActivity extends AppCompatActivity
 
             mService.updatePlaylist(list);
             PagerContainer container = findViewById(R.id.pager_container);
+
+            */
+            PagerContainer container = (PagerContainer) findViewById(R.id.pager_container);
             final ViewPager pager = container.getViewPager();
             pager.setAdapter(new MainActivity.MyPagerAdapter());
             pager.setClipChildren(false);
@@ -103,6 +107,19 @@ public class MainActivity extends AppCompatActivity
                 pager.setPageMargin(30);
             }
             final TextView tv_song = (TextView) findViewById(R.id.tv_song);
+            tv_song.setText(mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex()).title);
+            RelativeLayout relativeLayout = (RelativeLayout) pager.getAdapter().instantiateItem(pager, 0);
+            ViewCompat.setElevation(relativeLayout.getRootView(), 8.0f);
+            Palette palette = Palette.from(getCover(mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex()))).generate();
+            setStatusBar(palette);
+            TextView tv_artist = findViewById(R.id.tv_artist);
+            ImageButton vie = findViewById(R.id.playbutton);
+            tv_artist.setText(mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex()).artist);
+                    if(mService.isPlaying())
+                        vie.setImageResource(R.drawable.ic_play);
+                    else
+                        vie.setImageResource(R.drawable.ic_pause);
+            pager.setCurrentItem(mService.getCurrentTrackIndex(), true);
             pager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
                 @Override
                 public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -118,7 +135,7 @@ public class MainActivity extends AppCompatActivity
                     Palette palette = Palette.from(getCover(mService.getCurrentPlaylist().get(position))).generate();
                     setStatusBar(palette);
                     TextView tv_artist = findViewById(R.id.tv_artist);
-                    tv_artist.setText(mService.getCurrentPlaylist().get(position).album_artist);
+                    tv_artist.setText(mService.getCurrentPlaylist().get(position).artist);
                 }
 
                 @Override
@@ -274,7 +291,6 @@ public class MainActivity extends AppCompatActivity
             if (vibrant != null) {
                 window.setStatusBarColor(vibrant.getRgb());
             }
-
         }
     }
 
