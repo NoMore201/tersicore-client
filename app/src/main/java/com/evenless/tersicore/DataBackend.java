@@ -8,26 +8,24 @@ import io.realm.Realm;
 import io.realm.RealmResults;
 
 public class DataBackend {
-    public static void addTracks(List<Track> tracks, Realm.Transaction.OnSuccess onSuccessCallback,
-                                 Realm.Transaction.OnError onErrorCallback) {
+    public static void addTracks(List<Track> tracks) {
         final List<Track> toAdd = tracks;
-        getInstance().executeTransactionAsync(new Realm.Transaction() {
+        getInstance().executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
                 realm.insertOrUpdate(toAdd);
             }
-        }, onSuccessCallback, onErrorCallback);
+        });
     }
 
-    public static void addTrack(Track track, Realm.Transaction.OnSuccess onSuccessCallback,
-                                Realm.Transaction.OnError onErrorCallback) {
+    public static void addTrack(Track track) {
         final Track toAdd = track;
-        getInstance().executeTransactionAsync(new Realm.Transaction() {
+        getInstance().executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
                 realm.insertOrUpdate(toAdd);
             }
-        }, onSuccessCallback, onErrorCallback);
+        });
     }
 
     public static RealmResults<Track> getTracks() {

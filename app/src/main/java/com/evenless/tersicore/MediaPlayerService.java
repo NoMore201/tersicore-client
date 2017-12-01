@@ -3,10 +3,13 @@ package com.evenless.tersicore;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.os.PowerManager;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -38,6 +41,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     private ArrayList<Track> mCurrentPlaylist;
     private int mCurrentIndex;
     private Timer mCurrentTimer = new Timer();
+
+    public long getDuration() {
+        return mMediaPlayer.getDuration();
+    }
+
+    public void seekTo5sec() {
+        mMediaPlayer.seekTo(mMediaPlayer.getCurrentPosition() + 5000);
+    }
 
     public enum SkipDirection { SKIP_FORWARD, SKIP_BACKWARD }
 
@@ -159,16 +170,18 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     @Override
-    public void onCoverRetrieveComplete(Track track, byte[] cover) {
+    public void onCoverRetrieveComplete(Track track, MediaMetadataRetriever cover) {
         final int index = mCurrentPlaylist.indexOf(track);
         if (index != -1 && track.resources != null && track.resources.size() != 0) {
             final Track toUpdate = track;
-            final byte[] newCover = cover;
+            final byte[] newCover = cover.getEmbeddedPicture();
+            final MediaMetadataRetriever mmr = cover;
             final MediaPlayerServiceListener parentListener = mListener;
             DataBackend.customUpdateSync(new Realm.Transaction() {
                 @Override
                 public void execute(Realm realm) {
                     toUpdate.resources.get(0).cover_data = newCover;
+                    toUpdate.resources.get(0).duration = Long.parseLong(mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
                     realm.insertOrUpdate(toUpdate);
                     parentListener.onCoverFetched(toUpdate);
                 }
@@ -205,24 +218,34 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                 newTrackPlaying(current);
                 mMediaPlayer.setDataSource("http://" + PreferencesHandler.getServer(this) + "/stream/" +  current.resources.get(0).uuid);
                 mMediaPlayer.prepareAsync();
-                final MediaPlayerServiceListener context = mListener;
-                final MediaPlayer mediaPlayerInstance = mMediaPlayer;
-                mCurrentTimer.cancel();
-                mCurrentTimer = new Timer();
-                mCurrentTimer.scheduleAtFixedRate(new TimerTask() {
-                    @Override
-                    public void run() {
-                        if (mMediaPlayer.isPlaying()) {
-                            context.onPlaybackProgressUpdate(current,
-                                    mediaPlayerInstance.getCurrentPosition());
-                        }
-                    }
-                }, 0, 1000);
             } catch (IOException e) {
                 e.printStackTrace();
                 playbackError(e);
             }
         }
+    }
+
+    public void callTimer(Handler h){
+        final Handler mHandler = h;
+        final MediaPlayer mediaPlayerInstance = mMediaPlayer;
+        mCurrentTimer.cancel();
+        mCurrentTimer = new Timer();
+        mCurrentTimer.scheduleAtFixedRate(new TimerTask() {
+
+            @Override
+            public void run() {
+                try {
+                    if (mMediaPlayer.isPlaying()) {
+                        Message a = new Message();
+                        a.arg1=mediaPlayerInstance.getCurrentPosition();
+                        a.arg2=mediaPlayerInstance.getDuration();
+                        mHandler.sendMessage(a);
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, e.getMessage());
+                }
+            }
+        }, 0, 1000);
     }
 
     public void fetchCover(Track track) {

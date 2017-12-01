@@ -89,7 +89,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
             android:layout_centerVertical="true"
-            android:text="2:01"
+            android:text="-:-"
             android:textSize="14sp"
             android:textColor="@color/colorTextGrey"/>
         <TextView
@@ -98,10 +98,11 @@
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:text="3:47"
+            android:text="-:-"
             android:textSize="14sp"
             android:textColor="@color/colorTextGrey" />
         <SeekBar
+            android:id="@+id/tv_seek"
             android:layout_width="match_parent"
             android:layout_height="@dimen/space8"
             android:layout_toLeftOf="@id/tv_full_time"
@@ -110,7 +111,7 @@
             android:layout_marginRight="@dimen/space16"
             android:layout_centerVertical="true"
             android:progressBackgroundTint="#E9E9E9"
-            android:progress="50"
+            android:progress="0"
             android:indeterminate="false"
             style="@style/Widget.AppCompat.ProgressBar.Horizontal"
             android:progressDrawable="@drawable/progress_bar"/>
