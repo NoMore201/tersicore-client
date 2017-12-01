@@ -57,7 +57,7 @@ public class Main2Activity extends AppCompatActivity {
     }
 
     private void goToNextActivity() {
-        Intent asd = new Intent(this, MainActivity.class);
+        Intent asd = new Intent(this, Main3Activity.class);
         startActivity(asd);
     }
 

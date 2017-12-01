@@ -7,14 +7,13 @@ import io.realm.annotations.PrimaryKey;
 public class Track extends RealmObject {
     @PrimaryKey
     public String uuid;
-
     public String album;
     public String album_artist;
     public boolean compilation;
     public String date;
-    public int disc_number;
+    public String disc_number;
     public String title;
-    public int track_number;
+    public String track_number;
     public RealmList<TrackResources> resources;
     public String artist;
     public int total_tracks;
@@ -23,9 +22,13 @@ public class Track extends RealmObject {
     public String isrc;
 
     public void updateCover(byte[] cover) {
-        for (TrackResources tr: resources) {
+        for (TrackResources tr : resources) {
             if (tr.cover_data == null)
                 tr.cover_data = cover;
         }
+    }
+    
+    public String toString() {
+        return artist + " - " + title;
     }
 }
