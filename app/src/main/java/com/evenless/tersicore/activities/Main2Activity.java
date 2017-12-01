@@ -52,8 +52,6 @@ public class Main2Activity extends AppCompatActivity {
                     }
                 });
         }
-
-
     }
 
     private void goToNextActivity() {

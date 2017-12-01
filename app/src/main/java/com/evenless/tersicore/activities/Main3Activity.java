@@ -1,6 +1,11 @@
 package com.evenless.tersicore.activities;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -20,6 +25,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 import com.evenless.tersicore.ApiRequestTaskListener;
+import com.evenless.tersicore.MediaPlayerService;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.TaskHandler;
@@ -35,11 +41,32 @@ public class Main3Activity extends AppCompatActivity
 
     Track[] listTracks = new Track[0];
     ArrayList<Track> listTracksFiltered = new ArrayList<>();
+    Context ctx = this;
+    private MediaPlayerService mService;
+    private boolean mBound=false;
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            MediaPlayerService.LocalBinder binder = (MediaPlayerService.LocalBinder) service;
+            mService = binder.getService();
+            mBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+        }
+    };
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Intent intent = new Intent(this, MediaPlayerService.class);
+        startService(intent);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
         try {
             TaskHandler.getTracks(this, PreferencesHandler.getServer(this));
         } catch (Exception e) {
@@ -97,7 +124,16 @@ public class Main3Activity extends AppCompatActivity
             // argument position gives the index of item which is clicked
             public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3)
             {
-                //Cose
+                if(mBound) {
+                    Track[] temp = new Track[1];
+                    temp[0] = listTracksFiltered.get(position);
+                    mService.updatePlaylist(temp);
+                    Intent asd = new Intent(ctx, MainActivity.class);
+                    startActivity(asd);
+                } else {
+                    //Alert service not bound yet
+                    Log.i("Home", "Service not bound yet");
+                }
             }
         });
         lsv.setAdapter(arrayAdapter);
@@ -228,5 +264,12 @@ public class Main3Activity extends AppCompatActivity
         String newText = t.toLowerCase();
         return (s.title!=null && s.title.toLowerCase().contains(newText)) || (s.album!=null && s.album.toLowerCase().contains(newText)) ||
                 (s.artist!=null && s.artist.toLowerCase().contains(newText));
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unbindService(mConnection);
+        mBound = false;
     }
 }
