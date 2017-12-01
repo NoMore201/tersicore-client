@@ -2,6 +2,7 @@ package com.evenless.tersicore.tasks;
 
 import android.media.MediaMetadataRetriever;
 import android.os.AsyncTask;
+import android.provider.MediaStore;
 import android.util.Log;
 
 import com.evenless.tersicore.CoverRetrieveTaskListener;
@@ -9,7 +10,7 @@ import com.evenless.tersicore.model.Track;
 
 import java.util.HashMap;
 
-public class CoverRetrieveTask extends AsyncTask<String, Integer, byte[]> {
+public class CoverRetrieveTask extends AsyncTask<String, Integer, MediaMetadataRetriever> {
     private final static String TAG = "CoverRetrieveTask";
 
     private CoverRetrieveTaskListener mListener;
@@ -21,21 +22,20 @@ public class CoverRetrieveTask extends AsyncTask<String, Integer, byte[]> {
     }
 
     @Override
-    protected byte[] doInBackground(String... urls) {
-        byte [] data = null;
+    protected MediaMetadataRetriever doInBackground(String... urls) {
+        MediaMetadataRetriever mmr = new MediaMetadataRetriever();;
         try {
-            MediaMetadataRetriever mmr = new MediaMetadataRetriever();
             mmr.setDataSource(urls[0], new HashMap<String, String>());
-            data = mmr.getEmbeddedPicture();
         } catch (Exception e) {
             Log.e("CoverRetrieveTask", e.getMessage());
-        } finally {
-            return data;
         }
+
+        return mmr;
+
     }
 
     @Override
-    protected void onPostExecute(byte[] image) {
+    protected void onPostExecute(MediaMetadataRetriever image) {
         super.onPostExecute(image);
         Log.d(TAG, "onPostExecute: get cover api request succeded");
         mListener.onCoverRetrieveComplete(mTrack, image);

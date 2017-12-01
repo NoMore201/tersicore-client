@@ -8,7 +8,9 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.os.PowerManager;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -35,6 +37,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     private ArrayList<Track> mCurrentPlaylist;
     private int mCurrentIndex;
     private Timer mCurrentTimer = new Timer();
+
+    public long getDuration() {
+        return mMediaPlayer.getDuration();
+    }
+
+    public void seekTo5sec() {
+        mMediaPlayer.seekTo(mMediaPlayer.getCurrentPosition() + 5000);
+    }
 
     public enum SkipDirection { SKIP_FORWARD, SKIP_BACKWARD }
 
@@ -219,24 +229,34 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                         "/stream/" +
                         current.resources.get(0).uuid);
                 mMediaPlayer.prepareAsync();
-                final MediaPlayerServiceListener context = mListener;
-                final MediaPlayer mediaPlayerInstance = mMediaPlayer;
-                mCurrentTimer.cancel();
-                mCurrentTimer = new Timer();
-                mCurrentTimer.scheduleAtFixedRate(new TimerTask() {
-                    @Override
-                    public void run() {
-                        if (mMediaPlayer.isPlaying()) {
-                            context.onPlaybackProgressUpdate(current,
-                                    mediaPlayerInstance.getCurrentPosition());
-                        }
-                    }
-                }, 0, 1000);
             } catch (IOException e) {
                 e.printStackTrace();
                 playbackError(e);
             }
         }
+    }
+
+    public void callTimer(Handler h){
+        final Handler mHandler = h;
+        final MediaPlayer mediaPlayerInstance = mMediaPlayer;
+        mCurrentTimer.cancel();
+        mCurrentTimer = new Timer();
+        mCurrentTimer.scheduleAtFixedRate(new TimerTask() {
+
+            @Override
+            public void run() {
+                try {
+                    if (mMediaPlayer.isPlaying()) {
+                        Message a = new Message();
+                        a.arg1=mediaPlayerInstance.getCurrentPosition();
+                        a.arg2=mediaPlayerInstance.getDuration();
+                        mHandler.sendMessage(a);
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, e.getMessage());
+                }
+            }
+        }, 0, 1000);
     }
 
     public void fetchCover(Track track) {

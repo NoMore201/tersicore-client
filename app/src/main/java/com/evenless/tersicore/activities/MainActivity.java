@@ -1,5 +1,6 @@
 package com.evenless.tersicore.activities;
 
+import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -7,7 +8,9 @@ import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
@@ -23,6 +26,7 @@ import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.evenless.tersicore.DataBackend;
@@ -33,6 +37,8 @@ import com.evenless.tersicore.exceptions.InvalidUrlException;
 import com.evenless.tersicore.model.Track;
 import com.evenless.tersicore.model.TrackResources;
 import com.evenless.tersicore.view.SquareImageView;
+
+import org.w3c.dom.Text;
 
 import java.util.Arrays;
 import java.util.List;
@@ -59,6 +65,7 @@ public class MainActivity extends AppCompatActivity
             mService = binder.getService();
             mBound = true;
             mService.setMediaPlayerServiceListener(ctx);
+            mService.callTimer(mHandler);
             /*
             List<Track> list;
             if (DataBackend.getTracks().size() != 0) {
@@ -106,19 +113,22 @@ public class MainActivity extends AppCompatActivity
             }else{
                 pager.setPageMargin(30);
             }
+            Track tr = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex());
             final TextView tv_song = (TextView) findViewById(R.id.tv_song);
-            tv_song.setText(mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex()).title);
+            tv_song.setText(tr.title);
             RelativeLayout relativeLayout = (RelativeLayout) pager.getAdapter().instantiateItem(pager, 0);
             ViewCompat.setElevation(relativeLayout.getRootView(), 8.0f);
-            Palette palette = Palette.from(getCover(mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex()))).generate();
+            Palette palette = Palette.from(getCover(tr)).generate();
             setStatusBar(palette);
             TextView tv_artist = findViewById(R.id.tv_artist);
             ImageButton vie = findViewById(R.id.playbutton);
-            tv_artist.setText(mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex()).artist);
-                    if(mService.isPlaying())
-                        vie.setImageResource(R.drawable.ic_play);
-                    else
-                        vie.setImageResource(R.drawable.ic_pause);
+            tv_artist.setText(tr.artist);
+            if(mService.isPlaying())
+                vie.setImageResource(R.drawable.ic_play);
+            else
+                vie.setImageResource(R.drawable.ic_pause);
+            SeekBar tv_seek=findViewById(R.id.tv_seek);
+            tv_seek.setOnSeekBarChangeListener(new seekListener());
             pager.setCurrentItem(mService.getCurrentTrackIndex(), true);
             pager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
                 @Override
@@ -128,15 +138,18 @@ public class MainActivity extends AppCompatActivity
 
                 @Override
                 public void onPageSelected(int position) {
-                    Log.i("Player", position + "");
-                    mService.seekTo(position);
-                    tv_song.setText(mService.getCurrentPlaylist().get(position).title);
+                    mService.seekToTrack(position);
+                    Track tra = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex());
+                    tv_song.setText(tra.title);
                     RelativeLayout relativeLayout = (RelativeLayout) pager.getAdapter().instantiateItem(pager, 0);
                     ViewCompat.setElevation(relativeLayout.getRootView(), 8.0f);
-                    Palette palette = Palette.from(getCover(mService.getCurrentPlaylist().get(position))).generate();
+                    Palette palette = Palette.from(getCover(tra)).generate();
                     setStatusBar(palette);
                     TextView tv_artist = findViewById(R.id.tv_artist);
-                    tv_artist.setText(mService.getCurrentPlaylist().get(position).artist);
+                    if(tra.artist!=null)
+                        tv_artist.setText(tra.artist);
+                    else
+                        tv_artist.setText(tra.album_artist);
                 }
 
                 @Override
@@ -175,6 +188,18 @@ public class MainActivity extends AppCompatActivity
         pager.setCurrentItem(mService.getCurrentTrackIndex(), false);
     }
 
+    private String parseDuration(long durationMs){
+        long duration = durationMs / 1000;
+        long h = duration / 3600;
+        long m = (duration - h * 3600) / 60;
+        long s = duration - (h * 3600 + m * 60);
+        if (h == 0) {
+            return m + ":" + String.format("%02d",s);
+        } else {
+            return h + ":" + String.format("%02d",m) + ":" + String.format("%02d",s);
+        }
+    }
+
     public void onClickPlay(View v) {
         if (mBound) {
             if(mService.isPlaying()) {
@@ -207,6 +232,13 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    @SuppressLint("HandlerLeak")
+    public Handler mHandler = new Handler() {
+        public void handleMessage(Message msg) {
+            onPlaybackProgressUpdate(msg.arg1, msg.arg2);
+        }
+    };
+
     @Override
     public void onPlaylistComplete() {
         //do something
@@ -224,9 +256,20 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onPlaybackProgressUpdate(Track track, int currentMilliseconds) {
+    public void onPlaybackProgressUpdate(int currentMilliseconds , int durat) {
+        long duration = mService.getDuration();
+        boolean result = duration!=0;
         // update seekbar
-        Log.d(TAG, "onPlaybackProgressUpdate: current milliseconds is " + currentMilliseconds);
+        if(result){
+            TextView tv_currentms = findViewById(R.id.tv_current_time);
+            tv_currentms.setText(parseDuration(currentMilliseconds));
+            SeekBar tv_seek = findViewById(R.id.tv_seek);
+            tv_seek.setMax(0);
+            tv_seek.setMax(durat);
+            tv_seek.setProgress(currentMilliseconds);
+            TextView fullT = findViewById(R.id.tv_full_time);
+            fullT.setText(parseDuration(duration));
+        }
     }
 
     @Override
@@ -283,6 +326,23 @@ public class MainActivity extends AppCompatActivity
             return (view == object);
         }
     }
+
+    private class seekListener implements SeekBar.OnSeekBarChangeListener {
+
+        public void onProgressChanged(SeekBar seekBar, int progress,
+                                      boolean fromUser) {
+
+        }
+
+        public void onStartTrackingTouch(SeekBar seekBar) {}
+
+        public void onStopTrackingTouch(SeekBar seekBar) {
+            int progress = seekBar.getProgress();
+            mService.seekTo(progress);
+        }
+
+    }
+
     public void setStatusBar(Palette palette){
         Window window = getWindow();
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);

@@ -11,7 +11,6 @@ import io.realm.Realm;
 import io.realm.RealmResults;
 
 public class DataBackend {
-
     public static void addTracks(List<Track> tracks) {
         Realm realm = getInstance();
         realm.beginTransaction();

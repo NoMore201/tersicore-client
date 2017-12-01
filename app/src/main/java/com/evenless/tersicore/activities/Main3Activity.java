@@ -25,6 +25,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 import com.evenless.tersicore.ApiRequestTaskListener;
+import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.MediaPlayerService;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
@@ -32,6 +33,8 @@ import com.evenless.tersicore.TaskHandler;
 import com.evenless.tersicore.model.Track;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import com.google.gson.Gson;
 
@@ -64,13 +67,18 @@ public class Main3Activity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Intent intent = new Intent(this, MediaPlayerService.class);
-        startService(intent);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
         try {
-            TaskHandler.getTracks(this, PreferencesHandler.getServer(this));
-        } catch (Exception e) {
-            listTracks = new Track[0];
+            if (DataBackend.getTracks().size() != 0) {
+                listTracks = new Track[DataBackend.getTracks().size()];
+                DataBackend.getTracks().toArray(listTracks);
+            } else
+                try {
+                    TaskHandler.getTracks(this, PreferencesHandler.getServer(this));
+                } catch (Exception e) {
+                    listTracks = new Track[0];
+                }
+        } catch (Exception e){
+            Log.e("Player", e.getMessage());
         }
         setContentView(R.layout.activity_main3);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -107,7 +115,6 @@ public class Main3Activity extends AppCompatActivity
 
             @Override
             public void afterTextChanged(Editable s) {
-                Log.i("Main3Activity", s.toString());
                 try {
                     onQueryTextChange(s.toString());
                 } catch (Exception e) {
@@ -137,6 +144,14 @@ public class Main3Activity extends AppCompatActivity
             }
         });
         lsv.setAdapter(arrayAdapter);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Intent intent = new Intent(this, MediaPlayerService.class);
+        startService(intent);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -227,6 +242,7 @@ public class Main3Activity extends AppCompatActivity
         Log.i("Main3Activity", response.substring(0,100));
         try {
             listTracks = new Gson().fromJson(response, Track[].class);
+            DataBackend.addTracks(new ArrayList<>(Arrays.asList(listTracks)));
         } catch (Exception e) {
             Log.e("Main3Activity", e.getMessage());
         }
@@ -265,6 +281,7 @@ public class Main3Activity extends AppCompatActivity
         return (s.title!=null && s.title.toLowerCase().contains(newText)) || (s.album!=null && s.album.toLowerCase().contains(newText)) ||
                 (s.artist!=null && s.artist.toLowerCase().contains(newText));
     }
+
 
     @Override
     protected void onStop() {
