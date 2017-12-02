@@ -42,10 +42,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         return mMediaPlayer.getDuration();
     }
 
-    public void seekTo5sec() {
-        mMediaPlayer.seekTo(mMediaPlayer.getCurrentPosition() + 5000);
-    }
-
     public enum SkipDirection { SKIP_FORWARD, SKIP_BACKWARD }
 
     public class LocalBinder extends Binder {

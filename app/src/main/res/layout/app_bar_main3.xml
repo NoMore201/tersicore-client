@@ -11,14 +11,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/colorPrimary"
-        android:elevation="0dp"
+        android:elevation="1dp"
         android:minHeight="50dp"
         android:theme="?attr/actionBarTheme"
         android:visibility="visible" />
 
     <include
         layout="@layout/content_main3"
-        android:layout_height="wrap_content"
         tools:layout_editor_absoluteY="122dp" />
 
 </android.support.design.widget.CoordinatorLayout>
