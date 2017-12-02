@@ -3,6 +3,8 @@ package com.evenless.tersicore;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioAttributes;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
@@ -57,6 +59,13 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         mMediaPlayer.setOnErrorListener(this);
         mMediaPlayer.setOnCompletionListener(this);
         mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+
+        AudioAttributes attributes = new AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .setLegacyStreamType(AudioManager.STREAM_MUSIC)
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .build();
+        mMediaPlayer.setAudioAttributes(attributes);
 
         try {
             WifiManager service = ((WifiManager) getApplicationContext()
