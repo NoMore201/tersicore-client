@@ -168,6 +168,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             if (updated.album != null) {
                 // update all tracks of the same album
                 List<Track> tracksWithSameAlbum = DataBackend.getTracksByAlbum(track.album);
+                tracksWithSameAlbum.remove(updated);
                 for (Track t : tracksWithSameAlbum) {
                     if (t.resources != null &&
                             t.resources.size() != 0) {
