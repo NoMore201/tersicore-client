@@ -8,8 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.realm.Realm;
+import io.realm.RealmResults;
 
 public class DataBackend {
+
     public static void addTracks(List<Track> tracks) {
         Realm realm = getInstance();
         realm.beginTransaction();
@@ -25,25 +27,38 @@ public class DataBackend {
     }
 
     public static List<String> getArtists() {
-        List<Track> tracks = getTracks();
+        RealmResults<Track> unique = getInstance().where(Track.class)
+                .distinct("artist");
         ArrayList<String> result = new ArrayList<>();
-        for (Track t : tracks) {
-            if (!result.contains(t.album_artist)) {
-                result.add(t.album_artist);
+        for (Track t : unique) {
+            if (t.artist != null) {
+                result.add(t.artist);
             }
         }
         return result;
     }
 
-    public static List<Track> getTracks() {
+    public static List<String> getAlbums() {
+        RealmResults<Track> unique = getInstance().where(Track.class)
+                .distinct("album");
+        ArrayList<String> result = new ArrayList<>();
+        for (Track t : unique) {
+            if (t.album != null) {
+                result.add(t.album);
+            }
+        }
+        return result;
+    }
+
+    public static RealmResults<Track> getTracks() {
         return getInstance().where(Track.class).findAll();
     }
 
-    public static List<Track> getTracksByArtist(String artist) {
+    public static RealmResults<Track> getTracksByArtist(String artist) {
         return getInstance().where(Track.class).equalTo("album_artist", artist).findAll();
     }
 
-    public static List<Track> getTracksByAlbum(String album) {
+    public static RealmResults<Track> getTracksByAlbum(String album) {
         return getInstance().where(Track.class).equalTo("album", album).findAll();
     }
 
