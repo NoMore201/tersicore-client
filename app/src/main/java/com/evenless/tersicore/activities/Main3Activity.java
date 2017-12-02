@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.constraint.ConstraintLayout;
+import android.support.constraint.ConstraintSet;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -14,15 +16,22 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
+import android.text.Layout;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
 import com.evenless.tersicore.ApiRequestTaskListener;
 import com.evenless.tersicore.DataBackend;
@@ -37,7 +46,11 @@ import java.util.Arrays;
 import java.util.List;
 
 import java.util.Arrays;
+
+import com.evenless.tersicore.view.NonScrollableListView;
 import com.google.gson.Gson;
+
+import org.w3c.dom.Text;
 
 public class Main3Activity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -45,6 +58,8 @@ public class Main3Activity extends AppCompatActivity
 
     Track[] listTracks = new Track[0];
     ArrayList<Track> listTracksFiltered = new ArrayList<>();
+    ArrayList<String> listAlbums = new ArrayList<>();
+    ArrayList<String> listArtists = new ArrayList<>();
 
     Context ctx = this;
     private MediaPlayerService mService;
@@ -94,15 +109,11 @@ public class Main3Activity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        // This is the array adapter, it takes the context of the activity as a
-        // first parameter, the type of list view as a second parameter and your
-        // array as a third parameter.
-        ArrayAdapter<Track> arrayAdapter = new ArrayAdapter<Track>(
-                this,
-                android.R.layout.simple_list_item_1,
-                listTracksFiltered );
+        TextView smArtists = findViewById(R.id.tvsmartist);
+        TextView smAlbums = findViewById(R.id.tvsmalbum);
+        TextView smTracks = findViewById(R.id.tvsmlist);
 
-        EditText editit = findViewById(R.id.searchone);
+        final EditText editit = findViewById(R.id.searchone);
         editit.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -124,8 +135,49 @@ public class Main3Activity extends AppCompatActivity
             }
         });
 
-        ListView lsv = findViewById(R.id.listtr);
-        lsv.setAdapter(arrayAdapter);
+        smArtists.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                v.setVisibility(View.GONE);
+                EditText editit = findViewById(R.id.searchone);
+                listArtists = new ArrayList<>();
+                for (int i = 0; i < listTracks.length; i++) {
+                    if (artistSD(listTracks[i], editit.getText().toString()) && !listArtists.contains(listTracks[i].artist))
+                        listArtists.add(listTracks[i].artist);
+                }
+                updateArtists();
+            }
+        });
+
+        smAlbums.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                v.setVisibility(View.GONE);
+                EditText editit = findViewById(R.id.searchone);
+                listAlbums = new ArrayList<>();
+                for (int i = 0; i < listTracks.length; i++) {
+                    if (albumSD(listTracks[i], editit.getText().toString()) && !listAlbums.contains(listTracks[i].album))
+                        listAlbums.add(listTracks[i].album);
+                }
+                updateAlbums();
+            }
+        });
+
+        smTracks.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                v.setVisibility(View.GONE);
+                EditText editit = findViewById(R.id.searchone);
+                listTracksFiltered = new ArrayList<>();
+                for (int i = 0; i < listTracks.length; i++) {
+                    if (asd(listTracks[i], editit.getText().toString()) && !listTracksFiltered.contains(listTracks[i]))
+                        listTracksFiltered.add(listTracks[i]);
+                }
+                updateList();
+            }
+        });
+
+        NonScrollableListView lsv = findViewById(R.id.listtr);
         // register onClickListener to handle click events on each item
         lsv.setOnItemClickListener(new AdapterView.OnItemClickListener()
         {
@@ -136,15 +188,14 @@ public class Main3Activity extends AppCompatActivity
                     Track[] temp = new Track[1];
                     temp[0] = listTracksFiltered.get(position);
                     mService.updatePlaylist(temp);
-                    Intent asd = new Intent(ctx, MainActivity.class);
-                    startActivity(asd);
+                    Intent dd = new Intent(ctx, MainActivity.class);
+                    startActivity(dd);
                 } else {
                     //Alert service not bound yet
                     Log.i("Home", "Service not bound yet");
                 }
             }
         });
-        lsv.setAdapter(arrayAdapter);
     }
 
     @Override
@@ -263,24 +314,223 @@ public class Main3Activity extends AppCompatActivity
     @Override
     public boolean onQueryTextChange(final String newT) {
         listTracksFiltered = new ArrayList<>();
+        listAlbums = new ArrayList<>();
+        listArtists = new ArrayList<>();
+        View v = findViewById(R.id.paddingbot);
         if(newT.length()!=0) {
-            for (int i = 0; i < listTracks.length; i++)
-                if (asd(listTracks[i], newT))
-                    listTracksFiltered.add(listTracks[i]);
+            v.setVisibility(View.VISIBLE);
+            boolean brokeTracks = false;
+            boolean brokeArt = false;
+            boolean brokeAlb = false;
+            for (int i = 0; i < listTracks.length; i++) {
+                if (asd(listTracks[i], newT)) {
+                    if(listTracksFiltered.size()>2) {
+                        brokeTracks = true;
+                        break;
+                    } else
+                        listTracksFiltered.add(listTracks[i]);
+                }
+            }
+            for (int i = 0; i < listTracks.length; i++) {
+                if (albumSD(listTracks[i], newT) && !listAlbums.contains(listTracks[i].album))
+                    if(listAlbums.size()>2) {
+                        brokeAlb=true;
+                        break;
+                    } else
+                        listAlbums.add(listTracks[i].album);
+            }
+            for (int i = 0; i < listTracks.length; i++) {
+                if (artistSD(listTracks[i], newT) && !listArtists.contains(listTracks[i].artist))
+                    if(listArtists.size()>2) {
+                        brokeArt=true;
+                        break;
+                    } else
+                        listArtists.add(listTracks[i].artist);
+            }
+            TextView t1 = findViewById(R.id.tvArtists);
+            TextView t2 = findViewById(R.id.tvsmartist);
+            LinearLayout l1 = findViewById(R.id.linearArtists);
+            if(listArtists.size()>0){
+                t1.setVisibility(View.VISIBLE);
+                if(brokeArt) {
+                    t2.setVisibility(View.VISIBLE);
+                } else {
+                    t2.setVisibility(View.GONE);
+                }
+                l1.setVisibility(View.VISIBLE);
+                updateArtists();
+            } else {
+                t1.setVisibility(View.GONE);
+                t2.setVisibility(View.GONE);
+                l1.setVisibility(View.GONE);
+            }
+            t1 = findViewById(R.id.tvAlbums);
+            t2 = findViewById(R.id.tvsmalbum);
+            l1 = findViewById(R.id.linearAlbums);
+            if(listAlbums.size()>0){
+                t1.setVisibility(View.VISIBLE);
+                if(brokeAlb) {
+                    t2.setVisibility(View.VISIBLE);
+                } else {
+                    t2.setVisibility(View.GONE);
+                }
+                l1.setVisibility(View.VISIBLE);
+                updateAlbums();
+            } else {
+                t1.setVisibility(View.GONE);
+                t2.setVisibility(View.GONE);
+                l1.setVisibility(View.GONE);
+            }
+            t1 = findViewById(R.id.tvtracks);
+            t2 = findViewById(R.id.tvsmlist);
+            if(listTracksFiltered.size()>0){
+                t1.setVisibility(View.VISIBLE);
+                if(brokeTracks) {
+                    t2.setVisibility(View.VISIBLE);
+                } else {
+                    t2.setVisibility(View.GONE);
+                }
+            } else {
+                t1.setVisibility(View.GONE);
+                t2.setVisibility(View.GONE);
+            }
+        } else {
+            TextView t1 = findViewById(R.id.tvArtists);
+            TextView t2 = findViewById(R.id.tvsmartist);
+            LinearLayout l1 = findViewById(R.id.linearArtists);
+            t1.setVisibility(View.GONE);
+            t2.setVisibility(View.GONE);
+            l1.setVisibility(View.GONE);
+            t1 = findViewById(R.id.tvAlbums);
+            t2 = findViewById(R.id.tvsmalbum);
+            l1 = findViewById(R.id.linearAlbums);
+            t1.setVisibility(View.GONE);
+            t2.setVisibility(View.GONE);
+            l1.setVisibility(View.GONE);
+            t1 = findViewById(R.id.tvtracks);
+            t2 = findViewById(R.id.tvsmlist);
+            t1.setVisibility(View.GONE);
+            t2.setVisibility(View.GONE);
+            v.setVisibility(View.GONE);
         }
-        ListView lsv = findViewById(R.id.listtr);
+        updateList();
+        return false;
+    }
+
+    private void updateList() {
+        NonScrollableListView lsv = findViewById(R.id.listtr);
         ArrayAdapter<Track> arrayAdapter = new ArrayAdapter<Track>(
                 this,
-                android.R.layout.simple_list_item_1,
-                listTracksFiltered );
+                android.R.layout.simple_list_item_2,
+                android.R.id.text1,
+                listTracksFiltered ){
+
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                View view = super.getView(position, convertView, parent);
+                TextView text1 = view.findViewById(android.R.id.text1);
+                TextView text2 = view.findViewById(android.R.id.text2);
+                text1.setText(listTracksFiltered.get(position).toString());
+                text1.setMaxLines(1);
+                text2.setText("from " + listTracksFiltered.get(position).album);
+                text2.setMaxLines(1);
+                return view;
+            }
+        };
         lsv.setAdapter(arrayAdapter);
-        return false;
+    }
+
+    private void updateAlbums() {
+        LinearLayout l1 = findViewById(R.id.linearAlbums);
+        l1.removeAllViewsInLayout();
+        LinearLayout l2 = createLinearLayout();
+        for (int i = 0; i < listAlbums.size(); i++) {
+            if(i%3==0 && i!=0){
+                l1.addView(l2);
+                l2 = createLinearLayout();
+            }
+            LinearLayout temp = new LinearLayout(ctx);
+            temp.setOrientation(LinearLayout.VERTICAL);
+            temp.setLayoutParams(new LinearLayout.LayoutParams(
+                    0, LinearLayout.LayoutParams.WRAP_CONTENT, 1
+            ));
+            ImageView timg = new ImageView(ctx);
+            ViewGroup.MarginLayoutParams imgparam = new ViewGroup.MarginLayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            timg.setLayoutParams(imgparam);
+            timg.setCropToPadding(true);
+            timg.setPadding(5,0,5,0);
+            timg.setImageResource(R.drawable.nocover);
+            timg.setAdjustViewBounds(true);
+            temp.addView(timg);
+            TextView ttxt = new TextView(ctx);
+            imgparam = new ViewGroup.MarginLayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            imgparam.setMargins(0, 0, 10, 0);
+            ttxt.setLayoutParams(imgparam);
+            ttxt.setText(listAlbums.get(i));
+            temp.addView(ttxt);
+            l2.addView(temp);
+        }
+        l1.addView(l2);
+    }
+
+    private LinearLayout createLinearLayout(){
+        LinearLayout temp = new LinearLayout(ctx);
+        temp.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        temp.setWeightSum(3);
+        temp.setOrientation(LinearLayout.HORIZONTAL);
+        return temp;
+    }
+
+    private void updateArtists() {
+        LinearLayout l1 = findViewById(R.id.linearArtists);
+        l1.removeAllViewsInLayout();
+        LinearLayout l2 = createLinearLayout();
+        for (int i = 0; i < listArtists.size(); i++) {
+            if(i%3==0 && i!=0){
+                    l1.addView(l2);
+                    l2 = createLinearLayout();
+            }
+            LinearLayout temp = new LinearLayout(ctx);
+            temp.setOrientation(LinearLayout.VERTICAL);
+            temp.setLayoutParams(new LinearLayout.LayoutParams(
+                    0, LinearLayout.LayoutParams.WRAP_CONTENT, 1
+            ));
+            ImageView timg = new ImageView(ctx);
+            ViewGroup.MarginLayoutParams imgparam = new ViewGroup.MarginLayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            timg.setLayoutParams(imgparam);
+            timg.setCropToPadding(true);
+            timg.setPadding(5,0,5,0);
+            timg.setImageResource(R.drawable.nocover);
+            timg.setAdjustViewBounds(true);
+            temp.addView(timg);
+            TextView ttxt = new TextView(ctx);
+            imgparam = new ViewGroup.MarginLayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            imgparam.rightMargin=10;
+            ttxt.setLayoutParams(imgparam);
+            ttxt.setText(listArtists.get(i));
+            temp.addView(ttxt);
+            l2.addView(temp);
+        }
+        l1.addView(l2);
     }
 
     public boolean asd(Track s, String t){
         String newText = t.toLowerCase();
-        return (s.title!=null && s.title.toLowerCase().contains(newText)) || (s.album!=null && s.album.toLowerCase().contains(newText)) ||
-                (s.artist!=null && s.artist.toLowerCase().contains(newText));
+        return (s.title!=null && (s.title.toLowerCase().startsWith(newText) || s.title.toLowerCase().contains(" " + newText)));
+    }
+
+    public boolean artistSD(Track s, String t){
+        String newText = t.toLowerCase();
+        return (s.artist!=null && (s.artist.toLowerCase().startsWith(newText)|| s.artist.toLowerCase().contains(" " + newText)));
+    }
+
+    public boolean albumSD(Track s, String t){
+        String newText = t.toLowerCase();
+        return (s.album!=null && (s.album.toLowerCase().startsWith(newText)|| s.album.toLowerCase().contains(" " + newText))) ;
     }
 
     @Override
