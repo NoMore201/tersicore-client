@@ -37,7 +37,6 @@ import com.evenless.tersicore.view.SquareImageView;
 import java.util.Arrays;
 import java.util.List;
 
-import io.realm.Realm;
 import io.realm.RealmList;
 import me.crosswall.lib.coverflow.CoverFlow;
 import me.crosswall.lib.coverflow.core.PagerContainer;
@@ -64,6 +63,7 @@ public class MainActivity extends AppCompatActivity
             if (DataBackend.getTracks().size() != 0) {
                 Log.d(TAG, "onServiceConnected: found track in db");
                 list = DataBackend.getTracks();
+                Log.d(TAG, "onServiceConnected: " + DataBackend.getArtists().get(0));
             } else {
                 Track track1 = new Track();
                 TrackResources temp = new TrackResources();
@@ -82,21 +82,11 @@ public class MainActivity extends AppCompatActivity
                 track2.title = "OMG";
                 track2.album_artist = "Sconosciuto";
                 list = Arrays.asList(track1, track2);
-                DataBackend.addTracks(list, new Realm.Transaction.OnSuccess() {
-                    @Override
-                    public void onSuccess() {
-                        Log.d(TAG, "onSuccess: added tracks");
-                    }
-                }, new Realm.Transaction.OnError() {
-                    @Override
-                    public void onError(Throwable error) {
-                        error.printStackTrace();
-                    }
-                });
+                DataBackend.addTracks(list);
             }
 
             mService.updatePlaylist(list);
-            PagerContainer container = (PagerContainer) findViewById(R.id.pager_container);
+            PagerContainer container = findViewById(R.id.pager_container);
             final ViewPager pager = container.getViewPager();
             pager.setAdapter(new MainActivity.MyPagerAdapter());
             pager.setClipChildren(false);

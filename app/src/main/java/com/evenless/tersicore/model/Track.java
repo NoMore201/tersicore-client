@@ -21,4 +21,11 @@ public class Track extends RealmObject {
     public int total_discs;
     public String label;
     public String isrc;
+
+    public void updateCover(byte[] cover) {
+        for (TrackResources tr: resources) {
+            if (tr.cover_data == null)
+                tr.cover_data = cover;
+        }
+    }
 }

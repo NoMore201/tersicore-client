@@ -13,7 +13,6 @@ import android.util.Log;
 
 import com.evenless.tersicore.exceptions.MediaPlayerException;
 import com.evenless.tersicore.model.Track;
-import com.evenless.tersicore.model.TrackResources;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,10 +20,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import io.realm.Realm;
-import io.realm.RealmList;
-
 
 public class MediaPlayerService extends Service implements MediaPlayer.OnPreparedListener,
         MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener,
@@ -64,9 +59,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
 
         try {
-            mWifiLock = ((WifiManager) getApplicationContext()
-                    .getSystemService(Context.WIFI_SERVICE))
-                    .createWifiLock(WifiManager.WIFI_MODE_FULL, "mylock");
+            WifiManager service = ((WifiManager) getApplicationContext()
+                    .getSystemService(Context.WIFI_SERVICE));
+            if (service != null) {
+                mWifiLock = service.createWifiLock(WifiManager.WIFI_MODE_FULL, "mylock");
+            }
+
         } catch (NullPointerException e) {
             Log.w(TAG, "onCreate: unable to lock Wifi", e);
         }
@@ -76,7 +74,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     public void onDestroy() {
         super.onDestroy();
 
-        mWifiLock.release();
+        if (mWifiLock != null && mWifiLock.isHeld()) {
+            mWifiLock.release();
+        }
         if (mMediaPlayer != null) {
             mMediaPlayer.release();
         }
@@ -160,21 +160,22 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     @Override
     public void onCoverRetrieveComplete(Track track, byte[] cover) {
-        final int index = mCurrentPlaylist.indexOf(track);
+        int index = mCurrentPlaylist.indexOf(track);
         if (index != -1 && track.resources != null && track.resources.size() != 0) {
-            final Track toUpdate = track;
-            final byte[] newCover = cover;
-            final MediaPlayerServiceListener parentListener = mListener;
-            DataBackend.customUpdateSync(new Realm.Transaction() {
-                @Override
-                public void execute(Realm realm) {
-                    toUpdate.resources.get(0).cover_data = newCover;
-                    realm.insertOrUpdate(toUpdate);
-                    parentListener.onCoverFetched(toUpdate);
+            Track updated = DataBackend.updateTrackCover(track.uuid, cover);
+            mCurrentPlaylist.set(index, updated);
+            mListener.onCoverFetched(updated);
+            if (updated.album != null) {
+                // update all tracks of the same album
+                List<Track> tracksWithSameAlbum = DataBackend.getTracksByAlbum(track.album);
+                for (Track t : tracksWithSameAlbum) {
+                    if (t.resources != null &&
+                            t.resources.size() != 0) {
+                        DataBackend.updateTrackCover(t.uuid, cover);
+                    }
                 }
-            });
+            }
         }
-        //TODO: update similar track
     }
 
     private void playlistCompleted() {
@@ -203,7 +204,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             final Track current = mCurrentPlaylist.get(mCurrentIndex);
             try {
                 newTrackPlaying(current);
-                mMediaPlayer.setDataSource("http://" + PreferencesHandler.getServer(this) + "/stream/" +  current.resources.get(0).uuid);
+                mMediaPlayer.setDataSource("http://" +
+                        PreferencesHandler.getServer(this) +
+                        "/stream/" +
+                        current.resources.get(0).uuid);
                 mMediaPlayer.prepareAsync();
                 final MediaPlayerServiceListener context = mListener;
                 final MediaPlayer mediaPlayerInstance = mMediaPlayer;
