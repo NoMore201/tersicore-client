@@ -22,10 +22,8 @@ public class Track extends RealmObject {
     public String isrc;
 
     public void updateCover(byte[] cover) {
-        for (TrackResources tr : resources) {
-            if (tr.cover_data == null)
+        for (TrackResources tr : resources)
                 tr.cover_data = cover;
-        }
     }
 
     public String toString() {

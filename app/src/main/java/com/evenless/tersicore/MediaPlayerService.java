@@ -67,6 +67,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         mMediaPlayer.setOnErrorListener(this);
         mMediaPlayer.setOnCompletionListener(this);
         mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+        mCurrentPlaylist = new ArrayList<>();
+        mCurrentIndex=-1;
 
         AudioAttributes attributes = new AudioAttributes.Builder()
                 .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
@@ -107,6 +109,19 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         mCurrentPlaylist = new ArrayList<>(Arrays.asList(tracks));
         mCurrentIndex = 0;
         updateState();
+    }
+
+    public void playNow(Track[] tracks) {
+        mCurrentPlaylist.addAll(mCurrentIndex + 1, new ArrayList<>(Arrays.asList(tracks)));
+        seekToTrack(mCurrentIndex + 1);
+    }
+
+    public void playAfter(Track[] tracks) {
+        mCurrentPlaylist.addAll(mCurrentIndex + 1, new ArrayList<>(Arrays.asList(tracks)));
+    }
+
+    public void addToPlaylist(Track[] tracks) {
+        mCurrentPlaylist.addAll(new ArrayList<>(Arrays.asList(tracks)));
     }
 
     public void updatePlaylist(List<Track> tracks) {
@@ -204,6 +219,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         if (mListener != null) {
             mListener.onPlaylistComplete();
         }
+        mCurrentIndex=-1;
     }
 
     private void newTrackPlaying(Track current) {
@@ -260,6 +276,17 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     public void fetchCover(Track track, int id) {
-        TaskHandler.getCover(this, track, PreferencesHandler.getServer(this), id);
+        try {
+            Track tmp = DataBackend.getTracks().where().equalTo("uuid", track.uuid).findFirst();
+            if (tmp.resources.get(0).cover_data == null) {
+                Log.i(TAG, "Cover Fetching...");
+                //DataBackend.updateTrackCover(track.uuid, new byte[0]);
+                TaskHandler.getCover(this, track, PreferencesHandler.getServer(this), id);
+            } else if (tmp.resources.get(0).cover_data.length!=0){
+                mListener.onCoverFetched(tmp, id);
+            }
+        } catch (NullPointerException e){
+            Log.i(TAG, "Something is NULL");
+        }
     }
 }

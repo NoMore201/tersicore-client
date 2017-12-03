@@ -2,20 +2,19 @@ package com.evenless.tersicore.activities;
 
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.StrictMode;
-import android.support.annotation.NonNull;
-import android.support.annotation.UiThread;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
@@ -49,10 +48,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import com.evenless.tersicore.view.NonScrollableListView;
 import com.google.gson.Gson;
@@ -71,7 +68,7 @@ public class Main3Activity extends AppCompatActivity
     private ArrayList<Track> listAlbums = new ArrayList<>();
     private  ArrayList<String> listArtists = new ArrayList<>();
     private Map<String, Bitmap> artistsCover;
-
+    private static final String[] playOptions = {"Play now (Destroy queue)", "Play now (Maintain queue)", "Add To Playlist (Coda)", "Play After"};
     private Context ctx = this;
     private MediaPlayerService mService;
     private boolean mBound=false;
@@ -208,16 +205,40 @@ public class Main3Activity extends AppCompatActivity
             // argument position gives the index of item which is clicked
             public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3)
             {
+                Track[] temp = new Track[1];
+                temp[0] = listTracksFiltered.get(position);
+                mService.playNow(temp);
+                Intent dd = new Intent(ctx, MainActivity.class);
+                startActivity(dd);
+            }
+        });
+
+        lsv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int pos, long id) {
+                final int position = pos;
+                final Track[] temp = {listTracksFiltered.get(position)};
                 if(mBound) {
-                    Track[] temp = new Track[1];
-                    temp[0] = listTracksFiltered.get(position);
-                    mService.updatePlaylist(temp);
-                    Intent dd = new Intent(ctx, MainActivity.class);
-                    startActivity(dd);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+                    builder.setTitle("Play options")
+                            .setItems(playOptions, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Intent dd = new Intent(ctx, MainActivity.class);
+                                    switch (which){
+                                        case 0: mService.updatePlaylist(temp);  startActivity(dd); break;
+                                        case 1: mService.updatePlaylist(temp); startActivity(dd); break;
+                                        case 2: mService.addToPlaylist(temp); break;
+                                        case 3: mService.playAfter(temp); break;
+                                        default: break;
+                                    }
+                                }
+                            });
+                    builder.create().show();
                 } else {
                     //Alert service not bound yet
                     Log.i("Home", "Service not bound yet");
                 }
+                return true;
             }
         });
     }
@@ -295,14 +316,12 @@ public class Main3Activity extends AppCompatActivity
 
     @Override
     public void onRequestComplete(String response) {
-        Log.i("Main3Activity", response.substring(0,100));
         try {
             listTracks = new Gson().fromJson(response, Track[].class);
             DataBackend.addTracks(new ArrayList<>(Arrays.asList(listTracks)));
         } catch (Exception e) {
             Log.e("Main3Activity", e.getMessage());
         }
-        Log.i("Main3Activity", listTracks[0].toString());
     }
 
     @Override

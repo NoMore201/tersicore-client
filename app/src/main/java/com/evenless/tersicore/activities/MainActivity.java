@@ -288,7 +288,7 @@ public class MainActivity extends AppCompatActivity
 
     private Bitmap getCover(Track tr){
         // convert the byte array to a bitmap
-        if(tr.resources.get(0).cover_data != null)
+        if(tr.resources.get(0).cover_data!= null && tr.resources.get(0).cover_data.length!=0)
             return BitmapFactory.decodeByteArray(
                     tr.resources.get(0).cover_data, 0,
                     tr.resources.get(0).cover_data.length);
