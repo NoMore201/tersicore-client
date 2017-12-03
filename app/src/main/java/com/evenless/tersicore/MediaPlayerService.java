@@ -192,13 +192,15 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     @Override
     public void onCoverRetrieveComplete(Track track, byte[] cover, int id) {
+        if(cover==null)
+            cover=new byte[0];
         if(mCurrentPlaylist!=null) {
             int index = mCurrentPlaylist.indexOf(track);
             if (index != -1 && track.resources != null && track.resources.size() != 0) {
                 Track updated = DataBackend.updateTrackCover(track.uuid, cover);
                 mCurrentPlaylist.set(index, updated);
                 mListener.onCoverFetched(updated, id);
-                if (updated.album != null) {
+                if (updated.album != null && cover.length!=0) {
                     // update all tracks of the same album
                     RealmResults<Track> tracksWithSameAlbum = DataBackend.getTracksByAlbum(track.album);
                     for (Track t : tracksWithSameAlbum) {
@@ -279,8 +281,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         try {
             Track tmp = DataBackend.getTracks().where().equalTo("uuid", track.uuid).findFirst();
             if (tmp.resources.get(0).cover_data == null) {
-                Log.i(TAG, "Cover Fetching...");
-                //DataBackend.updateTrackCover(track.uuid, new byte[0]);
                 TaskHandler.getCover(this, track, PreferencesHandler.getServer(this), id);
             } else if (tmp.resources.get(0).cover_data.length!=0){
                 mListener.onCoverFetched(tmp, id);

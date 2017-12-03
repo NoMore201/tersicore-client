@@ -226,9 +226,9 @@ public class Main3Activity extends AppCompatActivity
                                     Intent dd = new Intent(ctx, MainActivity.class);
                                     switch (which){
                                         case 0: mService.updatePlaylist(temp);  startActivity(dd); break;
-                                        case 1: mService.updatePlaylist(temp); startActivity(dd); break;
-                                        case 2: mService.addToPlaylist(temp); break;
-                                        case 3: mService.playAfter(temp); break;
+                                        case 1: mService.playNow(temp); startActivity(dd); break;
+                                        case 2: mService.addToPlaylist(temp); startActivity(dd); break;
+                                        case 3: mService.playAfter(temp); startActivity(dd); break;
                                         default: break;
                                     }
                                 }
