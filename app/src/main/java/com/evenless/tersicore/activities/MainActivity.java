@@ -181,7 +181,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onCoverFetched(Track tr){
+    public void onCoverFetched(Track tr, int id){
         PagerContainer container = findViewById(R.id.pager_container);
         ViewPager pager = container.getViewPager();
         pager.setAdapter(new MainActivity.MyPagerAdapter());
@@ -235,7 +235,7 @@ public class MainActivity extends AppCompatActivity
     @SuppressLint("HandlerLeak")
     public Handler mHandler = new Handler() {
         public void handleMessage(Message msg) {
-            onPlaybackProgressUpdate(msg.arg1, msg.arg2);
+            onPlaybackProgressUpdate(msg.arg1);
         }
     };
 
@@ -256,19 +256,19 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onPlaybackProgressUpdate(int currentMilliseconds , int durat) {
-        long duration = mService.getDuration();
-        boolean result = duration!=0;
+    public void onPlaybackProgressUpdate(int currentMilliseconds) {
+        long durat = mService.getDuration();
+        boolean result = durat!=0;
         // update seekbar
         if(result){
             TextView tv_currentms = findViewById(R.id.tv_current_time);
             tv_currentms.setText(parseDuration(currentMilliseconds));
             SeekBar tv_seek = findViewById(R.id.tv_seek);
             tv_seek.setMax(0);
-            tv_seek.setMax(durat);
+            tv_seek.setMax((int) durat);
             tv_seek.setProgress(currentMilliseconds);
             TextView fullT = findViewById(R.id.tv_full_time);
-            fullT.setText(parseDuration(duration));
+            fullT.setText(parseDuration(durat));
         }
     }
 
@@ -293,7 +293,7 @@ public class MainActivity extends AppCompatActivity
                     tr.resources.get(0).cover_data, 0,
                     tr.resources.get(0).cover_data.length);
         else {
-            mService.fetchCover(tr);
+            mService.fetchCover(tr, 0);
             return BitmapFactory.decodeResource(this.getResources(), R.drawable.nocover);
         }
     }

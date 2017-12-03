@@ -10,35 +10,36 @@ import com.evenless.tersicore.model.Track;
 
 import java.util.HashMap;
 
-public class CoverRetrieveTask extends AsyncTask<String, Integer, MediaMetadataRetriever> {
+public class CoverRetrieveTask extends AsyncTask<String, Integer, byte[]> {
     private final static String TAG = "CoverRetrieveTask";
 
     private CoverRetrieveTaskListener mListener;
     private Track mTrack;
+    private int id;
 
-    public CoverRetrieveTask(CoverRetrieveTaskListener listener, Track track) {
+    public CoverRetrieveTask(CoverRetrieveTaskListener listener, Track track, int idImg) {
         mListener = listener;
         mTrack = track;
+        id = idImg;
     }
 
     @Override
-    protected MediaMetadataRetriever doInBackground(String... urls) {
-        MediaMetadataRetriever mmr = new MediaMetadataRetriever();;
+    protected byte[] doInBackground(String... urls) {
+        MediaMetadataRetriever mmr = new MediaMetadataRetriever();
         try {
             mmr.setDataSource(urls[0], new HashMap<String, String>());
         } catch (Exception e) {
             Log.e("CoverRetrieveTask", e.getMessage());
         }
 
-        return mmr;
-
+        return mmr.getEmbeddedPicture();
     }
 
     @Override
-    protected void onPostExecute(MediaMetadataRetriever image) {
+    protected void onPostExecute(byte[] image) {
         super.onPostExecute(image);
         Log.d(TAG, "onPostExecute: get cover api request succeded");
-        mListener.onCoverRetrieveComplete(mTrack, image);
+        mListener.onCoverRetrieveComplete(mTrack, image, id);
     }
 
     @Override

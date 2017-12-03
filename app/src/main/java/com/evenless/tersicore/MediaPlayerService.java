@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import io.realm.RealmResults;
+
 public class MediaPlayerService extends Service implements MediaPlayer.OnPreparedListener,
         MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener,
         CoverRetrieveTaskListener
@@ -174,23 +176,27 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     @Override
-    public void onCoverRetrieveComplete(Track track, byte[] cover) {
-        int index = mCurrentPlaylist.indexOf(track);
-        if (index != -1 && track.resources != null && track.resources.size() != 0) {
-            Track updated = DataBackend.updateTrackCover(track.uuid, cover);
-            mCurrentPlaylist.set(index, updated);
-            mListener.onCoverFetched(updated);
-            if (updated.album != null) {
-                // update all tracks of the same album
-                List<Track> tracksWithSameAlbum = DataBackend.getTracksByAlbum(track.album);
-                tracksWithSameAlbum.remove(updated);
-                for (Track t : tracksWithSameAlbum) {
-                    if (t.resources != null &&
-                            t.resources.size() != 0) {
-                        DataBackend.updateTrackCover(t.uuid, cover);
+    public void onCoverRetrieveComplete(Track track, byte[] cover, int id) {
+        if(mCurrentPlaylist!=null) {
+            int index = mCurrentPlaylist.indexOf(track);
+            if (index != -1 && track.resources != null && track.resources.size() != 0) {
+                Track updated = DataBackend.updateTrackCover(track.uuid, cover);
+                mCurrentPlaylist.set(index, updated);
+                mListener.onCoverFetched(updated, id);
+                if (updated.album != null) {
+                    // update all tracks of the same album
+                    RealmResults<Track> tracksWithSameAlbum = DataBackend.getTracksByAlbum(track.album);
+                    for (Track t : tracksWithSameAlbum) {
+                        if (t.resources != null &&
+                                t.resources.size() != 0) {
+                            DataBackend.updateTrackCover(t.uuid, cover);
+                        }
                     }
                 }
             }
+        } else {
+            Track updated = DataBackend.updateTrackCover(track.uuid, cover);
+            mListener.onCoverFetched(updated, id);
         }
     }
 
@@ -238,14 +244,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         mCurrentTimer.cancel();
         mCurrentTimer = new Timer();
         mCurrentTimer.scheduleAtFixedRate(new TimerTask() {
-
             @Override
             public void run() {
                 try {
                     if (mMediaPlayer.isPlaying()) {
                         Message a = new Message();
                         a.arg1=mediaPlayerInstance.getCurrentPosition();
-                        a.arg2=mediaPlayerInstance.getDuration();
                         mHandler.sendMessage(a);
                     }
                 } catch (Exception e) {
@@ -255,7 +259,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         }, 0, 1000);
     }
 
-    public void fetchCover(Track track) {
-        TaskHandler.getCover(this, track, PreferencesHandler.getServer(this));
+    public void fetchCover(Track track, int id) {
+        TaskHandler.getCover(this, track, PreferencesHandler.getServer(this), id);
     }
 }

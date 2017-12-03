@@ -71,7 +71,6 @@ public class DataBackend {
             track.updateCover(cover);
         }
         realm.commitTransaction();
-        Log.d("DataBackend", "updateTrackCover: track cover = length" + track.resources.get(0).cover_data.length);
         return track;
     }
 

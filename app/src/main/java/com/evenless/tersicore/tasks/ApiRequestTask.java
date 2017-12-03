@@ -17,11 +17,17 @@ import javax.net.ssl.HttpsURLConnection;
 
 public class ApiRequestTask extends AsyncTask<URL, Integer, String> {
     private final static String TAG = "ApiRequestTask";
+    private int id=0;
 
     private ApiRequestTaskListener mListener;
 
     public ApiRequestTask (ApiRequestTaskListener listener) {
         mListener = listener;
+        id=0;
+    }
+    public ApiRequestTask (ApiRequestTaskListener listener, int idM) {
+        mListener = listener;
+        id=idM;
     }
 
     @Override
@@ -34,7 +40,10 @@ public class ApiRequestTask extends AsyncTask<URL, Integer, String> {
         super.onPostExecute(result);
         if (result != null) {
             Log.d(TAG, "onPostExecute: get track api request succeded");
-            mListener.onRequestComplete(result);
+            if(id==0)
+                mListener.onRequestComplete(result);
+            else
+                mListener.onImgRequestComplete(result,id);
         }
     }
 
