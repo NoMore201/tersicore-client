@@ -49,11 +49,11 @@ public class ApiRequestTask extends AsyncTask<URL, Integer, String> {
 
     @Override
     protected String doInBackground(URL... urls) {
-        HttpURLConnection connection = null;
+        HttpsURLConnection connection = null;
         String result = null;
         StringBuilder sb;
         try {
-            connection = (HttpURLConnection) urls[0].openConnection();
+            connection = (HttpsURLConnection) urls[0].openConnection();
             connection.setRequestMethod("GET");
             connection.setDoInput(true);
             connection.connect();

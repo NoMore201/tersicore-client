@@ -320,16 +320,19 @@ public class Main3Activity extends AppCompatActivity
                     JSONArray tmp = tempJson.getJSONObject("artist").getJSONArray("image");
                     final String link = tmp.getJSONObject(2).getString("#text");
                     Bitmap bitmap = BitmapFactory.decodeStream((InputStream) new URL(link).getContent());
+                    temp.setAlpha(0f);
                     temp.setImageBitmap(bitmap);
                     artistsCover.put(tempJson.getJSONObject("artist").getString("name"), bitmap);
                 } else {
                     JSONArray tmp = tempJson.getJSONObject("album").getJSONArray("image");
                     final String link = tmp.getJSONObject(2).getString("#text");
                     Bitmap bitmap = BitmapFactory.decodeStream((InputStream) new URL(link).getContent());
+                    temp.setAlpha(0f);
                     temp.setImageBitmap(bitmap);
                     String key = tempJson.getJSONObject("album").getString("name") + tempJson.getJSONObject("album").getString("artist");
                     artistsCover.put(key, bitmap);
                 }
+             temp.animate().alpha(1f);
             } catch (JSONException e) {
                 Log.e("Main3Activity", e.getMessage());
             } catch (MalformedURLException e) {
@@ -536,8 +539,8 @@ public class Main3Activity extends AppCompatActivity
     }
 
     private Bitmap getAlbumCover(Track tr, int id){
-        if(artistsCover.containsKey(tr.artist + tr.album))
-            return artistsCover.get(tr.artist + tr.album);
+        if(artistsCover.containsKey(tr.album + tr.artist))
+            return artistsCover.get(tr.album + tr.artist);
         else {
             try {
                 TaskHandler.getCoversWeb(this, tr.artist, tr.album, id);

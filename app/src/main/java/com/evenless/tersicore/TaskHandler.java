@@ -12,7 +12,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 
 public class TaskHandler {
-    private static final String API_BASE_URL = "http://ws.audioscrobbler.com/2.0/";
+    private static final String API_BASE_URL = "https://ws.audioscrobbler.com/2.0/";
     private static final String API_KEY = "b6570587abc105bc286cf227cabbba50";
     private static final String API_SHARED_SECRET = "ca91306bbff831733d675dfc6e556b77";
 
@@ -20,7 +20,7 @@ public class TaskHandler {
         return API_BASE_URL + relativeUrl;   }
 
     public static void getTracks(ApiRequestTaskListener listener, String server) throws MalformedURLException {
-        URL url = new URL("http://" + server + "/tracks");
+        URL url = new URL("https://" + server + "/tracks");
         ApiRequestTask task = new ApiRequestTask(listener);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, url);
     }
@@ -42,7 +42,7 @@ public class TaskHandler {
     public static void getCover(CoverRetrieveTaskListener listener,
                                 Track track, String server, int id)
     {
-        String url = "http://" + server + "/stream/" + track.resources.get(0).uuid;
+        String url = "https://" + server + "/stream/" + track.resources.get(0).uuid;
         CoverRetrieveTask task = new CoverRetrieveTask(listener, track, id);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, url);
     }

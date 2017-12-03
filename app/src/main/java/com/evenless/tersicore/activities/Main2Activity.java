@@ -35,7 +35,7 @@ public class Main2Activity extends AppCompatActivity {
                         EditText mEdit = findViewById(R.id.editText2);
                         String IP = mEdit.getText().toString();
                         if(true) {
-                            PreferencesHandler.setServer(ctx, "casa.izzo.li:8888");
+                            PreferencesHandler.setServer(ctx, "play.nomore.ovh");
                             goToNextActivity();
                         } else {
                             AlertDialog alertDialog = new AlertDialog.Builder(ctx).create();
