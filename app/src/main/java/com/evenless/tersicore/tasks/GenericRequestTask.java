@@ -3,14 +3,12 @@ package com.evenless.tersicore.tasks;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.evenless.tersicore.ApiRequestTaskListener;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.UnknownHostException;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -20,8 +18,9 @@ public class GenericRequestTask extends AsyncTask<Void, Integer, String> {
     private final static String TAG = "GenericRequestTask";
 
     protected URL mUrl;
+    protected Exception mThrownException;
 
-    public GenericRequestTask(URL url) {
+    protected GenericRequestTask(URL url) {
         mUrl = url;
     }
 
@@ -34,7 +33,7 @@ public class GenericRequestTask extends AsyncTask<Void, Integer, String> {
     protected void onPostExecute(String result) {
         super.onPostExecute(result);
         Log.d(TAG, "onPostExecute: get track api request succeded");
-        notifyResult(result, null);
+        notifyResult(result, mThrownException);
     }
 
     @Override
@@ -65,6 +64,7 @@ public class GenericRequestTask extends AsyncTask<Void, Integer, String> {
                 br.close();
             } catch (Exception e) {
                 Log.e(TAG, "doInBackground: unknown host", e);
+                mThrownException = e;
             } finally {
                 if (httpConnection != null) {
                     httpConnection.disconnect();
@@ -92,6 +92,7 @@ public class GenericRequestTask extends AsyncTask<Void, Integer, String> {
                     br.close();
                 } catch (Exception e) {
                     Log.e(TAG, "doInBackground: unknown host", e);
+                    mThrownException = e;
                 } finally {
                     if (httpsConnection != null) {
                         httpsConnection.disconnect();
@@ -101,6 +102,5 @@ public class GenericRequestTask extends AsyncTask<Void, Integer, String> {
         return result;
     }
 
-    protected void notifyResult(String result, Exception e) {
-    }
+    protected void notifyResult(String result, Exception e) {}
 }

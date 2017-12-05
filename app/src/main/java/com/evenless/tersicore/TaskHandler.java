@@ -4,7 +4,6 @@ import android.os.AsyncTask;
 
 import com.evenless.tersicore.model.Track;
 import com.evenless.tersicore.tasks.ApiRequestTask;
-import com.evenless.tersicore.tasks.GenericRequestTask;
 import com.evenless.tersicore.tasks.CoverRetrieveTask;
 import com.evenless.tersicore.tasks.ImageRequestTask;
 import com.evenless.tersicore.tasks.ServerStatusTask;
@@ -28,7 +27,7 @@ public class TaskHandler {
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
-    public static void getArtistImageFromApi(ApiRequestTaskListener listener,
+    public static void getArtistImageFromApi(ImageRequestTaskListener listener,
                                  String query,
                                  int id) throws
             MalformedURLException,
@@ -39,7 +38,7 @@ public class TaskHandler {
         task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
-    public static void getAlbumImageFromApi(ApiRequestTaskListener listener,
+    public static void getAlbumImageFromApi(ImageRequestTaskListener listener,
                                     String artist,
                                     String album,
                                     int id) throws

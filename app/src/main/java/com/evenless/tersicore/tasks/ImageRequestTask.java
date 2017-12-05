@@ -1,14 +1,14 @@
 package com.evenless.tersicore.tasks;
 
-import com.evenless.tersicore.ApiRequestTaskListener;
+import com.evenless.tersicore.ImageRequestTaskListener;
 
 import java.net.URL;
 
 public class ImageRequestTask extends GenericRequestTask {
-    private ApiRequestTaskListener mListener;
+    private ImageRequestTaskListener mListener;
     private int mId;
 
-    public ImageRequestTask(ApiRequestTaskListener listener,
+    public ImageRequestTask(ImageRequestTaskListener listener,
                             int id,
                             URL url) {
         super(url);
@@ -18,6 +18,6 @@ public class ImageRequestTask extends GenericRequestTask {
 
     @Override
     protected void notifyResult(String result, Exception e) {
-        mListener.onImgRequestComplete(result, mId);
+        mListener.onImgRequestComplete(result, mId, e);
     }
 }

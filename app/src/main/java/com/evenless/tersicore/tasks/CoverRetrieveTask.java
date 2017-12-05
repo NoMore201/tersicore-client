@@ -16,6 +16,7 @@ public class CoverRetrieveTask extends AsyncTask<Void, Integer, byte[]> {
     private Track mTrack;
     private String mUrl;
     private int id;
+    private Exception mThrownException;
 
     public CoverRetrieveTask(CoverRetrieveTaskListener listener,
                              Track track,
@@ -34,6 +35,7 @@ public class CoverRetrieveTask extends AsyncTask<Void, Integer, byte[]> {
             mmr.setDataSource(mUrl, new HashMap<String, String>());
         } catch (Exception e) {
             Log.e("CoverRetrieveTask", e.getMessage());
+            mThrownException = e;
         }
 
         return mmr.getEmbeddedPicture();
@@ -43,7 +45,7 @@ public class CoverRetrieveTask extends AsyncTask<Void, Integer, byte[]> {
     protected void onPostExecute(byte[] image) {
         super.onPostExecute(image);
         Log.d(TAG, "onPostExecute: get cover api request succeded");
-        mListener.onCoverRetrieveComplete(mTrack, image, id);
+        mListener.onCoverRetrieveComplete(mTrack, image, id, mThrownException);
     }
 
     @Override

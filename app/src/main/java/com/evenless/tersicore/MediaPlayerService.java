@@ -192,7 +192,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     @Override
-    public void onCoverRetrieveComplete(Track track, byte[] cover, int id) {
+    public void onCoverRetrieveComplete(Track track, byte[] cover, int id, Exception e) {
         if(cover==null)
             cover=new byte[0];
         if(mCurrentPlaylist!=null) {
