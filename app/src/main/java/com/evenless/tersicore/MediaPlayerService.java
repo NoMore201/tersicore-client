@@ -111,6 +111,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         updateState();
     }
 
+    public void updatePlaylist(List<Track> tracks) {
+        mCurrentPlaylist = new ArrayList<>(tracks);
+        mCurrentIndex = 0;
+        updateState();
+    }
+
     public void playNow(Track[] tracks) {
         mCurrentPlaylist.addAll(mCurrentIndex + 1, new ArrayList<>(Arrays.asList(tracks)));
         seekToTrack(mCurrentIndex + 1);
@@ -124,11 +130,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         mCurrentPlaylist.addAll(new ArrayList<>(Arrays.asList(tracks)));
     }
 
-    public void updatePlaylist(List<Track> tracks) {
-        mCurrentPlaylist = new ArrayList<>(tracks);
-        mCurrentIndex = 0;
-        updateState();
-    }
 
     public void play() {
         mMediaPlayer.start();
@@ -202,7 +203,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                 mListener.onCoverFetched(updated, id);
                 if (updated.album != null && cover.length!=0) {
                     // update all tracks of the same album
-                    RealmResults<Track> tracksWithSameAlbum = DataBackend.getTracksByAlbum(track.album);
+                    RealmResults<Track> tracksWithSameAlbum =
+                            DataBackend.getTracksByAlbum(track.artist, track.album);
                     for (Track t : tracksWithSameAlbum) {
                         if (t.resources != null &&
                                 t.resources.size() != 0) {
@@ -221,7 +223,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         if (mListener != null) {
             mListener.onPlaylistComplete();
         }
-        mCurrentIndex=-1;
+        // set index to the beginning of playlist
+        // but don't start playing
+        mCurrentIndex=0;
     }
 
     private void newTrackPlaying(Track current) {

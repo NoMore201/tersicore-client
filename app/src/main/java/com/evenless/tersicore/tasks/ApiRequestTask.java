@@ -8,26 +8,22 @@ import com.evenless.tersicore.ApiRequestTaskListener;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URL;
 
 import javax.net.ssl.HttpsURLConnection;
 
 
 
-public class ApiRequestTask extends AsyncTask<URL, Integer, String> {
+public class ApiRequestTask extends AsyncTask<Void, Integer, String> {
     private final static String TAG = "ApiRequestTask";
-    private int id=0;
 
-    private ApiRequestTaskListener mListener;
+    protected ApiRequestTaskListener mListener;
+    protected URL mUrl;
 
-    public ApiRequestTask (ApiRequestTaskListener listener) {
+    public ApiRequestTask (ApiRequestTaskListener listener,
+                           URL url) {
         mListener = listener;
-        id=0;
-    }
-    public ApiRequestTask (ApiRequestTaskListener listener, int idM) {
-        mListener = listener;
-        id=idM;
+        mUrl = url;
     }
 
     @Override
@@ -40,20 +36,17 @@ public class ApiRequestTask extends AsyncTask<URL, Integer, String> {
         super.onPostExecute(result);
         if (result != null) {
             Log.d(TAG, "onPostExecute: get track api request succeded");
-            if(id==0)
-                mListener.onRequestComplete(result);
-            else
-                mListener.onImgRequestComplete(result,id);
+            notifyResult(result);
         }
     }
 
     @Override
-    protected String doInBackground(URL... urls) {
+    protected String doInBackground(Void... params) {
         HttpsURLConnection connection = null;
         String result = null;
         StringBuilder sb;
         try {
-            connection = (HttpsURLConnection) urls[0].openConnection();
+            connection = (HttpsURLConnection) mUrl.openConnection();
             connection.setRequestMethod("GET");
             connection.setDoInput(true);
             connection.connect();
@@ -79,5 +72,9 @@ public class ApiRequestTask extends AsyncTask<URL, Integer, String> {
             }
         }
         return result;
+    }
+
+    protected void notifyResult(String result) {
+        mListener.onRequestComplete(result);
     }
 }

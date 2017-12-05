@@ -1,7 +1,5 @@
 package com.evenless.tersicore;
 
-import android.util.Log;
-
 import com.evenless.tersicore.model.Track;
 
 import java.util.ArrayList;
@@ -53,12 +51,21 @@ public class DataBackend {
         return getInstance().where(Track.class).findAll();
     }
 
+    public static Track getTrackByUuid(String uuid) {
+        return getInstance().where(Track.class)
+                .equalTo("uuid", uuid)
+                .findFirst();
+    }
+
     public static RealmResults<Track> getTracksByArtist(String artist) {
         return getInstance().where(Track.class).equalTo("album_artist", artist).findAll();
     }
 
-    public static RealmResults<Track> getTracksByAlbum(String album) {
-        return getInstance().where(Track.class).equalTo("album", album).findAll();
+    public static RealmResults<Track> getTracksByAlbum(String artist, String album) {
+        return getInstance().where(Track.class)
+                .equalTo("artist", artist)
+                .equalTo("album", album)
+                .findAll();
     }
 
     public static Track updateTrackCover(String uuid, byte[] cover) {

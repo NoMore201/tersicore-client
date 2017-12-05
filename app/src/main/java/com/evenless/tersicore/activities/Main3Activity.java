@@ -549,7 +549,7 @@ public class Main3Activity extends AppCompatActivity
             return artistsCover.get(s);
         else {
             try {
-                TaskHandler.getImages(this, s, id);
+                TaskHandler.getArtistImageFromApi(this, s, id);
             } catch (Exception e) {
                 Toast.makeText(ctx, e.getMessage(), Toast.LENGTH_SHORT).show();
             }
@@ -562,7 +562,7 @@ public class Main3Activity extends AppCompatActivity
             return artistsCover.get(tr.album + tr.artist);
         else {
             try {
-                TaskHandler.getCoversWeb(this, tr.artist, tr.album, id);
+                TaskHandler.getAlbumImageFromApi(this, tr.artist, tr.album, id);
             } catch (Exception e) {
                 Toast.makeText(ctx, e.getMessage(), Toast.LENGTH_SHORT).show();
             }

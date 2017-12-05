@@ -8,26 +8,32 @@ import android.util.Log;
 import com.evenless.tersicore.CoverRetrieveTaskListener;
 import com.evenless.tersicore.model.Track;
 
+import java.net.URL;
 import java.util.HashMap;
 
-public class CoverRetrieveTask extends AsyncTask<String, Integer, byte[]> {
+public class CoverRetrieveTask extends AsyncTask<Void, Integer, byte[]> {
     private final static String TAG = "CoverRetrieveTask";
 
     private CoverRetrieveTaskListener mListener;
     private Track mTrack;
+    private String mUrl;
     private int id;
 
-    public CoverRetrieveTask(CoverRetrieveTaskListener listener, Track track, int idImg) {
+    public CoverRetrieveTask(CoverRetrieveTaskListener listener,
+                             Track track,
+                             String url,
+                             int imageId) {
         mListener = listener;
         mTrack = track;
-        id = idImg;
+        mUrl = url;
+        id = imageId;
     }
 
     @Override
-    protected byte[] doInBackground(String... urls) {
+    protected byte[] doInBackground(Void... params) {
         MediaMetadataRetriever mmr = new MediaMetadataRetriever();
         try {
-            mmr.setDataSource(urls[0], new HashMap<String, String>());
+            mmr.setDataSource(mUrl, new HashMap<String, String>());
         } catch (Exception e) {
             Log.e("CoverRetrieveTask", e.getMessage());
         }
