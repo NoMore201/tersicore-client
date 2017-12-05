@@ -316,6 +316,9 @@ public class Main3Activity extends AppCompatActivity
 
     @Override
     public void onRequestComplete(String response) {
+        if (response == null) {
+            return;
+        }
         try {
             listTracks = new Gson().fromJson(response, Track[].class);
             DataBackend.addTracks(new ArrayList<>(Arrays.asList(listTracks)));

@@ -2,13 +2,11 @@ package com.evenless.tersicore.tasks;
 
 import android.media.MediaMetadataRetriever;
 import android.os.AsyncTask;
-import android.provider.MediaStore;
 import android.util.Log;
 
 import com.evenless.tersicore.CoverRetrieveTaskListener;
 import com.evenless.tersicore.model.Track;
 
-import java.net.URL;
 import java.util.HashMap;
 
 public class CoverRetrieveTask extends AsyncTask<Void, Integer, byte[]> {

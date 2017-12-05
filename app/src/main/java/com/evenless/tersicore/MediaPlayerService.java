@@ -248,8 +248,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             final Track current = mCurrentPlaylist.get(mCurrentIndex);
             try {
                 newTrackPlaying(current);
-                mMediaPlayer.setDataSource("https://" +
-                        PreferencesHandler.getServer(this) +
+                mMediaPlayer.setDataSource(PreferencesHandler.getServer(this) +
                         "/stream/" +
                         current.resources.get(0).uuid);
                 mMediaPlayer.prepareAsync();
