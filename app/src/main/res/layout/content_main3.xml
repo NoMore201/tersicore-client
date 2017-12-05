@@ -55,6 +55,12 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/tvArtists">
+                        <android.support.v7.widget.RecyclerView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal"
+                            android:id="@+id/artistlistview">
+                        </android.support.v7.widget.RecyclerView>
                 </LinearLayout>
 
                 <TextView
@@ -94,7 +100,14 @@
                     android:orientation="vertical"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tvAlbums" ></LinearLayout>
+                    app:layout_constraintTop_toBottomOf="@+id/tvAlbums" >
+                        <android.support.v7.widget.RecyclerView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal"
+                            android:id="@+id/coverlistview">
+                        </android.support.v7.widget.RecyclerView>
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/tvsmalbum"
@@ -197,7 +210,9 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHorizontal_bias="0.0"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/textView2"></LinearLayout>
+                    app:layout_constraintTop_toBottomOf="@+id/textView2">
+
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/textView3"

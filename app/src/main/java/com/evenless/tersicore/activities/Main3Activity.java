@@ -16,6 +16,8 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -28,24 +30,18 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.evenless.tersicore.ApiRequestTaskListener;
 import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.MediaPlayerService;
 import com.evenless.tersicore.MediaPlayerServiceListener;
+import com.evenless.tersicore.MyListAdapter;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.TaskHandler;
 import com.evenless.tersicore.model.Track;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -54,24 +50,22 @@ import java.util.Map;
 import com.evenless.tersicore.view.NonScrollableListView;
 import com.google.gson.Gson;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 public class Main3Activity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         ApiRequestTaskListener, SearchView.OnQueryTextListener,
-        MediaPlayerServiceListener{
+        MediaPlayerServiceListener {
 
     private Track[] listTracks = new Track[0];
-    private  ArrayList<Track> listTracksFiltered = new ArrayList<>();
+    private ArrayList<Track> listTracksFiltered = new ArrayList<>();
     private ArrayList<Track> listAlbums = new ArrayList<>();
-    private  ArrayList<String> listArtists = new ArrayList<>();
+    private ArrayList<String> listArtists = new ArrayList<>();
     private Map<String, Bitmap> artistsCover;
     private static final String[] playOptions = {"Play now (Destroy queue)", "Play now (Maintain queue)", "Add To Playlist (Coda)", "Play After"};
     private Context ctx = this;
     private MediaPlayerService mService;
     private boolean mBound=false;
+    private RecyclerView mRecyclerView;
+    private RecyclerView mRecyclerViewAlbums;
     private int page = 0;
     private ServiceConnection mConnection = new ServiceConnection() {
 
@@ -126,6 +120,14 @@ public class Main3Activity extends AppCompatActivity
         TextView smAlbums = findViewById(R.id.tvsmalbum);
         TextView smTracks = findViewById(R.id.tvsmlist);
 
+        // use a linear layout manager
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        RecyclerView.LayoutManager mLayoutManagerAlbum = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        mRecyclerView = findViewById(R.id.artistlistview);
+        mRecyclerViewAlbums = findViewById(R.id.coverlistview);
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerViewAlbums.setLayoutManager(mLayoutManagerAlbum);
+
         final EditText editit = findViewById(R.id.searchone);
         editit.addTextChangedListener(new TextWatcher() {
             @Override
@@ -153,12 +155,12 @@ public class Main3Activity extends AppCompatActivity
             public void onClick(View v) {
                 v.setVisibility(View.GONE);
                 EditText editit = findViewById(R.id.searchone);
-                listArtists = new ArrayList<>();
                 for (int i = 0; i < listTracks.length; i++) {
-                    if (artistSD(listTracks[i], editit.getText().toString()) && !listArtists.contains(listTracks[i].artist))
+                    if (artistSD(listTracks[i], editit.getText().toString()) && !listArtists.contains(listTracks[i].artist)) {
                         listArtists.add(listTracks[i].artist);
+                        mRecyclerView.getAdapter().notifyItemInserted(listArtists.size()-1);
+                    }
                 }
-                updateArtists();
             }
         });
 
@@ -166,13 +168,12 @@ public class Main3Activity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 v.setVisibility(View.GONE);
-                EditText editit = findViewById(R.id.searchone);
-                listAlbums = new ArrayList<>();
                 for (int i = 0; i < listTracks.length; i++) {
-                    if (albumSD(listTracks[i], editit.getText().toString()) && !isParsedAlbum(listTracks[i].album))
+                    if (albumSD(listTracks[i], editit.getText().toString()) && !isParsedAlbum(listTracks[i].album)) {
                         listAlbums.add(listTracks[i]);
+                        mRecyclerViewAlbums.getAdapter().notifyItemInserted(listAlbums.size()-1);
+                    }
                 }
-                updateAlbums();
             }
         });
 
@@ -315,6 +316,11 @@ public class Main3Activity extends AppCompatActivity
     }
 
     @Override
+    public void onImgRequestComplete(String result, int id) {
+        //Nothing
+    }
+
+    @Override
     public void onRequestComplete(String response) {
         if (response == null) {
             return;
@@ -329,42 +335,7 @@ public class Main3Activity extends AppCompatActivity
 
     @Override
     public void onApiRequestError(Exception e) {
-        //Alert?
-    }
-
-    @Override
-    public void onImgRequestComplete(String result, int id) {
-        final ImageView temp = findViewById(id);
-        if(temp!=null){
-            try {
-                JSONObject tempJson = new JSONObject(result);
-                if(tempJson.has("artist")) {
-                    JSONArray tmp = tempJson.getJSONObject("artist").getJSONArray("image");
-                    final String link = tmp.getJSONObject(2).getString("#text");
-                    Bitmap bitmap = BitmapFactory.decodeStream((InputStream) new URL(link).getContent());
-                    temp.setAlpha(0f);
-                    temp.setImageBitmap(bitmap);
-                    artistsCover.put(tempJson.getJSONObject("artist").getString("name"), bitmap);
-                } else {
-                    JSONArray tmp = tempJson.getJSONObject("album").getJSONArray("image");
-                    final String link = tmp.getJSONObject(2).getString("#text");
-                    Bitmap bitmap = BitmapFactory.decodeStream((InputStream) new URL(link).getContent());
-                    temp.setAlpha(0f);
-                    temp.setImageBitmap(bitmap);
-                    String key = tempJson.getJSONObject("album").getString("name") + tempJson.getJSONObject("album").getString("artist");
-                    artistsCover.put(key, bitmap);
-                }
-             temp.animate().alpha(1f);
-            } catch (JSONException e) {
-                Log.e("Main3Activity", e.getMessage());
-            } catch (MalformedURLException e) {
-                Log.e("Main3Activity", e.getMessage());
-            } catch (IOException e) {
-                Log.e("Main3Activity", e.getMessage());
-            } catch (Exception e) {
-                Log.e("Main3Activity", e.getMessage());
-            }
-        }
+        Toast.makeText(ctx, e.getMessage(), Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -389,8 +360,9 @@ public class Main3Activity extends AppCompatActivity
                     if(listTracksFiltered.size()>2) {
                         brokeTracks = true;
                         break;
-                    } else
+                    } else {
                         listTracksFiltered.add(listTracks[i]);
+                    }
                 }
             }
             for (int i = 0; i < listTracks.length; i++) {
@@ -420,7 +392,6 @@ public class Main3Activity extends AppCompatActivity
                     t2.setVisibility(View.GONE);
                 }
                 l1.setVisibility(View.VISIBLE);
-                updateArtists();
             } else {
                 t1.setVisibility(View.GONE);
                 t2.setVisibility(View.GONE);
@@ -437,7 +408,6 @@ public class Main3Activity extends AppCompatActivity
                     t2.setVisibility(View.GONE);
                 }
                 l1.setVisibility(View.VISIBLE);
-                updateAlbums();
             } else {
                 t1.setVisibility(View.GONE);
                 t2.setVisibility(View.GONE);
@@ -476,6 +446,8 @@ public class Main3Activity extends AppCompatActivity
             v.setVisibility(View.GONE);
         }
         updateList();
+        mRecyclerView.setAdapter(new MyListAdapter(listArtists, artistsCover, MyListAdapter.ARTIST_STATE));
+        mRecyclerViewAlbums.setAdapter(new MyListAdapter(listAlbums, artistsCover, MyListAdapter.ALBUMS_STATE));
         return false;
     }
 
@@ -509,112 +481,6 @@ public class Main3Activity extends AppCompatActivity
             }
         };
         lsv.setAdapter(arrayAdapter);
-    }
-
-    private void updateAlbums() {
-        LinearLayout l1 = findViewById(R.id.linearAlbums);
-        l1.removeAllViewsInLayout();
-        LinearLayout l2 = createLinearLayout();
-        for (int i = 0; i < listAlbums.size(); i++) {
-            if(i%3==0 && i!=0){
-                l1.addView(l2);
-                l2 = createLinearLayout();
-            }
-            LinearLayout temp = new LinearLayout(ctx);
-            temp.setOrientation(LinearLayout.VERTICAL);
-            temp.setLayoutParams(new LinearLayout.LayoutParams(
-                    0, LinearLayout.LayoutParams.WRAP_CONTENT, 1
-            ));
-            ImageView timg = new ImageView(ctx);
-            ViewGroup.MarginLayoutParams imgparam = new ViewGroup.MarginLayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            timg.setLayoutParams(imgparam);
-            timg.setCropToPadding(true);
-            timg.setPadding(5,0,5,0);
-            timg.setId(View.generateViewId());
-            timg.setImageBitmap(getAlbumCover(listAlbums.get(i), timg.getId()));
-            timg.setAdjustViewBounds(true);
-            temp.addView(timg);
-            TextView ttxt = new TextView(ctx);
-            imgparam = new ViewGroup.MarginLayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            imgparam.setMargins(0, 0, 10, 0);
-            ttxt.setLayoutParams(imgparam);
-            ttxt.setText(listAlbums.get(i).album);
-            temp.addView(ttxt);
-            l2.addView(temp);
-        }
-        l1.addView(l2);
-    }
-
-    private Bitmap getArtistImage(String s, int id) {
-        if(artistsCover.containsKey(s))
-            return artistsCover.get(s);
-        else {
-            try {
-                TaskHandler.getArtistImageFromApi(this, s, id);
-            } catch (Exception e) {
-                Toast.makeText(ctx, e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-            return BitmapFactory.decodeResource(this.getResources(), R.drawable.nocover);
-        }
-    }
-
-    private Bitmap getAlbumCover(Track tr, int id){
-        if(artistsCover.containsKey(tr.album + tr.artist))
-            return artistsCover.get(tr.album + tr.artist);
-        else {
-            try {
-                TaskHandler.getAlbumImageFromApi(this, tr.artist, tr.album, id);
-            } catch (Exception e) {
-                Toast.makeText(ctx, e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-            return BitmapFactory.decodeResource(this.getResources(), R.drawable.nocover);
-        }
-    }
-
-    private LinearLayout createLinearLayout(){
-        LinearLayout temp = new LinearLayout(ctx);
-        temp.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        temp.setWeightSum(3);
-        temp.setOrientation(LinearLayout.HORIZONTAL);
-        return temp;
-    }
-
-    private void updateArtists() {
-        LinearLayout l1 = findViewById(R.id.linearArtists);
-        l1.removeAllViewsInLayout();
-        LinearLayout l2 = createLinearLayout();
-        for (int i = 0; i < listArtists.size(); i++) {
-            if(i%3==0 && i!=0){
-                    l1.addView(l2);
-                    l2 = createLinearLayout();
-            }
-            LinearLayout temp = new LinearLayout(ctx);
-            temp.setOrientation(LinearLayout.VERTICAL);
-            temp.setLayoutParams(new LinearLayout.LayoutParams(
-                    0, LinearLayout.LayoutParams.WRAP_CONTENT, 1
-            ));
-            ImageView timg = new ImageView(ctx);
-            ViewGroup.MarginLayoutParams imgparam = new ViewGroup.MarginLayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            timg.setLayoutParams(imgparam);
-            timg.setCropToPadding(true);
-            timg.setPadding(5,0,5,0);
-            timg.setId(View.generateViewId());
-            timg.setImageBitmap(getArtistImage(listArtists.get(i), timg.getId()));
-            timg.setAdjustViewBounds(true);
-            temp.addView(timg);
-            TextView ttxt = new TextView(ctx);
-            imgparam = new ViewGroup.MarginLayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            imgparam.rightMargin=10;
-            ttxt.setLayoutParams(imgparam);
-            ttxt.setText(listArtists.get(i));
-            temp.addView(ttxt);
-            l2.addView(temp);
-        }
-        l1.addView(l2);
     }
 
     public boolean asd(Track s, String t){
@@ -651,11 +517,19 @@ public class Main3Activity extends AppCompatActivity
 
     @Override
     public void onCoverFetched(Track tr, int id) {
-        ImageView img = findViewById(id);
-        if(tr.resources.get(0).cover_data!=null && img!=null) {
-            img.setImageBitmap(BitmapFactory.decodeByteArray(
+        Bitmap image = BitmapFactory.decodeByteArray(
                     tr.resources.get(0).cover_data, 0,
-                    tr.resources.get(0).cover_data.length));
+                    tr.resources.get(0).cover_data.length);
+        if(id==MyListAdapter.ARTIST_STATE){
+            artistsCover.put(tr.artist, image);
+            int tempid=listArtists.indexOf(tr.artist);
+            if(tempid!=-1)
+                mRecyclerView.getAdapter().notifyItemChanged(tempid);
+        } else if (id==MyListAdapter.ALBUMS_STATE){
+            artistsCover.put(tr.album + tr.artist, image);
+            int tempid = listAlbums.indexOf(tr);
+            if(tempid!= -1)
+                mRecyclerViewAlbums.getAdapter().notifyItemChanged(tempid);
         }
     }
 
