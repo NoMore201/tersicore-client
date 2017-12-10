@@ -170,10 +170,11 @@ implements ImageRequestTaskListener, CoverDownloadTaskListener {
             if (tempid != -1)
                 this.notifyItemChanged(tempid);
         } else if(bitmap!=null) {
-            String key1 = query.substring(query.indexOf("<!!")+1);
+            String key1 = query.substring(query.indexOf("<!!")+3);
             String key2 = query.substring(0,query.indexOf("<!!"));
             mImages.put(key1 + key2, bitmap);
             int tempid = findAlbumByArtistAndName(key2, key1);
+
             if (tempid != -1)
                 this.notifyItemChanged(tempid);
         }
