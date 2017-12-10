@@ -25,12 +25,12 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.evenless.tersicore.ApiRequestTaskListener;
@@ -41,6 +41,7 @@ import com.evenless.tersicore.MyListAdapter;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.TaskHandler;
+import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.Track;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,7 +58,7 @@ public class Main3Activity extends AppCompatActivity
 
     private Track[] listTracks = new Track[0];
     private ArrayList<Track> listTracksFiltered = new ArrayList<>();
-    private ArrayList<Track> listAlbums = new ArrayList<>();
+    private ArrayList<Album> listAlbums = new ArrayList<>();
     private ArrayList<String> listArtists = new ArrayList<>();
     private Map<String, Bitmap> artistsCover;
     private static final String[] playOptions = {"Play now (Destroy queue)", "Play now (Maintain queue)", "Add To Playlist (Coda)", "Play After"};
@@ -76,20 +77,18 @@ public class Main3Activity extends AppCompatActivity
             mService = binder.getService();
             mBound = true;
             mService.setMediaPlayerServiceListener((MediaPlayerServiceListener) ctx);
+            artistsCover = mService.artistsCover;
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-
+            mBound=false;
         }
     };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        artistsCover = new HashMap<String, Bitmap>() {};
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
         try {
             if (DataBackend.getTracks().size() != 0) {
                 listTracks = new Track[DataBackend.getTracks().size()];
@@ -101,7 +100,7 @@ public class Main3Activity extends AppCompatActivity
                     listTracks = new Track[0];
                 }
         } catch (Exception e){
-            Log.e("Player", e.getMessage());
+            Log.e("Main3Activity", e.getMessage());
         }
         setContentView(R.layout.activity_main3);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -116,8 +115,6 @@ public class Main3Activity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        TextView smArtists = findViewById(R.id.tvsmartist);
-        TextView smAlbums = findViewById(R.id.tvsmalbum);
         TextView smTracks = findViewById(R.id.tvsmlist);
 
         // use a linear layout manager
@@ -146,33 +143,6 @@ public class Main3Activity extends AppCompatActivity
                     onQueryTextChange(s.toString());
                 } catch (Exception e) {
                     Log.e("Main3Activity", e.getMessage());
-                }
-            }
-        });
-
-        smArtists.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                v.setVisibility(View.GONE);
-                EditText editit = findViewById(R.id.searchone);
-                for (int i = 0; i < listTracks.length; i++) {
-                    if (artistSD(listTracks[i], editit.getText().toString()) && !listArtists.contains(listTracks[i].artist)) {
-                        listArtists.add(listTracks[i].artist);
-                        mRecyclerView.getAdapter().notifyItemInserted(listArtists.size()-1);
-                    }
-                }
-            }
-        });
-
-        smAlbums.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                v.setVisibility(View.GONE);
-                for (int i = 0; i < listTracks.length; i++) {
-                    if (albumSD(listTracks[i], editit.getText().toString()) && !isParsedAlbum(listTracks[i].album)) {
-                        listAlbums.add(listTracks[i]);
-                        mRecyclerViewAlbums.getAdapter().notifyItemInserted(listAlbums.size()-1);
-                    }
                 }
             }
         });
@@ -242,6 +212,8 @@ public class Main3Activity extends AppCompatActivity
                 return true;
             }
         });
+
+        navigationView.setCheckedItem(R.id.nav_home);
     }
 
     @Override
@@ -293,9 +265,11 @@ public class Main3Activity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_albums) {
-            // Handle the camera action
+            Intent asd = new Intent(this, AlbumsActivity.class);
+            startActivity(asd);
         } else if (id == R.id.nav_artists) {
-
+            Intent asd = new Intent(this, ArtistsActivity.class);
+            startActivity(asd);
         } else if (id == R.id.nav_dj) {
 
         } else if (id == R.id.nav_home) {
@@ -305,7 +279,8 @@ public class Main3Activity extends AppCompatActivity
         } else if (id == R.id.nav_settings) {
 
         } else if (id == R.id.nav_songs) {
-
+            Intent asd = new Intent(this, TracksActivity.class);
+            startActivity(asd);
         } else if (id == R.id.nav_view) {
 
         }
@@ -328,8 +303,6 @@ public class Main3Activity extends AppCompatActivity
         page=0;
         if(newT.length()!=0) {
             boolean brokeTracks = false;
-            boolean brokeArt = false;
-            boolean brokeAlb = false;
             for (int i = 0; i < listTracks.length; i++) {
                 if (asd(listTracks[i], newT)) {
                     if(listTracksFiltered.size()>2) {
@@ -341,73 +314,42 @@ public class Main3Activity extends AppCompatActivity
                 }
             }
             for (int i = 0; i < listTracks.length; i++) {
-                if (albumSD(listTracks[i], newT) && !isParsedAlbum(listTracks[i].album))
-                    if(listAlbums.size()>2) {
-                        brokeAlb=true;
-                        break;
-                    } else
-                        listAlbums.add(listTracks[i]);
+                if (albumSD(listTracks[i], newT) && !isParsedAlbum(listTracks[i])){
+                        Track temp = listTracks[i];
+                        if(temp.album_artist!=null)
+                            listAlbums.add(new Album(temp.album, temp.album_artist));
+                        else
+                            listAlbums.add(new Album(temp.album, temp.artist));
+                    }
             }
             for (int i = 0; i < listTracks.length; i++) {
                 if (artistSD(listTracks[i], newT) && !listArtists.contains(listTracks[i].artist))
-                    if(listArtists.size()>2) {
-                        brokeArt=true;
-                        break;
-                    } else
                         listArtists.add(listTracks[i].artist);
             }
             TextView t1 = findViewById(R.id.tvArtists);
-            TextView t2 = findViewById(R.id.tvsmartist);
             if(listArtists.size()>0){
                 t1.setVisibility(View.VISIBLE);
-                if(brokeArt) {
-                    t2.setVisibility(View.VISIBLE);
-                } else {
-                    t2.setVisibility(View.GONE);
-                }
             } else {
                 t1.setVisibility(View.GONE);
-                t2.setVisibility(View.GONE);
             }
             t1 = findViewById(R.id.tvAlbums);
-            t2 = findViewById(R.id.tvsmalbum);
             if(listAlbums.size()>0){
                 t1.setVisibility(View.VISIBLE);
-                if(brokeAlb) {
-                    t2.setVisibility(View.VISIBLE);
-                } else {
-                    t2.setVisibility(View.GONE);
-                }
             } else {
                 t1.setVisibility(View.GONE);
-                t2.setVisibility(View.GONE);
             }
             t1 = findViewById(R.id.tvtracks);
-            t2 = findViewById(R.id.tvsmlist);
-            if(listTracksFiltered.size()>0){
+            if(listTracksFiltered.size()>0)
                 t1.setVisibility(View.VISIBLE);
-                if(brokeTracks) {
-                    t2.setVisibility(View.VISIBLE);
-                } else {
-                    t2.setVisibility(View.GONE);
-                }
-            } else {
+            else
                 t1.setVisibility(View.GONE);
-                t2.setVisibility(View.GONE);
-            }
         } else {
             TextView t1 = findViewById(R.id.tvArtists);
-            TextView t2 = findViewById(R.id.tvsmartist);
             t1.setVisibility(View.GONE);
-            t2.setVisibility(View.GONE);
             t1 = findViewById(R.id.tvAlbums);
-            t2 = findViewById(R.id.tvsmalbum);
             t1.setVisibility(View.GONE);
-            t2.setVisibility(View.GONE);
             t1 = findViewById(R.id.tvtracks);
-            t2 = findViewById(R.id.tvsmlist);
             t1.setVisibility(View.GONE);
-            t2.setVisibility(View.GONE);
         }
         updateList();
         mRecyclerView.setAdapter(new MyListAdapter(listArtists, artistsCover, MyListAdapter.ARTIST_STATE));
@@ -415,13 +357,14 @@ public class Main3Activity extends AppCompatActivity
         return false;
     }
 
-    private boolean isParsedAlbum(String listTrack) {
-        for(int i=0; i<listAlbums.size(); i++){
-            if (listAlbums.get(i).album.equals(listTrack)){
-                return true;
-            }
-        }
-        return false;
+    private boolean isParsedAlbum(Track temp) {
+        Album asd;
+        if(temp.album_artist!=null)
+            asd = new Album(temp.album, temp.album_artist);
+        else
+            asd = new Album(temp.album, temp.artist);
+
+        return listAlbums.contains(asd);
     }
 
     private void updateList() {

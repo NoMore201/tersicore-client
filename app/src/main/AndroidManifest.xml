@@ -33,6 +33,22 @@
             android:name=".activities.Main3Activity"
             android:label="@string/title_activity_main3">
         </activity>
+        <activity
+            android:name=".activities.ArtistsActivity"
+            android:label="@string/title_activity_artists">
+        </activity>
+        <activity
+            android:name=".activities.AlbumsActivity"
+            android:label="@string/title_activity_albums">
+        </activity>
+        <activity
+            android:name=".activities.TracksActivity"
+            android:label="@string/title_activity_tracks">
+        </activity>
+        <activity
+            android:name=".activities.SingleArtistActivity"
+            android:label="@string/title_activity_albums">
+        </activity>
     </application>
 
 </manifest>

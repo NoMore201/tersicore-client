@@ -1,5 +1,8 @@
 package com.evenless.tersicore;
 
+import android.support.annotation.NonNull;
+
+import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.Track;
 
 import java.util.ArrayList;
@@ -35,14 +38,16 @@ public class DataBackend {
         return result;
     }
 
-    public static List<String> getAlbums() {
+    public static List<Album> getAlbums() {
         RealmResults<Track> unique = getInstance().where(Track.class)
                 .distinct("album");
-        ArrayList<String> result = new ArrayList<>();
+        ArrayList<Album> result = new ArrayList<>();
         for (Track t : unique) {
-            if (t.album != null) {
-                result.add(t.album);
-            }
+            if(t.album!=null)
+                if (t.album_artist != null) {
+                    result.add(new Album(t.album, t.album_artist));
+                } else
+                    result.add(new Album(t.album, t.artist));
         }
         return result;
     }
@@ -57,8 +62,22 @@ public class DataBackend {
                 .findFirst();
     }
 
+    public static List<Album> getAlbumsByArtist(@NonNull String artist) {
+        RealmResults<Track> unique = getInstance().where(Track.class)
+                .distinct("album", "album_artist");
+        ArrayList<Album> result = new ArrayList<>();
+        for (Track t : unique) {
+            if(t.album!=null)
+                if (t.album_artist!=null && t.album_artist.equalsIgnoreCase(artist)) {
+                    result.add(new Album(t.album, t.album_artist));
+                } else if (t.artist!=null && t.artist.equalsIgnoreCase(artist))
+                    result.add(new Album(t.album, t.artist));
+        }
+        return result;
+    }
+
     public static RealmResults<Track> getTracksByArtist(String artist) {
-        return getInstance().where(Track.class).equalTo("album_artist", artist).findAll();
+        return getInstance().where(Track.class).equalTo("artist", artist).findAll();
     }
 
     public static RealmResults<Track> getTracksByAlbum(String artist, String album) {

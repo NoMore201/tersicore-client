@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <dimen name="space8">8dp</dimen>
     <dimen name="space16">16dp</dimen>
     <dimen name="space24">24dp</dimen>

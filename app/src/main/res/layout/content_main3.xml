@@ -63,18 +63,7 @@
                         </android.support.v7.widget.RecyclerView>
                 </LinearLayout>
 
-                <TextView
-                    android:id="@+id/tvsmartist"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:layout_weight="1"
-                    android:paddingLeft="5dp"
-                    android:paddingTop="8dp"
-                    android:visibility="gone"
-                    android:text="@string/showmore"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/linearArtists" />
+
                 <TextView
                     android:id="@+id/tvAlbums"
                     android:layout_width="match_parent"
@@ -90,7 +79,7 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHorizontal_bias="0.0"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tvsmartist" />
+                    app:layout_constraintTop_toBottomOf="@+id/linearArtists" />
                 <LinearLayout
                     android:id="@+id/linearAlbums"
                     android:layout_width="match_parent"
@@ -110,19 +99,6 @@
                 </LinearLayout>
 
                 <TextView
-                    android:id="@+id/tvsmalbum"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:layout_weight="1"
-                    android:paddingLeft="5dp"
-                    android:paddingTop="8dp"
-                    android:visibility="gone"
-                    android:text="@string/showmore"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/linearAlbums" />
-
-                <TextView
                     android:id="@+id/tvtracks"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -133,7 +109,7 @@
                     android:paddingTop="8dp"
                     android:text="Tracks"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tvsmalbum" />
+                    app:layout_constraintTop_toBottomOf="@+id/linearAlbums" />
                 <RelativeLayout
                     android:id="@+id/listtrR"
                     android:layout_width="match_parent"

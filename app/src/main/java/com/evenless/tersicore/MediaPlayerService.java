@@ -3,6 +3,7 @@ package com.evenless.tersicore;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -21,7 +22,9 @@ import com.evenless.tersicore.model.Track;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -39,6 +42,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     private ArrayList<Track> mCurrentPlaylist;
     private int mCurrentIndex;
     private Timer mCurrentTimer = new Timer();
+    public Map<String, Bitmap> artistsCover;
 
     public long getDuration() {
         return mMediaPlayer.getDuration();
@@ -68,6 +72,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         mMediaPlayer.setOnCompletionListener(this);
         mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
         mCurrentPlaylist = new ArrayList<>();
+        artistsCover = new HashMap<>();
         mCurrentIndex=-1;
 
         AudioAttributes attributes = new AudioAttributes.Builder()
