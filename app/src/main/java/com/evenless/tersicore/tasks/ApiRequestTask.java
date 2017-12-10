@@ -16,10 +16,6 @@ public class ApiRequestTask extends GenericRequestTask {
     @Override
     protected void notifyResult(String result, Exception e) {
         super.notifyResult(result, e);
-        if (result == null) {
-            mListener.onApiRequestError(e);
-        } else {
-            mListener.onRequestComplete(result);
-        }
+        mListener.onRequestComplete(result, e);
     }
 }

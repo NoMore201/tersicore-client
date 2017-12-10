@@ -1,27 +1,18 @@
 package com.evenless.tersicore;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
-
 import com.evenless.tersicore.model.Track;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -30,7 +21,7 @@ import java.util.Map;
  */
 
 public class MyListAdapter extends RecyclerView.Adapter<MyListAdapter.ViewHolder>
-implements ApiRequestTaskListener{
+implements ImageRequestTaskListener, CoverDownloadTaskListener {
     private ArrayList<String> mDataset;
     private ArrayList<Track> mTrackSet;
     private Map<String, Bitmap> mImages;
@@ -84,7 +75,6 @@ implements ApiRequestTaskListener{
     public void onBindViewHolder(ViewHolder holder, int position) {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
-        Log.i("ListAdapter", "Binding position " + position);
         String temp;
         Bitmap tempImg = null;
         if(listtypeNumber ==ARTIST_STATE) {
@@ -142,17 +132,8 @@ implements ApiRequestTaskListener{
         }
     }
 
-    @Override
-    public void onRequestComplete(String response) {
-        //Nothing
-    }
 
-    @Override
-    public void onApiRequestError(Exception e) {
-        //Nothing
-    }
-
-    private int findAlbumByArtistAndName(String name, String artist){
+    private int findAlbumByArtistAndName(String artist, String name){
         for (int i=0; i<mTrackSet.size(); i++){
             if(mTrackSet.get(i).album.equals(name) && mTrackSet.get(i).artist.equals(artist))
                 return i;
@@ -160,40 +141,42 @@ implements ApiRequestTaskListener{
         return -1;
     }
 
+
     @Override
-    public void onImgRequestComplete(String result, int id) {
-        try {
+    public void onImgRequestComplete(String result, int id, String key, Exception ex) {
+        if(ex!=null){
+            Log.e("MyListAdapter", ex.getMessage());
+        } else try {
             JSONObject tempJson = new JSONObject(result);
             if(tempJson.has("artist")) {
                 JSONArray tmp = tempJson.getJSONObject("artist").getJSONArray("image");
                 final String link = tmp.getJSONObject(2).getString("#text");
-                Bitmap bitmap = BitmapFactory.decodeStream((InputStream) new URL(link).getContent());
-                if(bitmap!=null) {
-                    mImages.put(tempJson.getJSONObject("artist").getString("name"), bitmap);
-                    int tempid = mDataset.indexOf(tempJson.getJSONObject("artist").getString("name"));
-                    if (tempid != -1)
-                        this.notifyItemChanged(tempid);
-                }
+                TaskHandler.downloadCover(link, ARTIST_STATE, key, this);
             } else {
                 JSONArray tmp = tempJson.getJSONObject("album").getJSONArray("image");
                 final String link = tmp.getJSONObject(2).getString("#text");
-                Bitmap bitmap = BitmapFactory.decodeStream((InputStream) new URL(link).getContent());
-                if(bitmap!=null) {
-                    String key = tempJson.getJSONObject("album").getString("name") + tempJson.getJSONObject("album").getString("artist");
-                    mImages.put(key, bitmap);
-                    int tempid = findAlbumByArtistAndName(tempJson.getJSONObject("album").getString("name"), tempJson.getJSONObject("album").getString("artist"));
-                    if (tempid != -1)
-                        this.notifyItemChanged(tempid);
-                }
+                TaskHandler.downloadCover(link, ALBUMS_STATE, key, this);
             }
-        } catch (JSONException e) {
-            Log.e("Main3Activity", e.getMessage());
-        } catch (MalformedURLException e) {
-            Log.e("Main3Activity", e.getMessage());
-        } catch (IOException e) {
-            Log.e("Main3Activity", e.getMessage());
         } catch (Exception e) {
             Log.e("Main3Activity", e.getMessage());
         }
     }
+
+    @Override
+    public void OnCoverDownloaded(Bitmap bitmap, int mState, String query) {
+        if(bitmap!=null && mState==ARTIST_STATE) {
+            mImages.put(query, bitmap);
+            int tempid = mDataset.indexOf(query);
+            if (tempid != -1)
+                this.notifyItemChanged(tempid);
+        } else if(bitmap!=null) {
+            String key1 = query.substring(query.indexOf("<!!")+1);
+            String key2 = query.substring(0,query.indexOf("<!!"));
+            mImages.put(key1 + key2, bitmap);
+            int tempid = findAlbumByArtistAndName(key2, key1);
+            if (tempid != -1)
+                this.notifyItemChanged(tempid);
+        }
+    }
+
 }

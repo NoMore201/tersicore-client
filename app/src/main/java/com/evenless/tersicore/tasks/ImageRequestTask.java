@@ -7,17 +7,20 @@ import java.net.URL;
 public class ImageRequestTask extends GenericRequestTask {
     private ImageRequestTaskListener mListener;
     private int mId;
+    private String mQuery;
 
     public ImageRequestTask(ImageRequestTaskListener listener,
                             int id,
+                            String query,
                             URL url) {
         super(url);
         mListener = listener;
         mId = id;
+        mQuery=query;
     }
 
     @Override
     protected void notifyResult(String result, Exception e) {
-        mListener.onImgRequestComplete(result, mId, e);
+        mListener.onImgRequestComplete(result, mId, mQuery, e);
     }
 }

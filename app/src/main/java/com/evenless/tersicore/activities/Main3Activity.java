@@ -316,29 +316,6 @@ public class Main3Activity extends AppCompatActivity
     }
 
     @Override
-    public void onImgRequestComplete(String result, int id) {
-        //Nothing
-    }
-
-    @Override
-    public void onRequestComplete(String response) {
-        if (response == null) {
-            return;
-        }
-        try {
-            listTracks = new Gson().fromJson(response, Track[].class);
-            DataBackend.addTracks(new ArrayList<>(Arrays.asList(listTracks)));
-        } catch (Exception e) {
-            Log.e("Main3Activity", e.getMessage());
-        }
-    }
-
-    @Override
-    public void onApiRequestError(Exception e) {
-        Toast.makeText(ctx, e.getMessage(), Toast.LENGTH_LONG).show();
-    }
-
-    @Override
     public boolean onQueryTextSubmit(String query) {
         return false;
     }
@@ -348,10 +325,8 @@ public class Main3Activity extends AppCompatActivity
         listTracksFiltered = new ArrayList<>();
         listAlbums = new ArrayList<>();
         listArtists = new ArrayList<>();
-        View v = findViewById(R.id.paddingbot);
         page=0;
         if(newT.length()!=0) {
-            v.setVisibility(View.VISIBLE);
             boolean brokeTracks = false;
             boolean brokeArt = false;
             boolean brokeAlb = false;
@@ -383,7 +358,6 @@ public class Main3Activity extends AppCompatActivity
             }
             TextView t1 = findViewById(R.id.tvArtists);
             TextView t2 = findViewById(R.id.tvsmartist);
-            LinearLayout l1 = findViewById(R.id.linearArtists);
             if(listArtists.size()>0){
                 t1.setVisibility(View.VISIBLE);
                 if(brokeArt) {
@@ -391,15 +365,12 @@ public class Main3Activity extends AppCompatActivity
                 } else {
                     t2.setVisibility(View.GONE);
                 }
-                l1.setVisibility(View.VISIBLE);
             } else {
                 t1.setVisibility(View.GONE);
                 t2.setVisibility(View.GONE);
-                l1.setVisibility(View.GONE);
             }
             t1 = findViewById(R.id.tvAlbums);
             t2 = findViewById(R.id.tvsmalbum);
-            l1 = findViewById(R.id.linearAlbums);
             if(listAlbums.size()>0){
                 t1.setVisibility(View.VISIBLE);
                 if(brokeAlb) {
@@ -407,11 +378,9 @@ public class Main3Activity extends AppCompatActivity
                 } else {
                     t2.setVisibility(View.GONE);
                 }
-                l1.setVisibility(View.VISIBLE);
             } else {
                 t1.setVisibility(View.GONE);
                 t2.setVisibility(View.GONE);
-                l1.setVisibility(View.GONE);
             }
             t1 = findViewById(R.id.tvtracks);
             t2 = findViewById(R.id.tvsmlist);
@@ -429,21 +398,16 @@ public class Main3Activity extends AppCompatActivity
         } else {
             TextView t1 = findViewById(R.id.tvArtists);
             TextView t2 = findViewById(R.id.tvsmartist);
-            LinearLayout l1 = findViewById(R.id.linearArtists);
             t1.setVisibility(View.GONE);
             t2.setVisibility(View.GONE);
-            l1.setVisibility(View.GONE);
             t1 = findViewById(R.id.tvAlbums);
             t2 = findViewById(R.id.tvsmalbum);
-            l1 = findViewById(R.id.linearAlbums);
             t1.setVisibility(View.GONE);
             t2.setVisibility(View.GONE);
-            l1.setVisibility(View.GONE);
             t1 = findViewById(R.id.tvtracks);
             t2 = findViewById(R.id.tvsmlist);
             t1.setVisibility(View.GONE);
             t2.setVisibility(View.GONE);
-            v.setVisibility(View.GONE);
         }
         updateList();
         mRecyclerView.setAdapter(new MyListAdapter(listArtists, artistsCover, MyListAdapter.ARTIST_STATE));
@@ -543,4 +507,13 @@ public class Main3Activity extends AppCompatActivity
         //Update future Miniplayer
     }
 
+    @Override
+    public void onRequestComplete(String response, Exception e) {
+        if(e!=null){
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+        } else if (response != null) {
+            listTracks = new Gson().fromJson(response, Track[].class);
+            DataBackend.addTracks(new ArrayList<>(Arrays.asList(listTracks)));
+        }
+    }
 }

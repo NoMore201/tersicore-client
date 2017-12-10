@@ -1,9 +1,11 @@
 package com.evenless.tersicore;
 
+import android.graphics.Bitmap;
 import android.os.AsyncTask;
 
 import com.evenless.tersicore.model.Track;
 import com.evenless.tersicore.tasks.ApiRequestTask;
+import com.evenless.tersicore.tasks.CoverDownloadTask;
 import com.evenless.tersicore.tasks.CoverRetrieveTask;
 import com.evenless.tersicore.tasks.ImageRequestTask;
 import com.evenless.tersicore.tasks.ServerStatusTask;
@@ -34,7 +36,7 @@ public class TaskHandler {
             UnsupportedEncodingException
     {
         URL url = new URL(buildArtistUrl(query));
-        ImageRequestTask task = new ImageRequestTask(listener, id, url);
+        ImageRequestTask task = new ImageRequestTask(listener, id, query, url);
         task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
@@ -46,7 +48,7 @@ public class TaskHandler {
             UnsupportedEncodingException
     {
         URL url = new URL(buildAlbumUrl(artist, album));
-        ImageRequestTask task = new ImageRequestTask(listener, id, url);
+        ImageRequestTask task = new ImageRequestTask(listener, id, artist+"<!!"+album, url);
         task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
@@ -80,4 +82,10 @@ public class TaskHandler {
                 "&api_key=" + API_KEY + "&format=json";
     }
 
+    public static void downloadCover(String link, int state, String key, CoverDownloadTaskListener listener)
+            throws MalformedURLException {
+        URL url = new URL(link);
+        CoverDownloadTask task = new CoverDownloadTask(url, state, key, listener);
+        task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
 }
