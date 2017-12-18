@@ -49,6 +49,10 @@
             android:name=".activities.SingleArtistActivity"
             android:label="@string/title_activity_albums">
         </activity>
+        <activity
+            android:name=".activities.SingleAlbumActivity"
+            android:label="@string/title_activity_albums">
+        </activity>
     </application>
 
 </manifest>

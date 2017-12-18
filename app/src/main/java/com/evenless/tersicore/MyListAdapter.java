@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.evenless.tersicore.activities.SingleAlbumActivity;
 import com.evenless.tersicore.activities.SingleArtistActivity;
 import com.evenless.tersicore.model.Album;
 
@@ -82,7 +83,7 @@ implements ImageRequestTaskListener, CoverDownloadTaskListener {
 
     // Replace the contents of a view (invoked by the layout manager)
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(ViewHolder holder, final int position) {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
         String temp;
@@ -108,12 +109,17 @@ implements ImageRequestTaskListener, CoverDownloadTaskListener {
         else if(listtypeNumber==ALBUMS_STATE || listtypeNumber==ARTALB_STATE) {
             temp = mTrackSet.get(position).name;
             tempImg = mImages.get(temp + mTrackSet.get(position).artist);
+            final String al = temp;
+            final String ar = mTrackSet.get(position).artist;
             if(tempImg==null)
                 getAlbumCover(mTrackSet.get(position), ALBUMS_STATE);
             list = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    //Single Album Activity
+                    Intent asd = new Intent(v.getContext(), SingleAlbumActivity.class);
+                    asd.putExtra("EXTRA_ARTIST", ar);
+                    asd.putExtra("EXTRA_ALBUM", al);
+                    v.getContext().startActivity(asd);
                 }
             };
         }

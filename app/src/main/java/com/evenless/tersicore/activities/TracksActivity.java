@@ -48,6 +48,7 @@ public class TracksActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, ApiRequestTaskListener,
         MediaPlayerServiceListener{
 
+    private static final String TAG = "TracksActivity";
     private List<Track> listTracks;
     private String artist;
     private boolean mBound = false;
@@ -99,14 +100,6 @@ public class TracksActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
         navigationView.setCheckedItem(R.id.nav_songs);
 
-        FloatingActionButton asd = findViewById(R.id.floatingActionButton);
-        asd.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                //Play shuffle
-            }
-        });
-
         try {
             if (DataBackend.getArtists().size() != 0) {
                 if(artist==null)
@@ -121,7 +114,7 @@ public class TracksActivity extends AppCompatActivity
                     listTracks = new ArrayList<>();
                 }
         } catch (Exception e){
-            Log.e("TracksActivity", e.getMessage());
+            Log.e(TAG, e.getMessage());
         }
     }
 
@@ -226,7 +219,7 @@ public class TracksActivity extends AppCompatActivity
                     builder.create().show();
                 } else {
                     //Alert service not bound yet
-                    Log.i("Home", "Service not bound yet");
+                    Log.i(TAG, "Service not bound yet");
                 }
                 return true;
             }

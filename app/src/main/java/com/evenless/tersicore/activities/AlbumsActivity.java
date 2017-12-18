@@ -142,7 +142,10 @@ public class AlbumsActivity extends AppCompatActivity
             // argument position gives the index of item which is clicked
             public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3)
             {
-
+                Intent asd = new Intent(v.getContext(), SingleAlbumActivity.class);
+                asd.putExtra("EXTRA_ARTIST", listAlbums.get(position).artist);
+                asd.putExtra("EXTRA_ALBUM", listAlbums.get(position).name);
+                v.getContext().startActivity(asd);
             }
         });
     }

@@ -84,7 +84,7 @@ public class DataBackend {
         return getInstance().where(Track.class)
                 .equalTo("artist", artist)
                 .equalTo("album", album)
-                .findAll();
+                .findAllSorted("track_number");
     }
 
     public static Track updateTrackCover(String uuid, byte[] cover) {
