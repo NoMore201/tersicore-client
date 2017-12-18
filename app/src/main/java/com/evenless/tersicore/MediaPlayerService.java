@@ -22,6 +22,7 @@ import com.evenless.tersicore.model.Track;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         CoverRetrieveTaskListener
 {
     private static final String TAG = "MediaPlayerService";
+    private static final int randomLimit = 200;
     private MediaPlayer mMediaPlayer;
     private WifiManager.WifiLock mWifiLock;
     private final IBinder mBinder = new LocalBinder();
@@ -42,10 +44,27 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     private ArrayList<Track> mCurrentPlaylist;
     private int mCurrentIndex;
     private Timer mCurrentTimer = new Timer();
+    private List<Integer> indices;
     public Map<String, Bitmap> artistsCover;
+
 
     public long getDuration() {
         return mMediaPlayer.getDuration();
+    }
+
+    public void playRandom(List<Track> realmResults) {
+        indices = new ArrayList<>(realmResults.size());
+        for(int i = 0; i < realmResults.size(); i++) {
+            indices.add(i);
+        }
+        Collections.shuffle(indices);
+        Track[] asd = new Track[randomLimit];
+        for(int i=0; i<indices.size(); i++){
+            if(i>=randomLimit)
+                break;
+            asd[i]=realmResults.get(indices.get(i));
+        }
+        updatePlaylist(asd);
     }
 
     public enum SkipDirection { SKIP_FORWARD, SKIP_BACKWARD }

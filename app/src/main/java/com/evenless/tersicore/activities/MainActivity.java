@@ -66,42 +66,11 @@ public class MainActivity extends AppCompatActivity
             mBound = true;
             mService.setMediaPlayerServiceListener(ctx);
             mService.callTimer(mHandler);
-            /*
-            List<Track> list;
-            if (DataBackend.getTracks().size() != 0) {
-                Log.d(TAG, "onServiceConnected: found track in db");
-                list = DataBackend.getTracks();
-                Log.d(TAG, "onServiceConnected: " + DataBackend.getArtists().get(0));
-            } else {
-                Track track1 = new Track();
-                TrackResources temp = new TrackResources();
-                temp.uuid = "881f51d2f478418fb9b595623528c55b";
-                track1.uuid = "1";
-                track1.resources = new RealmList<>();
-                track1.resources.add(temp);
-                track1.title = "Oh Bella!";
-                track1.album_artist = "Flume";
-                temp = new TrackResources();
-                temp.uuid = "af49dd2f3ef04b1f8687e092d0a83bc0";
-                Track track2 = new Track();
-                track2.uuid = "2";
-                track2.resources = new RealmList<>();
-                track2.resources.add(temp);
-                track2.title = "OMG";
-                track2.album_artist = "Sconosciuto";
-                list = Arrays.asList(track1, track2);
-                DataBackend.addTracks(list);
-            }
-
-            mService.updatePlaylist(list);
-            PagerContainer container = findViewById(R.id.pager_container);
-
-            */
             PagerContainer container = (PagerContainer) findViewById(R.id.pager_container);
             final ViewPager pager = container.getViewPager();
             pager.setAdapter(new MainActivity.MyPagerAdapter());
             pager.setClipChildren(false);
-            pager.setOffscreenPageLimit(15);
+            pager.setOffscreenPageLimit(4);
             boolean showTransformer = getIntent().getBooleanExtra("showTransformer",true);
             if(showTransformer){
                 new CoverFlow.Builder()

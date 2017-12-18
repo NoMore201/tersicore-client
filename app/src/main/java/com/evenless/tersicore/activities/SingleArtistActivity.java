@@ -101,7 +101,9 @@ public class SingleArtistActivity extends AppCompatActivity
         asd.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                //Play shuffle
+                Intent dd = new Intent(v.getContext(), MainActivity.class);
+                mService.playRandom(DataBackend.getTracksByArtist(artist));
+                startActivity(dd);
             }
         });
 

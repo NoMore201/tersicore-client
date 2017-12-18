@@ -1,8 +1,13 @@
 package com.evenless.tersicore.activities;
 
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -21,6 +26,8 @@ import android.widget.Toast;
 
 import com.evenless.tersicore.ApiRequestTaskListener;
 import com.evenless.tersicore.DataBackend;
+import com.evenless.tersicore.MediaPlayerService;
+import com.evenless.tersicore.MediaPlayerServiceListener;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.TaskHandler;
@@ -37,14 +44,40 @@ import java.util.List;
  */
 
 public class AlbumsActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, ApiRequestTaskListener {
+        implements NavigationView.OnNavigationItemSelectedListener, ApiRequestTaskListener,
+                    MediaPlayerServiceListener{
 
     private List<Album> listAlbums;
+    private MediaPlayerService mService;
+    private Context ctx = this;
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            MediaPlayerService.LocalBinder binder = (MediaPlayerService.LocalBinder) service;
+            mService = binder.getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+        }
+
+    };
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Intent intent = new Intent(this, MediaPlayerService.class);
+        startService(intent);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_album);
+        setContentView(R.layout.activity_main4);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -70,6 +103,17 @@ public class AlbumsActivity extends AppCompatActivity
         } catch (Exception e){
             Log.e("AlbumsActivity", e.getMessage());
         }
+
+        findViewById(R.id.floatingActionButton).setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent dd = new Intent(v.getContext(), MainActivity.class);
+                        mService.playRandom(DataBackend.getTracks());
+                        startActivity(dd);
+                    }
+                }
+        );
     }
 
     private void createList() {
@@ -143,5 +187,30 @@ public class AlbumsActivity extends AppCompatActivity
             listAlbums = DataBackend.getAlbums();
             createList();
         }
+    }
+
+    @Override
+    public void onNewTrackPlaying(Track newTrack) {
+
+    }
+
+    @Override
+    public void onPlaylistComplete() {
+
+    }
+
+    @Override
+    public void onCoverFetched(Track track, int id) {
+
+    }
+
+    @Override
+    public void onPlaybackError(Exception exception) {
+
+    }
+
+    @Override
+    public void onPlaybackProgressUpdate(int currentMilliseconds) {
+
     }
 }

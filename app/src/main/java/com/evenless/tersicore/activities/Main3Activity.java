@@ -56,18 +56,19 @@ public class Main3Activity extends AppCompatActivity
         ApiRequestTaskListener, SearchView.OnQueryTextListener,
         MediaPlayerServiceListener {
 
+    public static final String[] playOptions = {"Play now (Destroy queue)", "Play now (Maintain queue)", "Add To Playlist (Coda)", "Play After"};
+
     private Track[] listTracks = new Track[0];
     private ArrayList<Track> listTracksFiltered = new ArrayList<>();
     private ArrayList<Album> listAlbums = new ArrayList<>();
     private ArrayList<String> listArtists = new ArrayList<>();
     private Map<String, Bitmap> artistsCover;
-    private static final String[] playOptions = {"Play now (Destroy queue)", "Play now (Maintain queue)", "Add To Playlist (Coda)", "Play After"};
     private Context ctx = this;
-    private MediaPlayerService mService;
     private boolean mBound=false;
     private RecyclerView mRecyclerView;
     private RecyclerView mRecyclerViewAlbums;
     private int page = 0;
+    private MediaPlayerService mService;
     private ServiceConnection mConnection = new ServiceConnection() {
 
         @Override

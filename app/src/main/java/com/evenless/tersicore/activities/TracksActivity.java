@@ -1,13 +1,19 @@
 package com.evenless.tersicore.activities;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -22,6 +28,8 @@ import android.widget.Toast;
 
 import com.evenless.tersicore.ApiRequestTaskListener;
 import com.evenless.tersicore.DataBackend;
+import com.evenless.tersicore.MediaPlayerService;
+import com.evenless.tersicore.MediaPlayerServiceListener;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.TaskHandler;
@@ -37,10 +45,38 @@ import java.util.List;
  */
 
 public class TracksActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, ApiRequestTaskListener {
+        implements NavigationView.OnNavigationItemSelectedListener, ApiRequestTaskListener,
+        MediaPlayerServiceListener{
 
     private List<Track> listTracks;
     private String artist;
+    private boolean mBound = false;
+    private MediaPlayerService mService;
+    private Context ctx = this;
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            MediaPlayerService.LocalBinder binder = (MediaPlayerService.LocalBinder) service;
+            mService = binder.getService();
+            mBound=true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mBound=false;
+        }
+
+    };
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Intent intent = new Intent(this, MediaPlayerService.class);
+        startService(intent);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +85,8 @@ public class TracksActivity extends AppCompatActivity
 
         setContentView(R.layout.activity_main4);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        if(artist!=null)
+            toolbar.setTitle(artist);
         setSupportActionBar(toolbar);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -157,8 +195,77 @@ public class TracksActivity extends AppCompatActivity
             // argument position gives the index of item which is clicked
             public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3)
             {
-
+                Track[] temp = new Track[1];
+                temp[0] = listTracks.get(position);
+                mService.playNow(temp);
+                Intent dd = new Intent(ctx, MainActivity.class);
+                startActivity(dd);
             }
         });
+
+        lsv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int pos, long id) {
+                final int position = pos;
+                final Track[] temp = {listTracks.get(position)};
+                if(mBound) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+                    builder.setTitle("Play options")
+                            .setItems(Main3Activity.playOptions, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Intent dd = new Intent(ctx, MainActivity.class);
+                                    switch (which){
+                                        case 0: mService.updatePlaylist(temp);  startActivity(dd); break;
+                                        case 1: mService.playNow(temp); startActivity(dd); break;
+                                        case 2: mService.addToPlaylist(temp); startActivity(dd); break;
+                                        case 3: mService.playAfter(temp); startActivity(dd); break;
+                                        default: break;
+                                    }
+                                }
+                            });
+                    builder.create().show();
+                } else {
+                    //Alert service not bound yet
+                    Log.i("Home", "Service not bound yet");
+                }
+                return true;
+            }
+        });
+
+        findViewById(R.id.floatingActionButton).setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent dd = new Intent(v.getContext(), MainActivity.class);
+                        mService.playRandom(listTracks);
+                        startActivity(dd);
+                    }
+                }
+        );
+    }
+
+    @Override
+    public void onNewTrackPlaying(Track newTrack) {
+
+    }
+
+    @Override
+    public void onPlaylistComplete() {
+
+    }
+
+    @Override
+    public void onCoverFetched(Track track, int id) {
+
+    }
+
+    @Override
+    public void onPlaybackError(Exception exception) {
+
+    }
+
+    @Override
+    public void onPlaybackProgressUpdate(int currentMilliseconds) {
+
     }
 }
