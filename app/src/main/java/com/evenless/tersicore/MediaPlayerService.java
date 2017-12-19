@@ -42,11 +42,31 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     private final IBinder mBinder = new LocalBinder();
     private MediaPlayerServiceListener mListener;
     private ArrayList<Track> mCurrentPlaylist;
+    private ArrayList<Track> mCurrentPlaylistSorted;
     private int mCurrentIndex;
     private Timer mCurrentTimer = new Timer();
     private List<Integer> indices;
     public Map<String, Bitmap> artistsCover;
+    private boolean isShuffle = false;
 
+    public boolean getRepeat() {return mMediaPlayer.isLooping();}
+
+    public void setRepeat(boolean r) {mMediaPlayer.setLooping(r);}
+
+    public boolean getShuffle() {return isShuffle;}
+
+    public void toggleShuffle(){
+        isShuffle=!isShuffle;
+        if(isShuffle){
+            sortPlaylist();
+            Track temp = mCurrentPlaylist.get(mCurrentIndex);
+            mCurrentPlaylistSorted.remove(temp);
+            mCurrentPlaylistSorted.add(0, temp);
+            mCurrentIndex=0;
+        } else {
+            mCurrentIndex = mCurrentPlaylist.indexOf(mCurrentPlaylistSorted.get(mCurrentIndex));
+        }
+    }
 
     public long getDuration() {
         return mMediaPlayer.getDuration();
@@ -135,6 +155,17 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         updateState();
     }
 
+    private void sortPlaylist() {
+        mCurrentPlaylistSorted = new ArrayList<>();
+        indices = new ArrayList<>(mCurrentPlaylist.size());
+        for(int i = 0; i < mCurrentPlaylist.size(); i++) {
+            indices.add(i);
+        }
+        Collections.shuffle(indices);
+        for(int i=0; i<indices.size(); i++)
+            mCurrentPlaylistSorted.add(mCurrentPlaylist.get(indices.get(i)));
+    }
+
     public void updatePlaylist(List<Track> tracks, int position) {
         mCurrentPlaylist = new ArrayList<>(tracks);
         mCurrentIndex = position;
@@ -142,16 +173,23 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     public void playNow(Track[] tracks) {
-        mCurrentPlaylist.addAll(mCurrentIndex + 1, new ArrayList<>(Arrays.asList(tracks)));
-        seekToTrack(mCurrentIndex + 1);
+        isShuffle=false;
+        int temp = mCurrentPlaylist.size();
+        mCurrentPlaylist.addAll(new ArrayList<>(Arrays.asList(tracks)));
+        seekToTrack(temp);
     }
 
     public void playAfter(Track[] tracks) {
+        if(isShuffle){
+            isShuffle=false;
+            mCurrentIndex = mCurrentPlaylist.indexOf(getCurrentPlaylist().get(mCurrentIndex));
+        }
         mCurrentPlaylist.addAll(mCurrentIndex + 1, new ArrayList<>(Arrays.asList(tracks)));
     }
 
     public void addToPlaylist(Track[] tracks) {
         mCurrentPlaylist.addAll(new ArrayList<>(Arrays.asList(tracks)));
+        mCurrentPlaylistSorted.addAll(new ArrayList<>(Arrays.asList(tracks)));
     }
 
 
@@ -189,7 +227,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     public ArrayList<Track> getCurrentPlaylist() {
-        return mCurrentPlaylist;
+        if(isShuffle)
+            return  mCurrentPlaylistSorted;
+        else
+            return mCurrentPlaylist;
     }
 
     public int getCurrentTrackIndex() {
@@ -221,9 +262,11 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             cover=new byte[0];
         if(mCurrentPlaylist!=null) {
             int index = mCurrentPlaylist.indexOf(track);
+            int indexSorted = mCurrentPlaylistSorted.indexOf(track);
             if (index != -1 && track.resources != null && track.resources.size() != 0) {
                 Track updated = DataBackend.updateTrackCover(track.uuid, cover);
                 mCurrentPlaylist.set(index, updated);
+                mCurrentPlaylistSorted.set(indexSorted,updated);
                 mListener.onCoverFetched(updated, id);
                 if (updated.album != null && cover.length!=0) {
                     // update all tracks of the same album
@@ -266,10 +309,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     private void updateState() {
         mMediaPlayer.reset();
-        if (mCurrentIndex >= mCurrentPlaylist.size()) {
+        if (mCurrentIndex >= getCurrentPlaylist().size()) {
             playlistCompleted();
         } else {
-            final Track current = mCurrentPlaylist.get(mCurrentIndex);
+            final Track current = getCurrentPlaylist().get(mCurrentIndex);
             try {
                 newTrackPlaying(current);
                 mMediaPlayer.setDataSource(PreferencesHandler.getServer(this) +

@@ -1,27 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_alignParentRight="false"
     tools:context="com.evenless.tersicore.activities.MainActivity">
-    <ToggleButton
-        android:id="@+id/tb_love"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+
+    <ImageButton
+        android:id="@+id/playlistshow"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_toLeftOf="@+id/playlistshare"
+        android:background="@null"
+        android:elevation="2dp"
+        android:padding="8dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/playl"
+        app:layout_constraintEnd_toStartOf="@+id/coverAlbum"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
+
+    <ImageButton
+        android:id="@+id/playlistshare"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:layout_margin="@dimen/space16"
-        android:textOff=""
-        android:textOn=""
-        android:button="@drawable/toggle_button"
-        android:background="@null"/>
+        android:layout_marginEnd="0dp"
+        android:layout_marginTop="8dp"
+        android:background="@null"
+        android:elevation="2dp"
+        android:padding="8dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_menu_share"
+        app:layout_constraintEnd_toStartOf="@+id/coverAlbum"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
+
+    <ImageButton
+        android:id="@+id/downloadButt2"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignParentRight="false"
+        android:layout_marginEnd="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_toLeftOf="@+id/playlistshow"
+        android:background="@null"
+        android:elevation="2dp"
+        android:padding="8dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/download"
+        app:layout_constraintEnd_toStartOf="@+id/coverAlbum"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
+
+    <me.crosswall.lib.coverflow.core.PagerContainer
+        android:id="@+id/pager_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/tv_song"
+        android:layout_below="@id/toolbar2"
+        android:layout_marginBottom="@dimen/space16"
+        android:layout_marginTop="@dimen/space16"
+        android:layout_weight="1">
+
+        <android.support.v4.view.ViewPager
+            android:id="@+id/overlap_pager"
+            android:layout_width="300dp"
+            android:layout_height="300dp"
+            android:layout_gravity="center" />
+    </me.crosswall.lib.coverflow.core.PagerContainer>
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="?attr/actionBarTheme"
+        app:navigationIcon="?attr/actionModeCloseDrawable"
+        app:subtitleTextAppearance="@style/TextAppearance.AppCompat.Body1"
+        app:titleMarginEnd="120dp"
+        app:titleTextAppearance="@style/TextAppearance.AppCompat.Button" />
+
     <LinearLayout
         android:id="@+id/ll_bottom"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
         android:padding="@dimen/space16"
         android:weightSum="5">
 
@@ -33,7 +100,9 @@
             android:background="@null"
             android:paddingBottom="20dp"
             android:paddingTop="20dp"
-            android:src="@drawable/ic_repeat" />
+            android:src="@drawable/toggle_repeat"
+            android:textOff=""
+            android:textOn=""  />
 
         <ImageButton
             android:layout_width="match_parent"
@@ -67,7 +136,7 @@
             android:paddingTop="20dp"
             android:src="@drawable/ic_forward" />
 
-        <ImageButton
+        <ToggleButton
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -75,14 +144,18 @@
             android:background="@null"
             android:paddingBottom="20dp"
             android:paddingTop="20dp"
-            android:src="@drawable/ic_shuffle" />
+            android:src="@drawable/toggle_shuffle"
+            android:textOff=""
+            android:textOn="" />
     </LinearLayout>
+
     <RelativeLayout
         android:id="@+id/rl_progress"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@id/ll_bottom"
         android:layout_margin="@dimen/space16">
+
         <TextView
             android:id="@+id/tv_current_time"
             android:layout_width="wrap_content"
@@ -90,8 +163,9 @@
             android:layout_alignParentLeft="true"
             android:layout_centerVertical="true"
             android:text="-:-"
-            android:textSize="14sp"
-            android:textColor="@color/colorTextGrey"/>
+            android:textColor="@color/colorTextGrey"
+            android:textSize="14sp" />
+
         <TextView
             android:id="@+id/tv_full_time"
             android:layout_width="wrap_content"
@@ -99,22 +173,23 @@
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
             android:text="-:-"
-            android:textSize="14sp"
-            android:textColor="@color/colorTextGrey" />
+            android:textColor="@color/colorTextGrey"
+            android:textSize="14sp" />
+
         <SeekBar
             android:id="@+id/tv_seek"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
             android:layout_width="match_parent"
             android:layout_height="@dimen/space8"
-            android:layout_toLeftOf="@id/tv_full_time"
-            android:layout_toRightOf="@id/tv_current_time"
+            android:layout_centerVertical="true"
             android:layout_marginLeft="@dimen/space16"
             android:layout_marginRight="@dimen/space16"
-            android:layout_centerVertical="true"
-            android:progressBackgroundTint="#E9E9E9"
-            android:progress="0"
+            android:layout_toLeftOf="@id/tv_full_time"
+            android:layout_toRightOf="@id/tv_current_time"
             android:indeterminate="false"
-            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-            android:progressDrawable="@drawable/progress_bar"/>
+            android:progress="0"
+            android:progressBackgroundTint="#E9E9E9"
+            android:progressDrawable="@drawable/progress_bar" />
 
     </RelativeLayout>
 
@@ -122,7 +197,7 @@
         android:id="@+id/tv_artist"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@id/rl_progress"
+        android:layout_above="@+id/rl_progress"
         android:layout_centerHorizontal="true"
         android:textColor="@color/colorTextGrey"
         android:textSize="14sp" />
@@ -136,18 +211,19 @@
         android:layout_marginBottom="@dimen/space8"
         android:textColor="@color/colorTextDark"
         android:textSize="18sp" />
-    <me.crosswall.lib.coverflow.core.PagerContainer
-        android:id="@+id/pager_container"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/tv_song"
-        android:layout_below="@id/tb_love"
-        android:layout_marginTop="@dimen/space16"
-        android:layout_marginBottom="@dimen/space16">
-        <android.support.v4.view.ViewPager
-            android:id="@+id/overlap_pager"
-            android:layout_width="300dp"
-            android:layout_height="300dp"
-            android:layout_gravity="center"/>
-    </me.crosswall.lib.coverflow.core.PagerContainer>
+
+    <ToggleButton
+        android:id="@+id/tb_love"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="220dp"
+        android:layout_marginRight="50dp"
+        android:layout_weight="1"
+        android:background="@null"
+        android:button="@drawable/toggle_button"
+        android:textOff=""
+        android:textOn="" />
+
 </RelativeLayout>

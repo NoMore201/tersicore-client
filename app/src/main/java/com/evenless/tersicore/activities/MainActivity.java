@@ -11,12 +11,14 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.graphics.Palette;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,6 +34,7 @@ import android.widget.TextView;
 import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.MediaPlayerService;
 import com.evenless.tersicore.MediaPlayerServiceListener;
+import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.exceptions.InvalidUrlException;
 import com.evenless.tersicore.model.Track;
@@ -67,6 +70,13 @@ public class MainActivity extends AppCompatActivity
             mService.setMediaPlayerServiceListener(ctx);
             mService.callTimer(mHandler);
             PagerContainer container = (PagerContainer) findViewById(R.id.pager_container);
+            Toolbar toolbar = findViewById(R.id.toolbar2);
+            toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onBackPressed();
+                }
+            });
             final ViewPager pager = container.getViewPager();
             pager.setAdapter(new MainActivity.MyPagerAdapter());
             pager.setClipChildren(false);
@@ -92,6 +102,8 @@ public class MainActivity extends AppCompatActivity
             TextView tv_artist = findViewById(R.id.tv_artist);
             ImageButton vie = findViewById(R.id.playbutton);
             tv_artist.setText(tr.artist);
+            toolbar.setSubtitle(PreferencesHandler.getServer((Context) ctx));
+            toolbar.setTitle(tr.resources.get(0).codec + " " + tr.resources.get(0).bitrate/1000 + "kbps");
             if(mService.isPlaying())
                 vie.setImageResource(R.drawable.ic_play);
             else
@@ -114,6 +126,9 @@ public class MainActivity extends AppCompatActivity
                     ViewCompat.setElevation(relativeLayout.getRootView(), 8.0f);
                     Palette palette = Palette.from(getCover(tra)).generate();
                     setStatusBar(palette);
+                    Toolbar toolbar = findViewById(R.id.toolbar2);
+                    toolbar.setSubtitle(PreferencesHandler.getServer((Context) ctx));
+                    toolbar.setTitle(tra.resources.get(0).codec + " " + tra.resources.get(0).bitrate/1000 + "kbps");
                     TextView tv_artist = findViewById(R.id.tv_artist);
                     if(tra.artist!=null)
                         tv_artist.setText(tra.artist);
@@ -215,13 +230,15 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onNewTrackPlaying(Track newTrack) {
-        Log.d("TAG", "onNewTrackPlaying: " + newTrack.title);
         ImageButton vie = findViewById(R.id.playbutton);
         vie.setImageResource(R.drawable.ic_pause);
         TextView tv_song = findViewById(R.id.tv_song);
         tv_song.setText(newTrack.title);
         TextView tv_artist = findViewById(R.id.tv_artist);
         tv_artist.setText(newTrack.album_artist);
+        Toolbar toolbar = findViewById(R.id.toolbar2);
+        toolbar.setSubtitle(PreferencesHandler.getServer((Context) ctx));
+        toolbar.setTitle(newTrack.resources.get(0).codec + " " + newTrack.resources.get(0).bitrate/1000 + "kbps");
     }
 
     @Override
