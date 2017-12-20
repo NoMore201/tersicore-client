@@ -1,6 +1,7 @@
 package com.evenless.tersicore;
 
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.Cover;
@@ -16,6 +17,8 @@ import io.realm.RealmResults;
 import io.realm.exceptions.RealmException;
 
 public class DataBackend {
+
+    private static final String TAG = "DataBackend";
 
     /**
      * Save tracks into the database
@@ -133,6 +136,13 @@ public class DataBackend {
                 .findAllSorted("track_number");
     }
 
+    /**
+     * Insert cover data into the database, and index it with the MD5 of its data
+     * @param artist string representing the artist
+     * @param album string representing album or null if it's an artist image
+     * @param cover cover bytes data
+     * @throws RealmException when it's not possible to calculate hash
+     */
     public static void insertCover(String artist, String album, byte[] cover)
     throws RealmException
     {
@@ -140,12 +150,14 @@ public class DataBackend {
         realm.beginTransaction();
         MessageDigest digest;
         try {
-            digest = MessageDigest.getInstance("SHA-256");
+            digest = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException e) {
             throw new RealmException("Unable to hash data bytes");
         }
         Cover toInsert = new Cover();
-        toInsert.hash = digest.digest(cover);
+        byte[] hash = digest.digest(cover);
+        toInsert.hash = new String(hash);
+        Log.d(TAG, "insertCover: " + toInsert.hash);
         toInsert.cover = cover;
         toInsert.artist = artist;
         toInsert.album = album;

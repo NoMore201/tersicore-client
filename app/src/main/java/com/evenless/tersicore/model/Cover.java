@@ -5,13 +5,13 @@ import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
 
 public class Cover extends RealmObject {
+
     @PrimaryKey
-    public byte[] hash;
+    public String hash;
 
     @Required
     public String artist;
 
-    @Required
     public String album;
 
     @Required
