@@ -116,7 +116,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
 
         try {
             if (DataBackend.getArtists().size() != 0) {
-                listTracks=DataBackend.getTracksByAlbum(artist, albumName);
+                listTracks=DataBackend.getTracks(artist, albumName);
                 updateList();
             } else
                 try {
@@ -166,7 +166,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         } else if (response != null) {
             DataBackend.addTracks(new ArrayList<>(Arrays.asList(new Gson().fromJson(response, Track[].class))));
-            listTracks=DataBackend.getTracksByAlbum(artist, albumName);
+            listTracks=DataBackend.getTracks(artist, albumName);
             updateList();
         }
     }

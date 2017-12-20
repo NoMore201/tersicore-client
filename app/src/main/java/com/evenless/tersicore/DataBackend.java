@@ -12,6 +12,11 @@ import io.realm.Realm;
 import io.realm.RealmResults;
 
 public class DataBackend {
+
+    /**
+     * Save tracks into the database
+     * @param tracks list of track informations to save
+     */
     public static void addTracks(List<Track> tracks) {
         Realm realm = getInstance();
         realm.beginTransaction();
@@ -19,6 +24,10 @@ public class DataBackend {
         realm.commitTransaction();
     }
 
+    /**
+     * Save a single track into the database
+     * @param track track information to save
+     */
     public static void addTrack(Track track) {
         Realm realm = getInstance();
         realm.beginTransaction();
@@ -26,6 +35,10 @@ public class DataBackend {
         realm.commitTransaction();
     }
 
+    /**
+     * Get a list of all Artists contained in the collection
+     * @return List of strings representing artists found
+     */
     public static List<String> getArtists() {
         RealmResults<Track> unique = getInstance().where(Track.class)
                 .distinct("artist");
@@ -38,6 +51,18 @@ public class DataBackend {
         return result;
     }
 
+    /**
+     * Get all tracks saved in the collection
+     * @return list of Track
+     */
+    public static RealmResults<Track> getTracks() {
+        return getInstance().where(Track.class).findAll();
+    }
+
+    /**
+     * Get a list of all Albums contained in the collection
+     * @return list of Album
+     */
     public static List<Album> getAlbums() {
         RealmResults<Track> unique = getInstance().where(Track.class)
                 .distinct("album");
@@ -52,17 +77,12 @@ public class DataBackend {
         return result;
     }
 
-    public static RealmResults<Track> getTracks() {
-        return getInstance().where(Track.class).findAll();
-    }
-
-    public static Track getTrackByUuid(String uuid) {
-        return getInstance().where(Track.class)
-                .equalTo("uuid", uuid)
-                .findFirst();
-    }
-
-    public static List<Album> getAlbumsByArtist(@NonNull String artist) {
+    /**
+     * Get all albums of the given artist
+     * @param artist artist of the albums we want
+     * @return list of Album
+     */
+    public static List<Album> getAlbums(@NonNull String artist) {
         RealmResults<Track> unique = getInstance().where(Track.class)
                 .distinct("album", "album_artist");
         ArrayList<Album> result = new ArrayList<>();
@@ -76,18 +96,46 @@ public class DataBackend {
         return result;
     }
 
-    public static RealmResults<Track> getTracksByArtist(String artist) {
+    /**
+     * Get a single track
+     * @param uuid uuid of the Track to retrieve
+     * @return corresponding Track or null
+     */
+    public static Track getTrack(@NonNull String uuid) {
+        return getInstance().where(Track.class)
+                .equalTo("uuid", uuid)
+                .findFirst();
+    }
+
+    /**
+     * Get all tracks of a specific artist
+     * @param artist used to filter tracks
+     * @return list of Track
+     */
+    public static RealmResults<Track> getTracks(@NonNull String artist) {
         return getInstance().where(Track.class).equalTo("artist", artist).findAll();
     }
 
-    public static RealmResults<Track> getTracksByAlbum(String artist, String album) {
+    /**
+     * Get all tracks of a specific artist and album
+     * @param artist
+     * @param album
+     * @return
+     */
+    public static RealmResults<Track> getTracks(@NonNull String artist, @NonNull String album) {
         return getInstance().where(Track.class)
                 .equalTo("artist", artist)
                 .equalTo("album", album)
                 .findAllSorted("track_number");
     }
 
-    public static Track updateTrackCover(String uuid, byte[] cover) {
+    /**
+     * Update cover data for Track with the given uuid
+     * @param uuid ID of the track to update
+     * @param cover cover data
+     * @return updated track
+     */
+    public static Track updateTrackCover(@NonNull String uuid, byte[] cover) {
         Realm realm = getInstance();
         realm.beginTransaction();
         Track track = realm.where(Track.class)

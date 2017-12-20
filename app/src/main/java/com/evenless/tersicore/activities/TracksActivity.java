@@ -8,7 +8,6 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -105,7 +104,7 @@ public class TracksActivity extends AppCompatActivity
                 if(artist==null)
                     listTracks= DataBackend.getTracks();
                 else
-                    listTracks=DataBackend.getTracksByArtist(artist);
+                    listTracks=DataBackend.getTracks(artist);
                 updateList();
             } else
                 try {
@@ -158,7 +157,7 @@ public class TracksActivity extends AppCompatActivity
             if(artist==null)
                 listTracks= DataBackend.getTracks();
             else
-                listTracks=DataBackend.getTracksByArtist(artist);
+                listTracks=DataBackend.getTracks(artist);
             updateList();
         }
     }

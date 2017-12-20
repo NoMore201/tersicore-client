@@ -271,7 +271,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                 if (updated.album != null && cover.length!=0) {
                     // update all tracks of the same album
                     RealmResults<Track> tracksWithSameAlbum =
-                            DataBackend.getTracksByAlbum(track.artist, track.album);
+                            DataBackend.getTracks(track.artist, track.album);
                     for (Track t : tracksWithSameAlbum) {
                         if (t.resources != null &&
                                 t.resources.size() != 0) {

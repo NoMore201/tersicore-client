@@ -100,5 +100,11 @@ public class GenericRequestTask extends AsyncTask<Void, Integer, String> {
         return result;
     }
 
+    /**
+     * Helper function used by subclasses to process the result of the request
+     * and possible errors
+     * @param result string returned by the API
+     * @param e exception thrown
+     */
     protected void notifyResult(String result, Exception e) {}
 }

@@ -4,7 +4,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -20,18 +19,12 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.evenless.tersicore.ApiRequestTaskListener;
 import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.MediaPlayerService;
-import com.evenless.tersicore.MediaPlayerServiceListener;
 import com.evenless.tersicore.MyListAdapter;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
@@ -43,7 +36,6 @@ import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by McPhi on 10/12/2017.
@@ -102,7 +94,7 @@ public class SingleArtistActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 Intent dd = new Intent(v.getContext(), MainActivity.class);
-                mService.playRandom(DataBackend.getTracksByArtist(artist));
+                mService.playRandom(DataBackend.getTracks(artist));
                 startActivity(dd);
             }
         });
@@ -119,7 +111,7 @@ public class SingleArtistActivity extends AppCompatActivity
 
         try {
             if (DataBackend.getArtists().size() != 0) {
-                listAlbums = DataBackend.getAlbumsByArtist(artist);
+                listAlbums = DataBackend.getAlbums(artist);
             } else
                 try {
                     TaskHandler.getTracks(this, PreferencesHandler.getServer(this));
@@ -169,7 +161,7 @@ public class SingleArtistActivity extends AppCompatActivity
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         } else if (response != null) {
             DataBackend.addTracks(new ArrayList<>(Arrays.asList(new Gson().fromJson(response, Track[].class))));
-            listAlbums = DataBackend.getAlbumsByArtist(artist);
+            listAlbums = DataBackend.getAlbums(artist);
             createList();
         }
     }
