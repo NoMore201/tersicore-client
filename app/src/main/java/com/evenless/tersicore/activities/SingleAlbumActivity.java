@@ -165,7 +165,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
         if(e!=null){
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         } else if (response != null) {
-            DataBackend.addTracks(new ArrayList<>(Arrays.asList(new Gson().fromJson(response, Track[].class))));
+            DataBackend.insertTracks(new ArrayList<>(Arrays.asList(new Gson().fromJson(response, Track[].class))));
             listTracks=DataBackend.getTracks(artist, albumName);
             updateList();
         }

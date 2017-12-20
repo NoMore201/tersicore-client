@@ -9,7 +9,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.StrictMode;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -25,7 +24,6 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -45,7 +43,6 @@ import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.Track;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
 import com.evenless.tersicore.view.NonScrollableListView;
@@ -457,7 +454,7 @@ public class Main3Activity extends AppCompatActivity
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         } else if (response != null) {
             listTracks = new Gson().fromJson(response, Track[].class);
-            DataBackend.addTracks(new ArrayList<>(Arrays.asList(listTracks)));
+            DataBackend.insertTracks(new ArrayList<>(Arrays.asList(listTracks)));
         }
     }
 }

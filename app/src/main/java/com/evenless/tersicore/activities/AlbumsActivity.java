@@ -7,7 +7,6 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -186,7 +185,7 @@ public class AlbumsActivity extends AppCompatActivity
         if(e!=null){
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         } else if (response != null) {
-            DataBackend.addTracks(new ArrayList<>(Arrays.asList(new Gson().fromJson(response, Track[].class))));
+            DataBackend.insertTracks(new ArrayList<>(Arrays.asList(new Gson().fromJson(response, Track[].class))));
             listAlbums = DataBackend.getAlbums();
             createList();
         }

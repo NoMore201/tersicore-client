@@ -3,13 +3,17 @@ package com.evenless.tersicore;
 import android.support.annotation.NonNull;
 
 import com.evenless.tersicore.model.Album;
+import com.evenless.tersicore.model.Cover;
 import com.evenless.tersicore.model.Track;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
+import io.realm.exceptions.RealmException;
 
 public class DataBackend {
 
@@ -17,7 +21,7 @@ public class DataBackend {
      * Save tracks into the database
      * @param tracks list of track informations to save
      */
-    public static void addTracks(List<Track> tracks) {
+    public static void insertTracks(List<Track> tracks) {
         Realm realm = getInstance();
         realm.beginTransaction();
         realm.copyToRealmOrUpdate(tracks);
@@ -28,7 +32,7 @@ public class DataBackend {
      * Save a single track into the database
      * @param track track information to save
      */
-    public static void addTrack(Track track) {
+    public static void insertTracks(Track track) {
         Realm realm = getInstance();
         realm.beginTransaction();
         realm.copyToRealmOrUpdate(track);
@@ -127,6 +131,41 @@ public class DataBackend {
                 .equalTo("artist", artist)
                 .equalTo("album", album)
                 .findAllSorted("track_number");
+    }
+
+    public static void insertCover(String artist, String album, byte[] cover)
+    throws RealmException
+    {
+        Realm realm = getInstance();
+        realm.beginTransaction();
+        MessageDigest digest;
+        try {
+            digest = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RealmException("Unable to hash data bytes");
+        }
+        Cover toInsert = new Cover();
+        toInsert.hash = digest.digest(cover);
+        toInsert.cover = cover;
+        toInsert.artist = artist;
+        toInsert.album = album;
+        realm.copyToRealmOrUpdate(toInsert);
+        realm.commitTransaction();
+    }
+
+    public static Cover getCover(byte[] hash) {
+        return getInstance()
+                .where(Cover.class)
+                .equalTo("hash", hash)
+                .findFirst();
+    }
+
+    public static Cover getCover(String artist, String album) {
+        return getInstance()
+                .where(Cover.class)
+                .equalTo("artist", artist)
+                .equalTo("album", album)
+                .findFirst();
     }
 
     /**
