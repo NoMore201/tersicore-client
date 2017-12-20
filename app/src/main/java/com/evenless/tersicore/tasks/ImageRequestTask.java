@@ -16,7 +16,7 @@ public class ImageRequestTask extends GenericRequestTask {
         super(url);
         mListener = listener;
         mId = id;
-        mQuery=query;
+        mQuery = query;
     }
 
     @Override

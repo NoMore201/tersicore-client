@@ -11,21 +11,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
-/**
- * Created by McPhi on 10/12/2017.
- */
-
 public class CoverDownloadTask extends AsyncTask<Void, Integer, Bitmap> {
 
-    private URL url;
+    private URL mUrl;
     private CoverDownloadTaskListener mListener;
     private int mState;
     private String mQuery;
 
     public CoverDownloadTask(URL myurl, int state, String query, CoverDownloadTaskListener listener){
-        url=myurl;
-        mState=state;
-        mListener=listener;
+        mUrl = myurl;
+        mState = state;
+        mListener = listener;
         mQuery = query;
     }
 
@@ -33,7 +29,7 @@ public class CoverDownloadTask extends AsyncTask<Void, Integer, Bitmap> {
     protected Bitmap doInBackground(Void... params) {
         Bitmap temp = null;
         try {
-            temp = BitmapFactory.decodeStream((InputStream) url.getContent());
+            temp = BitmapFactory.decodeStream((InputStream) mUrl.getContent());
         } catch (IOException e) {
             Log.e("CoverDownloadTask", e.getMessage());
         }

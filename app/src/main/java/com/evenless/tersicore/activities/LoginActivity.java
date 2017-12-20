@@ -39,7 +39,9 @@ public class LoginActivity extends AppCompatActivity implements ServerStatusTask
     }
 
     public void onClick(View view) {
-        EditText mEdit = findViewById(R.id.editText2);
+        findViewById(R.id.buttonBegin).setEnabled(false);
+        findViewById(R.id.loginInputText).setEnabled(false);
+        EditText mEdit = findViewById(R.id.loginInputText);
         String address = mEdit.getText().toString();
         if (!address.contentEquals("")) {
             try {
@@ -61,12 +63,14 @@ public class LoginActivity extends AppCompatActivity implements ServerStatusTask
             if (!mContentSet) {
                 setContentView(R.layout.activity_login);
                 mContentSet = true;
+            } else {
+                findViewById(R.id.buttonBegin).setEnabled(true);
+                findViewById(R.id.loginInputText).setEnabled(true);
             }
             Log.d(TAG, "onServerStatusCheck: no server!");
-            EditText text = findViewById(R.id.editText2);
-            text.setError("no server running at " + originalUrl.toExternalForm());
+            ((EditText)findViewById(R.id.loginInputText))
+                    .setError("no server running at " + originalUrl.toExternalForm());
         }
-
     }
 
     private void goToNextActivity() {
