@@ -260,30 +260,32 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     public void onCoverRetrieveComplete(Track track, byte[] cover, int id, Exception e) {
         if (cover == null)
             cover = new byte[0];
-        if (mCurrentPlaylist != null && mCurrentPlaylistSorted != null) {
+        Track updated = DataBackend.updateTrackCover(track.uuid, cover);
+        if (mCurrentPlaylist != null) {
             int index = mCurrentPlaylist.indexOf(track);
-            int indexSorted = mCurrentPlaylistSorted.indexOf(track);
             if (index != -1 && track.resources != null && track.resources.size() != 0) {
-                Track updated = DataBackend.updateTrackCover(track.uuid, cover);
                 mCurrentPlaylist.set(index, updated);
-                mCurrentPlaylistSorted.set(indexSorted,updated);
-                mListener.onCoverFetched(updated, id);
-                if (updated.album != null && cover.length!=0) {
-                    // update all tracks of the same album
-                    RealmResults<Track> tracksWithSameAlbum =
-                            DataBackend.getTracks(track.artist, track.album);
-                    for (Track t : tracksWithSameAlbum) {
-                        if (t.resources != null &&
-                                t.resources.size() != 0) {
-                            DataBackend.updateTrackCover(t.uuid, cover);
-                        }
-                    }
+                DataBackend.insertCover(updated.album_artist, updated.album, cover);
+            }
+        }
+        if (mCurrentPlaylistSorted != null) {
+            int index = mCurrentPlaylistSorted.indexOf(track);
+            if (index != -1 && track.resources != null && track.resources.size() != 0) {
+                mCurrentPlaylistSorted.set(index, updated);
+            }
+        }
+        if (updated.album != null && cover.length!=0) {
+            // update all tracks of the same album
+            RealmResults<Track> tracksWithSameAlbum =
+                    DataBackend.getTracks(track.artist, track.album);
+            for (Track t : tracksWithSameAlbum) {
+                if (t.resources != null &&
+                        t.resources.size() != 0) {
+                    DataBackend.updateTrackCover(t.uuid, cover);
                 }
             }
-        } else {
-            Track updated = DataBackend.updateTrackCover(track.uuid, cover);
-            mListener.onCoverFetched(updated, id);
         }
+        mListener.onCoverFetched(updated, id);
     }
 
     private void playlistCompleted() {

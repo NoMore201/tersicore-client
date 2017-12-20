@@ -9,7 +9,6 @@ public class Cover extends RealmObject {
     @PrimaryKey
     public String hash;
 
-    @Required
     public String artist;
 
     public String album;
