@@ -48,11 +48,15 @@
         </activity>
         <activity
             android:name=".activities.SingleArtistActivity"
-            android:label="@string/title_activity_albums">
+            android:label="@string/title_activity_artist">
         </activity>
         <activity
             android:name=".activities.SingleAlbumActivity"
-            android:label="@string/title_activity_albums">
+            android:label="@string/title_activity_album">
+        </activity>
+        <activity
+            android:name=".activities.PlaylistListActivity"
+            android:label="@string/title_activity_playlist">
         </activity>
     </application>
 

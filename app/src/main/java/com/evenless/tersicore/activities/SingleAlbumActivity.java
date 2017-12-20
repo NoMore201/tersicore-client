@@ -93,6 +93,13 @@ public class SingleAlbumActivity  extends AppCompatActivity
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+        unbindService(mConnection);
+        mBound = false;
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         artist = getIntent().getStringExtra("EXTRA_ARTIST");

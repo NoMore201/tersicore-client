@@ -162,6 +162,13 @@ public class MainActivity extends AppCompatActivity
 
                 }
             });
+            findViewById(R.id.playlistshow).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent asd = new Intent(v.getContext(), PlaylistListActivity.class);
+                    startActivity(asd);
+                }
+            });
         }
 
         @Override

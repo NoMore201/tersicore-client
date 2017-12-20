@@ -29,4 +29,7 @@
     <string name="action_settings">Settings</string>
     <string name="showmore">show more</string>
     <string name="showall">show all</string>
+    <string name="title_activity_artist">Artist</string>
+    <string name="title_activity_album">Album</string>
+    <string name="title_activity_playlist">Playlist</string>
 </resources>
