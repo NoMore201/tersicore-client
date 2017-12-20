@@ -91,18 +91,24 @@
         android:orientation="horizontal"
         android:padding="@dimen/space16"
         android:weightSum="5">
-
-        <ImageButton
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
+            android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@null"
-            android:paddingBottom="20dp"
-            android:paddingTop="20dp"
-            android:src="@drawable/toggle_repeat"
-            android:textOff=""
-            android:textOn=""  />
+            android:layout_gravity="center">
+            <ToggleButton
+                android:id="@+id/toggleRepeat"
+                android:layout_width="30dp"
+                android:layout_height="40dp"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:background="@null"
+                android:button="@drawable/toggle_repeat"
+                android:checked="false"
+                android:textOff=""
+                android:textOn="" />
+        </RelativeLayout>
+
 
         <ImageButton
             android:layout_width="match_parent"
@@ -136,17 +142,23 @@
             android:paddingTop="20dp"
             android:src="@drawable/ic_forward" />
 
-        <ToggleButton
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
+            android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@null"
-            android:paddingBottom="20dp"
-            android:paddingTop="20dp"
-            android:src="@drawable/toggle_shuffle"
-            android:textOff=""
-            android:textOn="" />
+            android:layout_gravity="center">
+            <ToggleButton
+                android:id="@+id/toggleShuffle"
+                android:layout_width="30dp"
+                android:layout_height="40dp"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:background="@null"
+                android:button="@drawable/toggle_shuffle"
+                android:checked="false"
+                android:textOff=""
+                android:textOn="" />
+        </RelativeLayout>
     </LinearLayout>
 
     <RelativeLayout

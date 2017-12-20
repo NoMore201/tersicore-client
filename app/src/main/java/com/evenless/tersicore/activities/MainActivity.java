@@ -25,11 +25,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.MediaPlayerService;
@@ -104,6 +106,24 @@ public class MainActivity extends AppCompatActivity
             tv_artist.setText(tr.artist);
             toolbar.setSubtitle(PreferencesHandler.getServer((Context) ctx));
             toolbar.setTitle(tr.resources.get(0).codec + " " + tr.resources.get(0).bitrate/1000 + "kbps");
+            ToggleButton toggleR = (ToggleButton) findViewById(R.id.toggleRepeat);
+            toggleR.setChecked(mService.getRepeat());
+            toggleR.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    mService.setRepeat(isChecked);
+                }
+            });
+            ToggleButton toggleS = (ToggleButton) findViewById(R.id.toggleShuffle);
+            toggleS.setChecked(mService.getShuffle());
+            toggleS.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    if(isChecked!=mService.getShuffle()){
+                        mService.toggleShuffle();
+                        pager.setAdapter(new MainActivity.MyPagerAdapter());
+                        pager.setCurrentItem(mService.getCurrentTrackIndex());
+                    }
+                }
+            });
             if(mService.isPlaying())
                 vie.setImageResource(R.drawable.ic_play);
             else
@@ -128,7 +148,8 @@ public class MainActivity extends AppCompatActivity
                     setStatusBar(palette);
                     Toolbar toolbar = findViewById(R.id.toolbar2);
                     toolbar.setSubtitle(PreferencesHandler.getServer((Context) ctx));
-                    toolbar.setTitle(tra.resources.get(0).codec + " " + tra.resources.get(0).bitrate/1000 + "kbps");
+                    toolbar.setTitle(tra.resources.get(0).codec + " " + tra.resources.get(0).sample_rate/1000 +
+                            "Khz " + tra.resources.get(0).bitrate/1000 + "kbps");
                     TextView tv_artist = findViewById(R.id.tv_artist);
                     if(tra.artist!=null)
                         tv_artist.setText(tra.artist);
