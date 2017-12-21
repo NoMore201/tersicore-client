@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
@@ -29,6 +30,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.evenless.tersicore.ApiRequestTaskListener;
@@ -36,6 +38,7 @@ import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.MediaPlayerService;
 import com.evenless.tersicore.MediaPlayerServiceListener;
 import com.evenless.tersicore.MyListAdapter;
+import com.evenless.tersicore.PlayerInterface;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.TaskHandler;
@@ -47,6 +50,8 @@ import java.util.Map;
 
 import com.evenless.tersicore.view.NonScrollableListView;
 import com.google.gson.Gson;
+
+import me.crosswall.lib.coverflow.core.PagerContainer;
 
 public class Main3Activity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -76,6 +81,12 @@ public class Main3Activity extends AppCompatActivity
             mBound = true;
             mService.setMediaPlayerServiceListener((MediaPlayerServiceListener) ctx);
             artistsCover = mService.artistsCover;
+            if (mService.getCurrentPlaylist().size() == 0) {
+                findViewById(R.id.asd2).setVisibility(View.GONE);
+            } else {
+                findViewById(R.id.asd2).setVisibility(View.VISIBLE);
+                PlayerInterface.UpdateTrack(findViewById(R.id.asd2), mService);
+            }
         }
 
         @Override
@@ -411,16 +422,6 @@ public class Main3Activity extends AppCompatActivity
     }
 
     @Override
-    public void onNewTrackPlaying(Track newTrack) {
-        //Update future Miniplayer
-    }
-
-    @Override
-    public void onPlaylistComplete() {
-        //Update future Miniplayer
-    }
-
-    @Override
     public void onCoverFetched(Track tr, int id) {
         Bitmap image = BitmapFactory.decodeByteArray(
                     tr.resources.get(0).cover_data, 0,
@@ -439,11 +440,6 @@ public class Main3Activity extends AppCompatActivity
     }
 
     @Override
-    public void onPlaybackError(Exception exception) {
-        //Update future Miniplayer
-    }
-
-    @Override
     public void onPlaybackProgressUpdate(int currentMilliseconds) {
         //Update future Miniplayer
     }
@@ -456,5 +452,37 @@ public class Main3Activity extends AppCompatActivity
             listTracks = new Gson().fromJson(response, Track[].class);
             DataBackend.insertTracks(new ArrayList<>(Arrays.asList(listTracks)));
         }
+    }
+
+    @Override
+    public void onNewTrackPlaying(Track newTrack) {
+        PlayerInterface.UpdateTrack(findViewById(R.id.asd2), mService);
+    }
+
+    @Override
+    public void onPlaylistComplete() {
+        PlayerInterface.setStop(findViewById(R.id.asd2));
+    }
+
+    @Override
+    public void onPlaybackError(Exception exception) {
+        PlayerInterface.setStop(findViewById(R.id.asd2));
+    }
+
+    public void onClickPlay(View v) {
+        PlayerInterface.onClickPlay(v, mService);
+    }
+
+    public void onClickForward(View v) {
+        PlayerInterface.onClickForward(v, mService);
+    }
+
+    public void onClickBackward(View v) {
+        PlayerInterface.onClickBackward(v, mService);
+    }
+
+    public void onClickPlayer(View v) {
+        Intent dd = new Intent(this, MainActivity.class);
+        startActivity(dd);
     }
 }

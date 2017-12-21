@@ -105,7 +105,8 @@ public class MainActivity extends AppCompatActivity
             ImageButton vie = findViewById(R.id.playbutton);
             tv_artist.setText(tr.artist);
             toolbar.setSubtitle(PreferencesHandler.getServer((Context) ctx));
-            toolbar.setTitle(tr.resources.get(0).codec + " " + tr.resources.get(0).bitrate/1000 + "kbps");
+            toolbar.setTitle(tr.resources.get(0).codec + " " + tr.resources.get(0).sample_rate/1000 +
+                    "Khz " + tr.resources.get(0).bitrate/1000 + "kbps");
             ToggleButton toggleR = (ToggleButton) findViewById(R.id.toggleRepeat);
             toggleR.setChecked(mService.getRepeat());
             toggleR.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -266,7 +267,8 @@ public class MainActivity extends AppCompatActivity
         tv_artist.setText(newTrack.album_artist);
         Toolbar toolbar = findViewById(R.id.toolbar2);
         toolbar.setSubtitle(PreferencesHandler.getServer((Context) ctx));
-        toolbar.setTitle(newTrack.resources.get(0).codec + " " + newTrack.resources.get(0).bitrate/1000 + "kbps");
+        toolbar.setTitle(newTrack.resources.get(0).codec + " " + newTrack.resources.get(0).sample_rate/1000 +
+                "Khz " + newTrack.resources.get(0).bitrate/1000 + "kbps");
     }
 
     @Override

@@ -7,8 +7,11 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -18,6 +21,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -25,6 +29,7 @@ import com.evenless.tersicore.ApiRequestTaskListener;
 import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.MediaPlayerService;
 import com.evenless.tersicore.MediaPlayerServiceListener;
+import com.evenless.tersicore.PlayerInterface;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.TaskHandler;
@@ -34,6 +39,8 @@ import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import me.crosswall.lib.coverflow.core.PagerContainer;
 
 /**
  * Created by McPhi on 10/12/2017.
@@ -53,6 +60,21 @@ public class ArtistsActivity  extends AppCompatActivity
             // We've bound to LocalService, cast the IBinder and get LocalService instance
             MediaPlayerService.LocalBinder binder = (MediaPlayerService.LocalBinder) service;
             mService = binder.getService();
+            mService.setMediaPlayerServiceListener((MediaPlayerServiceListener) ctx);
+            if (mService.getCurrentPlaylist().size() == 0) {
+                FloatingActionButton asd = findViewById(R.id.floatingActionButton);
+                CoordinatorLayout.LayoutParams temp = (CoordinatorLayout.LayoutParams) asd.getLayoutParams();
+                temp.bottomMargin = 112;
+                asd.setLayoutParams(temp);
+                findViewById(R.id.asd2).setVisibility(View.GONE);
+            } else {
+                FloatingActionButton asd = findViewById(R.id.floatingActionButton);
+                CoordinatorLayout.LayoutParams temp = (CoordinatorLayout.LayoutParams) asd.getLayoutParams();
+                temp.bottomMargin = 300;
+                asd.setLayoutParams(temp);
+                findViewById(R.id.asd2).setVisibility(View.VISIBLE);
+                PlayerInterface.UpdateTrack(findViewById(R.id.asd2), mService);
+            }
         }
 
         @Override
@@ -178,12 +200,12 @@ public class ArtistsActivity  extends AppCompatActivity
 
     @Override
     public void onNewTrackPlaying(Track newTrack) {
-
+        PlayerInterface.UpdateTrack(findViewById(R.id.asd2), mService);
     }
 
     @Override
     public void onPlaylistComplete() {
-
+        PlayerInterface.setStop(findViewById(R.id.asd2));
     }
 
     @Override
@@ -193,11 +215,28 @@ public class ArtistsActivity  extends AppCompatActivity
 
     @Override
     public void onPlaybackError(Exception exception) {
-
+        PlayerInterface.setStop(findViewById(R.id.asd2));
     }
 
     @Override
     public void onPlaybackProgressUpdate(int currentMilliseconds) {
 
+    }
+
+    public void onClickPlay(View v) {
+        PlayerInterface.onClickPlay(v, mService);
+    }
+
+    public void onClickForward(View v) {
+        PlayerInterface.onClickForward(v, mService);
+    }
+
+    public void onClickBackward(View v) {
+        PlayerInterface.onClickBackward(v, mService);
+    }
+
+    public void onClickPlayer(View v) {
+        Intent dd = new Intent(this, MainActivity.class);
+        startActivity(dd);
     }
 }

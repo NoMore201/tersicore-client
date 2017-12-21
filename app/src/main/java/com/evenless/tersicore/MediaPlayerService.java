@@ -87,6 +87,20 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         updatePlaylist(asd);
     }
 
+    public void changePlaylistPosition(int fromPosition, int toPosition) {
+        if(fromPosition!=toPosition) {
+            if (mCurrentIndex == fromPosition)
+                mCurrentIndex = toPosition;
+            else if (fromPosition > mCurrentIndex && toPosition <= mCurrentIndex)
+                mCurrentIndex++;
+            else if (fromPosition < mCurrentIndex && toPosition >= mCurrentIndex)
+                mCurrentIndex--;
+            Track temp = getCurrentPlaylist().get(fromPosition);
+            getCurrentPlaylist().remove(fromPosition);
+            getCurrentPlaylist().add(toPosition, temp);
+        }
+    }
+
     public enum SkipDirection { SKIP_FORWARD, SKIP_BACKWARD }
 
     public class LocalBinder extends Binder {
@@ -258,7 +272,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     @Override
     public void onCoverRetrieveComplete(Track track, byte[] cover, int id, Exception e) {
-        if (cover == null)
+        if (cover == null || e!=null)
             cover = new byte[0];
         Track updated = DataBackend.updateTrackCover(track.uuid, cover);
         if (mCurrentPlaylist != null) {
@@ -353,6 +367,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         try {
             Track tmp = DataBackend.getTracks().where().equalTo("uuid", track.uuid).findFirst();
             if (tmp.resources.get(0).cover_data == null) {
+                Log.i(TAG, tmp.toString() + " COVER RETRIEVE");
                 TaskHandler.getCover(this, track, PreferencesHandler.getServer(this), id);
             } else if (tmp.resources.get(0).cover_data.length!=0){
                 mListener.onCoverFetched(tmp, id);

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:id="@+id/ll_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:padding="@dimen/space16"
+        android:clickable="true"
+        android:onClick="onClickPlayer">
+        <ImageView
+            android:id="@+id/minicover"
+            android:layout_width="50dp"
+            android:layout_marginRight="8dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:src="@drawable/nocover">
+        </ImageView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_gravity="center">
+            <TextView
+                android:id="@+id/minititle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="2"
+                android:textStyle="bold"
+                android:ellipsize="end"
+                android:textSize="16sp"
+                android:text=""/>
+            <TextView
+                android:id="@+id/miniartist"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:text=""/>
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/miniseekback"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@null"
+            android:onClick="onClickBackward"
+            android:paddingBottom="20dp"
+            android:layout_marginStart="8dp"
+            android:paddingTop="20dp"
+            android:src="@drawable/ic_backward" />
+
+        <ImageButton
+            android:id="@+id/miniplay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@null"
+            android:layout_marginStart="8dp"
+            android:onClick="onClickPlay"
+            android:src="@drawable/ic_play" />
+
+        <ImageButton
+            android:id="@+id/miniseekforward"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginStart="8dp"
+            android:background="@null"
+            android:onClick="onClickForward"
+            android:paddingBottom="20dp"
+            android:paddingTop="20dp"
+            android:src="@drawable/ic_forward" />
+
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>

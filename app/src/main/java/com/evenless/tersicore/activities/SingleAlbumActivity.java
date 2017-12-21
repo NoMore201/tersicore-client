@@ -11,6 +11,7 @@ import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
@@ -22,6 +23,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -33,6 +35,7 @@ import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.ImageRequestTaskListener;
 import com.evenless.tersicore.MediaPlayerService;
 import com.evenless.tersicore.MediaPlayerServiceListener;
+import com.evenless.tersicore.PlayerInterface;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.TaskHandler;
@@ -51,6 +54,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+
+import me.crosswall.lib.coverflow.core.PagerContainer;
 
 /**
  * Created by McPhi on 10/12/2017.
@@ -74,7 +79,14 @@ public class SingleAlbumActivity  extends AppCompatActivity
             // We've bound to LocalService, cast the IBinder and get LocalService instance
             MediaPlayerService.LocalBinder binder = (MediaPlayerService.LocalBinder) service;
             mService = binder.getService();
+            mService.setMediaPlayerServiceListener((MediaPlayerServiceListener) ctx);
             mBound=true;
+            if (mService.getCurrentPlaylist().size() == 0) {
+                findViewById(R.id.asd2).setVisibility(View.GONE);
+            } else {
+                findViewById(R.id.asd2).setVisibility(View.VISIBLE);
+                PlayerInterface.UpdateTrack(findViewById(R.id.asd2), mService);
+            }
         }
 
         @Override
@@ -274,31 +286,6 @@ public class SingleAlbumActivity  extends AppCompatActivity
     }
 
     @Override
-    public void onNewTrackPlaying(Track newTrack) {
-
-    }
-
-    @Override
-    public void onPlaylistComplete() {
-
-    }
-
-    @Override
-    public void onCoverFetched(Track track, int id) {
-
-    }
-
-    @Override
-    public void onPlaybackError(Exception exception) {
-
-    }
-
-    @Override
-    public void onPlaybackProgressUpdate(int currentMilliseconds) {
-
-    }
-
-    @Override
     public void onImgRequestComplete(String result, int state, String key, Exception ex) {
         if(ex!=null){
             Log.e(TAG, ex.getMessage());
@@ -318,5 +305,46 @@ public class SingleAlbumActivity  extends AppCompatActivity
     public void OnCoverDownloaded(Bitmap result, int mState, String key) {
         ImageView temp = findViewById(R.id.coverAlbum);
         temp.setImageBitmap(result);
+    }
+    @Override
+    public void onNewTrackPlaying(Track newTrack) {
+        PlayerInterface.UpdateTrack(findViewById(R.id.asd2), mService);
+    }
+
+    @Override
+    public void onPlaylistComplete() {
+        PlayerInterface.setStop(findViewById(R.id.asd2));
+    }
+
+    @Override
+    public void onCoverFetched(Track track, int id) {
+
+    }
+
+    @Override
+    public void onPlaybackError(Exception exception) {
+        PlayerInterface.setStop(findViewById(R.id.asd2));
+    }
+
+    @Override
+    public void onPlaybackProgressUpdate(int currentMilliseconds) {
+
+    }
+
+    public void onClickPlay(View v) {
+        PlayerInterface.onClickPlay(v, mService);
+    }
+
+    public void onClickForward(View v) {
+        PlayerInterface.onClickForward(v, mService);
+    }
+
+    public void onClickBackward(View v) {
+        PlayerInterface.onClickBackward(v, mService);
+    }
+
+    public void onClickPlayer(View v) {
+        Intent dd = new Intent(this, MainActivity.class);
+        startActivity(dd);
     }
 }

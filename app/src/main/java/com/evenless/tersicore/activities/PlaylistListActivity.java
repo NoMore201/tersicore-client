@@ -10,6 +10,7 @@ import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
@@ -22,6 +23,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,12 +44,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import me.crosswall.lib.coverflow.core.PagerContainer;
+
 /**
  * Created by McPhi on 10/12/2017.
  */
 
-public class PlaylistListActivity extends AppCompatActivity
-        implements ApiRequestTaskListener, MediaPlayerServiceListener{
+public class PlaylistListActivity extends AppCompatActivity{
 
     private static final String TAG = "TracksActivity";
     private List<Track> listTracks;
@@ -78,7 +81,7 @@ public class PlaylistListActivity extends AppCompatActivity
 
                 @Override
                 public void onItemDragEnded(int fromPosition, int toPosition) {
-
+                    mService.changePlaylistPosition(fromPosition, toPosition);
                 }
             });
 
@@ -124,35 +127,5 @@ public class PlaylistListActivity extends AppCompatActivity
                 onBackPressed();
             }
         });
-    }
-
-    @Override
-    public void onRequestComplete(String response, Exception e) {
-
-    }
-
-    @Override
-    public void onNewTrackPlaying(Track newTrack) {
-
-    }
-
-    @Override
-    public void onPlaylistComplete() {
-
-    }
-
-    @Override
-    public void onCoverFetched(Track track, int id) {
-
-    }
-
-    @Override
-    public void onPlaybackError(Exception exception) {
-
-    }
-
-    @Override
-    public void onPlaybackProgressUpdate(int currentMilliseconds) {
-
     }
 }

@@ -8,8 +8,11 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
@@ -21,6 +24,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,6 +34,7 @@ import com.evenless.tersicore.ApiRequestTaskListener;
 import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.MediaPlayerService;
 import com.evenless.tersicore.MediaPlayerServiceListener;
+import com.evenless.tersicore.PlayerInterface;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.TaskHandler;
@@ -39,13 +45,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import me.crosswall.lib.coverflow.core.PagerContainer;
+
 /**
  * Created by McPhi on 10/12/2017.
  */
 
 public class TracksActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, ApiRequestTaskListener,
-        MediaPlayerServiceListener{
+        MediaPlayerServiceListener {
 
     private static final String TAG = "TracksActivity";
     private List<Track> listTracks;
@@ -60,12 +68,27 @@ public class TracksActivity extends AppCompatActivity
             // We've bound to LocalService, cast the IBinder and get LocalService instance
             MediaPlayerService.LocalBinder binder = (MediaPlayerService.LocalBinder) service;
             mService = binder.getService();
-            mBound=true;
+            mService.setMediaPlayerServiceListener((MediaPlayerServiceListener) ctx);
+            mBound = true;
+            if (mService.getCurrentPlaylist().size() == 0) {
+                FloatingActionButton asd = findViewById(R.id.floatingActionButton);
+                CoordinatorLayout.LayoutParams temp = (CoordinatorLayout.LayoutParams) asd.getLayoutParams();
+                temp.bottomMargin = 112;
+                asd.setLayoutParams(temp);
+                findViewById(R.id.asd2).setVisibility(View.GONE);
+            } else {
+                FloatingActionButton asd = findViewById(R.id.floatingActionButton);
+                CoordinatorLayout.LayoutParams temp = (CoordinatorLayout.LayoutParams) asd.getLayoutParams();
+                temp.bottomMargin = 300;
+                asd.setLayoutParams(temp);
+                findViewById(R.id.asd2).setVisibility(View.VISIBLE);
+                PlayerInterface.UpdateTrack(findViewById(R.id.asd2), mService);
+            }
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            mBound=false;
+            mBound = false;
         }
 
     };
@@ -92,8 +115,10 @@ public class TracksActivity extends AppCompatActivity
 
         setContentView(R.layout.activity_main4);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        if(artist!=null)
+        if (artist != null)
             toolbar.setTitle(artist);
+        else
+            toolbar.setTitle("Songs");
         setSupportActionBar(toolbar);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -104,14 +129,15 @@ public class TracksActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-        navigationView.setCheckedItem(R.id.nav_songs);
+        if(artist==null)
+            navigationView.setCheckedItem(R.id.nav_songs);
 
         try {
             if (DataBackend.getArtists().size() != 0) {
-                if(artist==null)
-                    listTracks= DataBackend.getTracks();
+                if (artist == null)
+                    listTracks = DataBackend.getTracks();
                 else
-                    listTracks=DataBackend.getTracks(artist);
+                    listTracks = DataBackend.getTracks(artist);
                 updateList();
             } else
                 try {
@@ -119,7 +145,7 @@ public class TracksActivity extends AppCompatActivity
                 } catch (Exception e) {
                     listTracks = new ArrayList<>();
                 }
-        } catch (Exception e){
+        } catch (Exception e) {
             Log.e(TAG, e.getMessage());
         }
     }
@@ -145,7 +171,13 @@ public class TracksActivity extends AppCompatActivity
         } else if (id == R.id.nav_settings) {
 
         } else if (id == R.id.nav_songs) {
-
+            if(artist!=null) {
+                listTracks = DataBackend.getTracks();
+                artist=null;
+                updateList();
+                Toolbar temp = findViewById(R.id.toolbar);
+                temp.setTitle("Songs");
+            }
         } else if (id == R.id.nav_view) {
 
         }
@@ -157,25 +189,25 @@ public class TracksActivity extends AppCompatActivity
 
     @Override
     public void onRequestComplete(String response, Exception e) {
-        if(e!=null){
+        if (e != null) {
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         } else if (response != null) {
             DataBackend.insertTracks(new ArrayList<>(Arrays.asList(new Gson().fromJson(response, Track[].class))));
-            if(artist==null)
-                listTracks= DataBackend.getTracks();
+            if (artist == null)
+                listTracks = DataBackend.getTracks();
             else
-                listTracks=DataBackend.getTracks(artist);
+                listTracks = DataBackend.getTracks(artist);
             updateList();
         }
     }
 
-    private void updateList(){
+    private void updateList() {
         ListView lsv = findViewById(R.id.listart);
         ArrayAdapter<Track> arrayAdapter = new ArrayAdapter<Track>(
                 this,
                 android.R.layout.simple_list_item_2,
                 android.R.id.text1,
-                listTracks ){
+                listTracks) {
 
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
@@ -189,11 +221,9 @@ public class TracksActivity extends AppCompatActivity
         };
         lsv.setAdapter(arrayAdapter);
         // register onClickListener to handle click events on each item
-        lsv.setOnItemClickListener(new AdapterView.OnItemClickListener()
-        {
+        lsv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             // argument position gives the index of item which is clicked
-            public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3)
-            {
+            public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3) {
                 Track[] temp = new Track[1];
                 temp[0] = listTracks.get(position);
                 mService.playNow(temp);
@@ -207,18 +237,31 @@ public class TracksActivity extends AppCompatActivity
             public boolean onItemLongClick(AdapterView<?> parent, View view, int pos, long id) {
                 final int position = pos;
                 final Track[] temp = {listTracks.get(position)};
-                if(mBound) {
+                if (mBound) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
                     builder.setTitle("Play options")
                             .setItems(Main3Activity.playOptions, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
                                     Intent dd = new Intent(ctx, MainActivity.class);
-                                    switch (which){
-                                        case 0: mService.updatePlaylist(temp);  startActivity(dd); break;
-                                        case 1: mService.playNow(temp); startActivity(dd); break;
-                                        case 2: mService.addToPlaylist(temp); startActivity(dd); break;
-                                        case 3: mService.playAfter(temp); startActivity(dd); break;
-                                        default: break;
+                                    switch (which) {
+                                        case 0:
+                                            mService.updatePlaylist(temp);
+                                            startActivity(dd);
+                                            break;
+                                        case 1:
+                                            mService.playNow(temp);
+                                            startActivity(dd);
+                                            break;
+                                        case 2:
+                                            mService.addToPlaylist(temp);
+                                            startActivity(dd);
+                                            break;
+                                        case 3:
+                                            mService.playAfter(temp);
+                                            startActivity(dd);
+                                            break;
+                                        default:
+                                            break;
                                     }
                                 }
                             });
@@ -245,12 +288,12 @@ public class TracksActivity extends AppCompatActivity
 
     @Override
     public void onNewTrackPlaying(Track newTrack) {
-
+        PlayerInterface.UpdateTrack(findViewById(R.id.asd2), mService);
     }
 
     @Override
     public void onPlaylistComplete() {
-
+        PlayerInterface.setStop(findViewById(R.id.asd2));
     }
 
     @Override
@@ -260,11 +303,28 @@ public class TracksActivity extends AppCompatActivity
 
     @Override
     public void onPlaybackError(Exception exception) {
-
+        PlayerInterface.setStop(findViewById(R.id.asd2));
     }
 
     @Override
     public void onPlaybackProgressUpdate(int currentMilliseconds) {
 
+    }
+
+    public void onClickPlay(View v) {
+        PlayerInterface.onClickPlay(v, mService);
+    }
+
+    public void onClickForward(View v) {
+        PlayerInterface.onClickForward(v, mService);
+    }
+
+    public void onClickBackward(View v) {
+        PlayerInterface.onClickBackward(v, mService);
+    }
+
+    public void onClickPlayer(View v) {
+        Intent dd = new Intent(this, MainActivity.class);
+        startActivity(dd);
     }
 }
