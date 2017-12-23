@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
-import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
@@ -30,7 +29,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.evenless.tersicore.ApiRequestTaskListener;
@@ -46,12 +44,11 @@ import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.Track;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import com.evenless.tersicore.view.NonScrollableListView;
 import com.google.gson.Gson;
-
-import me.crosswall.lib.coverflow.core.PagerContainer;
 
 public class Main3Activity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -185,9 +182,7 @@ public class Main3Activity extends AppCompatActivity
             // argument position gives the index of item which is clicked
             public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3)
             {
-                Track[] temp = new Track[1];
-                temp[0] = listTracksFiltered.get(position);
-                mService.playNow(temp);
+                mService.seekToTrack(mService.append(listTracksFiltered.get(position)));
                 Intent dd = new Intent(ctx, MainActivity.class);
                 startActivity(dd);
             }
@@ -196,19 +191,20 @@ public class Main3Activity extends AppCompatActivity
         lsv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int pos, long id) {
-                final int position = pos;
-                final Track[] temp = {listTracksFiltered.get(position)};
+                final List<Track> temp = new ArrayList<>();
+                temp.add(listTracksFiltered.get(pos));
                 if(mBound) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
                     builder.setTitle("Play options")
                             .setItems(playOptions, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
                                     Intent dd = new Intent(ctx, MainActivity.class);
+                                    // TODO: use enum rather than integers
                                     switch (which){
-                                        case 0: mService.updatePlaylist(temp);  startActivity(dd); break;
-                                        case 1: mService.playNow(temp); startActivity(dd); break;
-                                        case 2: mService.addToPlaylist(temp); startActivity(dd); break;
-                                        case 3: mService.playAfter(temp); startActivity(dd); break;
+                                        case 0: mService.updatePlaylist(temp, 0, false);  startActivity(dd); break;
+                                        case 1: mService.seekToTrack(mService.append(temp)); startActivity(dd); break;
+                                        case 2: mService.append(temp); startActivity(dd); break;
+                                        case 3: mService.appendAfterCurrent(temp); startActivity(dd); break;
                                         default: break;
                                     }
                                 }

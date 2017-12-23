@@ -56,7 +56,6 @@ public class LoginActivity extends AppCompatActivity implements ServerStatusTask
     @Override
     public void onServerStatusCheck(URL originalUrl, boolean running) {
         if (running) {
-            Log.d(TAG, "onServerStatusCheck: " + originalUrl.toExternalForm());
             PreferencesHandler.setServer(this, originalUrl.toExternalForm());
             goToNextActivity();
         } else {
@@ -67,7 +66,6 @@ public class LoginActivity extends AppCompatActivity implements ServerStatusTask
                 findViewById(R.id.buttonBegin).setEnabled(true);
                 findViewById(R.id.loginInputText).setEnabled(true);
             }
-            Log.d(TAG, "onServerStatusCheck: no server!");
             ((EditText)findViewById(R.id.loginInputText))
                     .setError("no server running at " + originalUrl.toExternalForm());
         }

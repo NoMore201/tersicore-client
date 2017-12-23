@@ -11,7 +11,6 @@ import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
-import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
@@ -23,7 +22,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -54,8 +52,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
-
-import me.crosswall.lib.coverflow.core.PagerContainer;
 
 /**
  * Created by McPhi on 10/12/2017.
@@ -232,7 +228,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
             // argument position gives the index of item which is clicked
             public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3)
             {
-                mService.updatePlaylist(listTracks, position);
+                mService.updatePlaylist(listTracks, position, false);
                 Intent dd = new Intent(ctx, MainActivity.class);
                 startActivity(dd);
             }
@@ -242,7 +238,8 @@ public class SingleAlbumActivity  extends AppCompatActivity
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int pos, long id) {
                 final int position = pos;
-                final Track[] temp = {listTracks.get(position)};
+                final List<Track> temp = new ArrayList<>();
+                temp.add(listTracks.get(position));
                 if(mBound) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
                     builder.setTitle("Play options")
@@ -250,10 +247,10 @@ public class SingleAlbumActivity  extends AppCompatActivity
                                 public void onClick(DialogInterface dialog, int which) {
                                     Intent dd = new Intent(ctx, MainActivity.class);
                                     switch (which){
-                                        case 0: mService.updatePlaylist(temp);  startActivity(dd); break;
-                                        case 1: mService.playNow(temp); startActivity(dd); break;
-                                        case 2: mService.addToPlaylist(temp); startActivity(dd); break;
-                                        case 3: mService.playAfter(temp); startActivity(dd); break;
+                                        case 0: mService.updatePlaylist(temp, 0, false);  startActivity(dd); break;
+                                        case 1: mService.seekToTrack(mService.append(temp)); startActivity(dd); break;
+                                        case 2: mService.append(temp); startActivity(dd); break;
+                                        case 3: mService.appendAfterCurrent(temp); startActivity(dd); break;
                                         default: break;
                                     }
                                 }
@@ -270,7 +267,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
         findViewById(R.id.playbutt).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mService.updatePlaylist(listTracks, 0);
+                mService.updatePlaylist(listTracks, 0, false);
                 Intent dd = new Intent(ctx, MainActivity.class);
                 startActivity(dd);
             }

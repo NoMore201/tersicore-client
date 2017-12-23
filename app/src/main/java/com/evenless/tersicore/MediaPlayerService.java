@@ -21,11 +21,11 @@ import com.evenless.tersicore.model.Track;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -36,7 +36,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         CoverRetrieveTaskListener
 {
     private static final String TAG = "MediaPlayerService";
-    private static final int randomLimit = 200;
+
+    public enum SkipDirection { SKIP_FORWARD, SKIP_BACKWARD }
+    public class LocalBinder extends Binder {
+        public MediaPlayerService getService() {
+            return MediaPlayerService.this;
+        }
+    }
+
     private MediaPlayer mMediaPlayer;
     private WifiManager.WifiLock mWifiLock;
     private final IBinder mBinder = new LocalBinder();
@@ -45,69 +52,13 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     private ArrayList<Track> mCurrentPlaylistSorted;
     private int mCurrentIndex;
     private Timer mCurrentTimer = new Timer();
-    private List<Integer> indices;
-    public Map<String, Bitmap> artistsCover;
     private boolean isShuffle = false;
 
-    public boolean getRepeat() {return mMediaPlayer.isLooping();}
+    public Map<String, Bitmap> artistsCover;
 
-    public void setRepeat(boolean r) {mMediaPlayer.setLooping(r);}
-
-    public boolean getShuffle() {return isShuffle;}
-
-    public void toggleShuffle(){
-        isShuffle=!isShuffle;
-        if(isShuffle){
-            sortPlaylist();
-            Track temp = mCurrentPlaylist.get(mCurrentIndex);
-            mCurrentPlaylistSorted.remove(temp);
-            mCurrentPlaylistSorted.add(0, temp);
-            mCurrentIndex=0;
-        } else {
-            mCurrentIndex = mCurrentPlaylist.indexOf(mCurrentPlaylistSorted.get(mCurrentIndex));
-        }
-    }
-
-    public long getDuration() {
-        return mMediaPlayer.getDuration();
-    }
-
-    public void playRandom(List<Track> realmResults) {
-        indices = new ArrayList<>(realmResults.size());
-        for(int i = 0; i < realmResults.size(); i++) {
-            indices.add(i);
-        }
-        Collections.shuffle(indices);
-        Track[] asd = new Track[randomLimit];
-        for(int i=0; i<indices.size(); i++){
-            if(i>=randomLimit)
-                break;
-            asd[i]=realmResults.get(indices.get(i));
-        }
-        updatePlaylist(asd);
-    }
-
-    public void changePlaylistPosition(int fromPosition, int toPosition) {
-        if(fromPosition!=toPosition) {
-            if (mCurrentIndex == fromPosition)
-                mCurrentIndex = toPosition;
-            else if (fromPosition > mCurrentIndex && toPosition <= mCurrentIndex)
-                mCurrentIndex++;
-            else if (fromPosition < mCurrentIndex && toPosition >= mCurrentIndex)
-                mCurrentIndex--;
-            Track temp = getCurrentPlaylist().get(fromPosition);
-            getCurrentPlaylist().remove(fromPosition);
-            getCurrentPlaylist().add(toPosition, temp);
-        }
-    }
-
-    public enum SkipDirection { SKIP_FORWARD, SKIP_BACKWARD }
-
-    public class LocalBinder extends Binder {
-        public MediaPlayerService getService() {
-            return MediaPlayerService.this;
-        }
-    }
+    /*
+     * Override methods
+     */
 
     @Nullable
     @Override
@@ -125,6 +76,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         mMediaPlayer.setOnCompletionListener(this);
         mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
         mCurrentPlaylist = new ArrayList<>();
+        mCurrentPlaylistSorted = new ArrayList<>();
         artistsCover = new HashMap<>();
         mCurrentIndex=-1;
 
@@ -157,98 +109,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         if (mMediaPlayer != null) {
             mMediaPlayer.release();
         }
-    }
-
-    public void setMediaPlayerServiceListener(MediaPlayerServiceListener listener) {
-        mListener = listener;
-    }
-
-    public void updatePlaylist(Track[] tracks) {
-        mCurrentPlaylist = new ArrayList<>(Arrays.asList(tracks));
-        mCurrentIndex = 0;
-        updateState();
-    }
-
-    private void sortPlaylist() {
-        mCurrentPlaylistSorted = new ArrayList<>();
-        indices = new ArrayList<>(mCurrentPlaylist.size());
-        for(int i = 0; i < mCurrentPlaylist.size(); i++) {
-            indices.add(i);
-        }
-        Collections.shuffle(indices);
-        for(int i=0; i<indices.size(); i++)
-            mCurrentPlaylistSorted.add(mCurrentPlaylist.get(indices.get(i)));
-    }
-
-    public void updatePlaylist(List<Track> tracks, int position) {
-        mCurrentPlaylist = new ArrayList<>(tracks);
-        mCurrentIndex = position;
-        updateState();
-    }
-
-    public void playNow(Track[] tracks) {
-        isShuffle=false;
-        int temp = mCurrentPlaylist.size();
-        mCurrentPlaylist.addAll(new ArrayList<>(Arrays.asList(tracks)));
-        seekToTrack(temp);
-    }
-
-    public void playAfter(Track[] tracks) {
-        if(isShuffle){
-            isShuffle=false;
-            mCurrentIndex = mCurrentPlaylist.indexOf(getCurrentPlaylist().get(mCurrentIndex));
-        }
-        mCurrentPlaylist.addAll(mCurrentIndex + 1, new ArrayList<>(Arrays.asList(tracks)));
-    }
-
-    public void addToPlaylist(Track[] tracks) {
-        mCurrentPlaylist.addAll(new ArrayList<>(Arrays.asList(tracks)));
-        mCurrentPlaylistSorted.addAll(new ArrayList<>(Arrays.asList(tracks)));
-    }
-
-
-    public void play() {
-        mMediaPlayer.start();
-    }
-
-    public void pause() {
-        if (mMediaPlayer.isPlaying()) {
-            mMediaPlayer.pause();
-        }
-    }
-
-    public void skip(SkipDirection direction) {
-        if (direction == SkipDirection.SKIP_FORWARD) {
-            mCurrentIndex += 1;
-        }
-        if (direction == SkipDirection.SKIP_BACKWARD) {
-            mCurrentIndex -= 1;
-        }
-        updateState();
-    }
-
-    public void seekToTrack(int index) {
-        mCurrentIndex = index;
-        updateState();
-    }
-
-    public void seekTo(int milliseconds) {
-        mMediaPlayer.seekTo(milliseconds);
-    }
-
-    public boolean isPlaying() {
-        return mMediaPlayer.isPlaying();
-    }
-
-    public ArrayList<Track> getCurrentPlaylist() {
-        if(isShuffle)
-            return  mCurrentPlaylistSorted;
-        else
-            return mCurrentPlaylist;
-    }
-
-    public int getCurrentTrackIndex() {
-        return mCurrentIndex;
     }
 
     @Override
@@ -302,6 +162,178 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         mListener.onCoverFetched(updated, id);
     }
 
+    /*
+     * Custom methods
+     */
+
+    public boolean getRepeat() {return mMediaPlayer.isLooping();}
+
+    public void setRepeat(boolean r) {mMediaPlayer.setLooping(r);}
+
+    public boolean getShuffle() {return isShuffle;}
+
+    public void toggleShuffle(){
+        isShuffle = !isShuffle;
+        if (isShuffle) {
+            sortPlaylist();
+            Track temp = mCurrentPlaylist.get(mCurrentIndex);
+            mCurrentPlaylistSorted.remove(temp);
+            mCurrentPlaylistSorted.add(0, temp);
+            mCurrentIndex=0;
+        } else {
+            mCurrentIndex = mCurrentPlaylist.indexOf(mCurrentPlaylistSorted.get(mCurrentIndex));
+        }
+    }
+
+    public long getDuration() {
+        return mMediaPlayer.getDuration();
+    }
+
+    public void changePlaylistPosition(int fromPosition, int toPosition) {
+        if (fromPosition != toPosition) {
+            if (mCurrentIndex == fromPosition)
+                mCurrentIndex = toPosition;
+            else if (fromPosition > mCurrentIndex && toPosition <= mCurrentIndex)
+                mCurrentIndex++;
+            else if (fromPosition < mCurrentIndex && toPosition >= mCurrentIndex)
+                mCurrentIndex--;
+            Track temp = getCurrentPlaylist().get(fromPosition);
+            getCurrentPlaylist().remove(fromPosition);
+            getCurrentPlaylist().add(toPosition, temp);
+        }
+    }
+
+    public void setMediaPlayerServiceListener(MediaPlayerServiceListener listener) {
+        mListener = listener;
+    }
+
+    /**
+     * Update the current playlist with the specified list, choosing to shuffle it or not
+     * @param tracks Tracks to be played
+     * @param position Position to start playing from (valid only for normal playback)
+     * @param random Whether to start shuffling playlist or not
+     */
+    public void updatePlaylist(List<Track> tracks, int position, boolean random) {
+        if (position >= tracks.size()) {
+            throw new IndexOutOfBoundsException("Position exceed list size");
+        }
+        mCurrentPlaylist = new ArrayList<>(tracks);
+        mCurrentPlaylistSorted = new ArrayList<>(tracks);
+        if (random) {
+            sortPlaylist();
+            isShuffle = true;
+            mCurrentIndex = 0;
+        } else {
+            isShuffle = false;
+            mCurrentIndex = position;
+        }
+        updateState();
+    }
+
+    public int appendAfterCurrent(List<Track> tracks) {
+        //TODO: check behaviour
+        if(isShuffle){
+            isShuffle=false;
+            mCurrentIndex = mCurrentPlaylist.indexOf(getCurrentPlaylist().get(mCurrentIndex));
+        }
+        mCurrentPlaylist.addAll(mCurrentIndex + 1, new ArrayList<>(tracks));
+        return mCurrentIndex + 1;
+    }
+
+    public int append(List<Track> tracks) {
+        mCurrentPlaylist.addAll(new ArrayList<>(tracks));
+        mCurrentPlaylistSorted.addAll(new ArrayList<>(tracks));
+        return mCurrentPlaylist.size() - tracks.size();
+    }
+
+    public int append(Track track) {
+        mCurrentPlaylist.add(track);
+        mCurrentPlaylistSorted.add(track);
+        return mCurrentPlaylist.size() - 1;
+    }
+
+    public void play() {
+        mMediaPlayer.start();
+    }
+
+    public void pause() {
+        if (mMediaPlayer.isPlaying()) {
+            mMediaPlayer.pause();
+        }
+    }
+
+    public void skip(SkipDirection direction) {
+        if (direction == SkipDirection.SKIP_FORWARD) {
+            mCurrentIndex += 1;
+        }
+        if (direction == SkipDirection.SKIP_BACKWARD) {
+            mCurrentIndex -= 1;
+        }
+        updateState();
+    }
+
+    public void seekToTrack(int index) {
+        mCurrentIndex = index;
+        updateState();
+    }
+
+    public void seekTo(int milliseconds) {
+        mMediaPlayer.seekTo(milliseconds);
+    }
+
+    public boolean isPlaying() {
+        return mMediaPlayer.isPlaying();
+    }
+
+    public ArrayList<Track> getCurrentPlaylist() {
+        if(isShuffle)
+            return mCurrentPlaylistSorted;
+        else
+            return mCurrentPlaylist;
+    }
+
+    public int getCurrentTrackIndex() {
+        return mCurrentIndex;
+    }
+
+    public void callTimer(Handler h){
+        final Handler mHandler = h;
+        final MediaPlayer mediaPlayerInstance = mMediaPlayer;
+        mCurrentTimer.cancel();
+        mCurrentTimer = new Timer();
+        mCurrentTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    if (mMediaPlayer.isPlaying()) {
+                        Message a = new Message();
+                        a.arg1=mediaPlayerInstance.getCurrentPosition();
+                        mHandler.sendMessage(a);
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, e.getMessage());
+                }
+            }
+        }, 0, 1000);
+    }
+
+    public void fetchCover(Track track, int id) {
+        Track tmp = DataBackend.getTrack(track.uuid);
+        if (tmp.hasResources()) {
+            if (tmp.resources.get(0).cover_data == null) {
+                TaskHandler.getCover(this, track, PreferencesHandler.getServer(this), id);
+            } else if (tmp.resources.get(0).cover_data.length != 0 ){
+                mListener.onCoverFetched(tmp, id);
+            }
+        }
+    }
+
+    private void sortPlaylist() {
+        mCurrentPlaylistSorted = new ArrayList<>(mCurrentPlaylist);
+        long seed = System.nanoTime();
+        Collections.shuffle(mCurrentPlaylistSorted, new Random(seed));
+    }
+
     private void playlistCompleted() {
         if (mListener != null) {
             mListener.onPlaylistComplete();
@@ -339,41 +371,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                 e.printStackTrace();
                 playbackError(e);
             }
-        }
-    }
-
-    public void callTimer(Handler h){
-        final Handler mHandler = h;
-        final MediaPlayer mediaPlayerInstance = mMediaPlayer;
-        mCurrentTimer.cancel();
-        mCurrentTimer = new Timer();
-        mCurrentTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                try {
-                    if (mMediaPlayer.isPlaying()) {
-                        Message a = new Message();
-                        a.arg1=mediaPlayerInstance.getCurrentPosition();
-                        mHandler.sendMessage(a);
-                    }
-                } catch (Exception e) {
-                    Log.e(TAG, e.getMessage());
-                }
-            }
-        }, 0, 1000);
-    }
-
-    public void fetchCover(Track track, int id) {
-        try {
-            Track tmp = DataBackend.getTracks().where().equalTo("uuid", track.uuid).findFirst();
-            if (tmp.resources.get(0).cover_data == null) {
-                Log.i(TAG, tmp.toString() + " COVER RETRIEVE");
-                TaskHandler.getCover(this, track, PreferencesHandler.getServer(this), id);
-            } else if (tmp.resources.get(0).cover_data.length!=0){
-                mListener.onCoverFetched(tmp, id);
-            }
-        } catch (NullPointerException e){
-            Log.i(TAG, "Something is NULL");
         }
     }
 }

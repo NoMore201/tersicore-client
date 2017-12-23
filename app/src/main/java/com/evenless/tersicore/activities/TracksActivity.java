@@ -12,7 +12,6 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
-import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
@@ -24,8 +23,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -44,8 +41,6 @@ import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import me.crosswall.lib.coverflow.core.PagerContainer;
 
 /**
  * Created by McPhi on 10/12/2017.
@@ -224,9 +219,9 @@ public class TracksActivity extends AppCompatActivity
         lsv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             // argument position gives the index of item which is clicked
             public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3) {
-                Track[] temp = new Track[1];
-                temp[0] = listTracks.get(position);
-                mService.playNow(temp);
+                List<Track> temp = new ArrayList<>();
+                temp.add(listTracks.get(position));
+                mService.seekToTrack(mService.append(temp));
                 Intent dd = new Intent(ctx, MainActivity.class);
                 startActivity(dd);
             }
@@ -236,7 +231,8 @@ public class TracksActivity extends AppCompatActivity
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int pos, long id) {
                 final int position = pos;
-                final Track[] temp = {listTracks.get(position)};
+                final List<Track> temp = new ArrayList<>();
+                temp.add(listTracks.get(position));
                 if (mBound) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
                     builder.setTitle("Play options")
@@ -245,19 +241,19 @@ public class TracksActivity extends AppCompatActivity
                                     Intent dd = new Intent(ctx, MainActivity.class);
                                     switch (which) {
                                         case 0:
-                                            mService.updatePlaylist(temp);
+                                            mService.updatePlaylist(temp, 0, false);
                                             startActivity(dd);
                                             break;
                                         case 1:
-                                            mService.playNow(temp);
+                                            mService.seekToTrack(mService.append(temp));
                                             startActivity(dd);
                                             break;
                                         case 2:
-                                            mService.addToPlaylist(temp);
+                                            mService.append(temp);
                                             startActivity(dd);
                                             break;
                                         case 3:
-                                            mService.playAfter(temp);
+                                            mService.appendAfterCurrent(temp);
                                             startActivity(dd);
                                             break;
                                         default:
@@ -279,7 +275,7 @@ public class TracksActivity extends AppCompatActivity
                     @Override
                     public void onClick(View v) {
                         Intent dd = new Intent(v.getContext(), MainActivity.class);
-                        mService.playRandom(listTracks);
+                        mService.updatePlaylist(listTracks, 0, true);
                         startActivity(dd);
                     }
                 }

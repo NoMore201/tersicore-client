@@ -26,6 +26,10 @@ public class Track extends RealmObject {
                 tr.cover_data = cover;
     }
 
+    public boolean hasResources() {
+        return resources != null && resources.size() > 0;
+    }
+
     public String toString() {
         return artist + " - " + title;
     }

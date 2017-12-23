@@ -136,7 +136,7 @@ public class AlbumsActivity extends AppCompatActivity
                     @Override
                     public void onClick(View v) {
                         Intent dd = new Intent(v.getContext(), MainActivity.class);
-                        mService.playRandom(DataBackend.getTracks());
+                        mService.updatePlaylist(DataBackend.getTracks(),0, true);
                         startActivity(dd);
                     }
                 }
