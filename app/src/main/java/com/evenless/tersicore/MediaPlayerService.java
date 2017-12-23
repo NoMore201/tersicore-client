@@ -218,6 +218,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             throw new IndexOutOfBoundsException("Position exceed list size");
         }
         mCurrentPlaylist = new ArrayList<>(tracks);
+        // initialize sorted playlist with a copy of the normal one. After calling
+        // updatePlaylist or toggleShuffle, it will be correctly processed
         mCurrentPlaylistSorted = new ArrayList<>(tracks);
         if (random) {
             sortPlaylist();
@@ -230,6 +232,11 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         updateState();
     }
 
+    /**
+     * Append specified list of tracks after the current index
+     * @param tracks List of tracks to insert
+     * @return starting index of the inserted list
+     */
     public int appendAfterCurrent(List<Track> tracks) {
         //TODO: check behaviour
         if(isShuffle){
@@ -240,12 +247,37 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         return mCurrentIndex + 1;
     }
 
+    /**
+     * Append specified list of tracks after the current index
+     * @param track Track to insert
+     * @return index of the inserted track
+     */
+    public int appendAfterCurrent(Track track) {
+        //TODO: check behaviour
+        if(isShuffle){
+            isShuffle=false;
+            mCurrentIndex = mCurrentPlaylist.indexOf(getCurrentPlaylist().get(mCurrentIndex));
+        }
+        mCurrentPlaylist.add(mCurrentIndex + 1, track);
+        return mCurrentIndex + 1;
+    }
+
+    /**
+     * Append the provided Track list at the end of the playlist
+     * @param tracks List of Track to be appended
+     * @return starting index of the list
+     */
     public int append(List<Track> tracks) {
         mCurrentPlaylist.addAll(new ArrayList<>(tracks));
         mCurrentPlaylistSorted.addAll(new ArrayList<>(tracks));
         return mCurrentPlaylist.size() - tracks.size();
     }
 
+    /**
+     * Append the provided Track at the end of the playlist
+     * @param track Track to be appended
+     * @return index of the inserted Track
+     */
     public int append(Track track) {
         mCurrentPlaylist.add(track);
         mCurrentPlaylistSorted.add(track);
