@@ -10,6 +10,8 @@ import com.evenless.tersicore.model.Track;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import io.realm.Realm;
@@ -119,8 +121,11 @@ public class DataBackend {
      * @param artist used to filter tracks
      * @return list of Track
      */
-    public static RealmResults<Track> getTracks(@NonNull String artist) {
-        return getInstance().where(Track.class).equalTo("artist", artist).findAll();
+    public static ArrayList<Track> getTracks(@NonNull String artist) {
+        RealmResults<Track> result = getInstance().where(Track.class).equalTo("artist", artist).findAll();
+        ArrayList<Track> toReturn = new ArrayList<>(result);
+        orderByTrack(toReturn);
+        return toReturn;
     }
 
     /**
@@ -129,11 +134,37 @@ public class DataBackend {
      * @param album
      * @return
      */
-    public static RealmResults<Track> getTracks(@NonNull String artist, @NonNull String album) {
-        return getInstance().where(Track.class)
+    public static ArrayList<Track> getTracks(@NonNull String artist, @NonNull String album) {
+        RealmResults<Track> result =  getInstance().where(Track.class)
                 .equalTo("artist", artist)
                 .equalTo("album", album)
-                .findAllSorted("track_number");
+                .findAll();
+        ArrayList<Track> toReturn = new ArrayList<>(result);
+        orderByTrack(toReturn);
+        return toReturn;
+    }
+
+    public static void orderByTrack(ArrayList<Track> list) {
+        Collections.sort(list, new Comparator<Track>() {
+            @Override
+            public int compare(Track first, Track second) {
+                int firstTrackNumber;
+                if (first.track_number.contains("/")) {
+                    String tmp = first.track_number.substring(0, first.track_number.indexOf("/"));
+                    firstTrackNumber = Integer.parseInt(tmp);
+                } else {
+                    firstTrackNumber = Integer.parseInt(first.track_number);
+                }
+                int secondTrackNumber;
+                if (second.track_number.contains("/")) {
+                    String tmp = second.track_number.substring(0, second.track_number.indexOf("/"));
+                    secondTrackNumber = Integer.parseInt(tmp);
+                } else {
+                    secondTrackNumber = Integer.parseInt(second.track_number);
+                }
+                return firstTrackNumber - secondTrackNumber;
+            }
+        });
     }
 
     /**

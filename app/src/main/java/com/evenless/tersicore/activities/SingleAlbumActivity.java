@@ -53,14 +53,12 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
-
-/**
- * Created by McPhi on 10/12/2017.
- */
+import java.util.Locale;
 
 public class SingleAlbumActivity  extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, ApiRequestTaskListener,
-        MediaPlayerServiceListener, ImageRequestTaskListener, CoverDownloadTaskListener {
+        MediaPlayerServiceListener, ImageRequestTaskListener, CoverDownloadTaskListener,
+        AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
 
     private static final String TAG = "TracksActivity";
     private List<Track> listTracks;
@@ -115,18 +113,18 @@ public class SingleAlbumActivity  extends AppCompatActivity
         albumName = getIntent().getStringExtra("EXTRA_ALBUM");
 
         setContentView(R.layout.activity_album);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         if(albumName!=null)
             toolbar.setTitle(albumName);
         setSupportActionBar(toolbar);
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         navigationView.setCheckedItem(R.id.nav_songs);
 
@@ -150,25 +148,22 @@ public class SingleAlbumActivity  extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_albums) {
-            Intent asd = new Intent(this, AlbumsActivity.class);
-            startActivity(asd);
-        } else if (id == R.id.nav_artists) {
-            Intent asd = new Intent(this, ArtistsActivity.class);
-            startActivity(asd);
-        } else if (id == R.id.nav_dj) {
-
-        } else if (id == R.id.nav_home) {
-            Intent asd = new Intent(this, SearchActivity.class);
-            startActivity(asd);
-        } else if (id == R.id.nav_playlists) {
-
-        } else if (id == R.id.nav_settings) {
-
-        } else if (id == R.id.nav_songs) {
-
-        } else if (id == R.id.nav_view) {
-
+        Intent intent;
+        switch (id) {
+            case R.id.nav_albums:
+                intent = new Intent(this, AlbumsActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.nav_artists:
+                intent = new Intent(this, ArtistsActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.nav_home:
+                intent = new Intent(this, SearchActivity.class);
+                startActivity(intent);
+                break;
+            default:
+                break;
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -187,15 +182,16 @@ public class SingleAlbumActivity  extends AppCompatActivity
         }
     }
 
-    private void updateList(){
+    private void updateList() {
         ListView lsv = findViewById(R.id.listalbum);
         TextView aln = findViewById(R.id.albumname);
         TextView arn = findViewById(R.id.artistname);
         TextView y = findViewById(R.id.year);
         aln.setText(albumName);
         arn.setText(artist);
-        if(listTracks.size()>0 && listTracks.get(0).date!=null) {
-            SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
+        if (listTracks.size() > 0 && listTracks.get(0).date != null) {
+            SimpleDateFormat format =
+                    new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
             try {
                 Date date = format.parse(listTracks.get(0).date);
                 Calendar calendar = new GregorianCalendar();
@@ -210,11 +206,12 @@ public class SingleAlbumActivity  extends AppCompatActivity
                 this,
                 android.R.layout.simple_list_item_1,
                 android.R.id.text1,
-                listTracks ){
+                listTracks) {
 
             @SuppressLint("SetTextI18n")
+            @NonNull
             @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
+            public View getView(int position, View convertView, @NonNull ViewGroup parent) {
                 View view = super.getView(position, convertView, parent);
                 TextView text1 = view.findViewById(android.R.id.text1);
                 Track temp = listTracks.get(position);
@@ -230,46 +227,9 @@ public class SingleAlbumActivity  extends AppCompatActivity
         };
         lsv.setAdapter(arrayAdapter);
         // register onClickListener to handle click events on each item
-        lsv.setOnItemClickListener(new AdapterView.OnItemClickListener()
-        {
-            // argument position gives the index of item which is clicked
-            public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3)
-            {
-                mService.updatePlaylist(listTracks, position, false);
-                Intent dd = new Intent(ctx, MainActivity.class);
-                startActivity(dd);
-            }
-        });
+        lsv.setOnItemClickListener(this);
 
-        lsv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int pos, long id) {
-                final int position = pos;
-                final List<Track> temp = new ArrayList<>();
-                temp.add(listTracks.get(position));
-                if(mBound) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
-                    builder.setTitle("Play options")
-                            .setItems(SearchActivity.playOptions, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    Intent dd = new Intent(ctx, MainActivity.class);
-                                    switch (which){
-                                        case 0: mService.updatePlaylist(temp, 0, false);  startActivity(dd); break;
-                                        case 1: mService.seekToTrack(mService.append(temp)); startActivity(dd); break;
-                                        case 2: mService.append(temp); startActivity(dd); break;
-                                        case 3: mService.appendAfterCurrent(temp); startActivity(dd); break;
-                                        default: break;
-                                    }
-                                }
-                            });
-                    builder.create().show();
-                } else {
-                    //Alert service not bound yet
-                    Log.i(TAG, "Service not bound yet");
-                }
-                return true;
-            }
-        });
+        lsv.setOnItemLongClickListener(this);
 
         findViewById(R.id.playbutt).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -282,11 +242,43 @@ public class SingleAlbumActivity  extends AppCompatActivity
 
         try {
             TaskHandler.getAlbumImageFromApi(this, artist, albumName, 0);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (MalformedURLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public boolean onItemLongClick(AdapterView<?> parent, View view, int pos, long id) {
+        final List<Track> temp = new ArrayList<>();
+        temp.add(listTracks.get(pos));
+        if(mBound) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+            builder.setTitle("Play options")
+                    .setItems(SearchActivity.playOptions, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent dd = new Intent(ctx, MainActivity.class);
+                            switch (which){
+                                case 0: mService.updatePlaylist(temp, 0, false);  startActivity(dd); break;
+                                case 1: mService.seekToTrack(mService.append(temp)); startActivity(dd); break;
+                                case 2: mService.append(temp); startActivity(dd); break;
+                                case 3: mService.appendAfterCurrent(temp); startActivity(dd); break;
+                                default: break;
+                            }
+                        }
+                    });
+            builder.create().show();
+        } else {
+            //Alert service not bound yet
+            Log.i(TAG, "Service not bound yet");
+        }
+        return true;
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+        mService.updatePlaylist(listTracks, i, false);
+        Intent dd = new Intent(ctx, MainActivity.class);
+        startActivity(dd);
     }
 
     @Override
