@@ -139,7 +139,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             int index = mCurrentPlaylist.indexOf(track);
             if (index != -1 && track.resources != null && track.resources.size() != 0) {
                 mCurrentPlaylist.set(index, updated);
-                DataBackend.insertCover(updated.album_artist, updated.album, cover);
+                //DataBackend.insertCover(updated.album_artist, updated.album, cover);
             }
         }
         if (mCurrentPlaylistSorted != null) {
@@ -339,7 +339,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                 try {
                     if (mMediaPlayer.isPlaying()) {
                         Message a = new Message();
-                        a.arg1=mediaPlayerInstance.getCurrentPosition();
+                        a.arg1 = mediaPlayerInstance.getCurrentPosition();
                         mHandler.sendMessage(a);
                     }
                 } catch (Exception e) {
@@ -350,12 +350,11 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     public void fetchCover(Track track, int id) {
-        Track tmp = DataBackend.getTrack(track.uuid);
-        if (tmp.hasResources()) {
-            if (tmp.resources.get(0).cover_data == null) {
+        if (track.hasResources()) {
+            if (track.resources.get(0).cover_data == null) {
                 TaskHandler.getCover(this, track, PreferencesHandler.getServer(this), id);
-            } else if (tmp.resources.get(0).cover_data.length != 0 ){
-                mListener.onCoverFetched(tmp, id);
+            } else if (track.resources.get(0).cover_data.length != 0 ){
+                mListener.onCoverFetched(track, id);
             }
         }
     }

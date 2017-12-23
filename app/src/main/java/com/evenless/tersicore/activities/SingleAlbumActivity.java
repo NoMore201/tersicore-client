@@ -1,5 +1,6 @@
 package com.evenless.tersicore.activities;
 
+import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -158,7 +159,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
         } else if (id == R.id.nav_dj) {
 
         } else if (id == R.id.nav_home) {
-            Intent asd = new Intent(this, Main3Activity.class);
+            Intent asd = new Intent(this, SearchActivity.class);
             startActivity(asd);
         } else if (id == R.id.nav_playlists) {
 
@@ -211,13 +212,19 @@ public class SingleAlbumActivity  extends AppCompatActivity
                 android.R.id.text1,
                 listTracks ){
 
+            @SuppressLint("SetTextI18n")
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 View view = super.getView(position, convertView, parent);
                 TextView text1 = view.findViewById(android.R.id.text1);
                 Track temp = listTracks.get(position);
-                text1.setText(temp.track_number.substring(0, temp.track_number.indexOf("/"))
-                        + ". " + listTracks.get(position).title);
+                if (temp.track_number.contains("/")) {
+                    text1.setText(temp.track_number.substring(0, temp.track_number.indexOf("/"))
+                            + ". " + listTracks.get(position).title);
+                } else {
+                    text1.setText(temp.track_number + ". " + listTracks.get(position).title);
+                }
+
                 return view;
             }
         };
@@ -243,7 +250,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
                 if(mBound) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
                     builder.setTitle("Play options")
-                            .setItems(Main3Activity.playOptions, new DialogInterface.OnClickListener() {
+                            .setItems(SearchActivity.playOptions, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
                                     Intent dd = new Intent(ctx, MainActivity.class);
                                     switch (which){

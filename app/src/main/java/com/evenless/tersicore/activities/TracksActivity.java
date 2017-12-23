@@ -159,7 +159,7 @@ public class TracksActivity extends AppCompatActivity
         } else if (id == R.id.nav_dj) {
 
         } else if (id == R.id.nav_home) {
-            Intent asd = new Intent(this, Main3Activity.class);
+            Intent asd = new Intent(this, SearchActivity.class);
             startActivity(asd);
         } else if (id == R.id.nav_playlists) {
 
@@ -236,7 +236,7 @@ public class TracksActivity extends AppCompatActivity
                 if (mBound) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
                     builder.setTitle("Play options")
-                            .setItems(Main3Activity.playOptions, new DialogInterface.OnClickListener() {
+                            .setItems(SearchActivity.playOptions, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
                                     Intent dd = new Intent(ctx, MainActivity.class);
                                     switch (which) {

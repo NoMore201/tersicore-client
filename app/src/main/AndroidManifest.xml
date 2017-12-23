@@ -31,7 +31,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activities.Main3Activity"
+            android:name=".activities.SearchActivity"
             android:label="@string/title_activity_main3">
         </activity>
         <activity

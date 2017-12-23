@@ -1,5 +1,6 @@
 package com.evenless.tersicore.activities;
 
+import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -9,6 +10,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -50,12 +52,22 @@ import java.util.Map;
 import com.evenless.tersicore.view.NonScrollableListView;
 import com.google.gson.Gson;
 
-public class Main3Activity extends AppCompatActivity
+public class SearchActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
-        ApiRequestTaskListener, SearchView.OnQueryTextListener,
-        MediaPlayerServiceListener {
+        ApiRequestTaskListener,
+        SearchView.OnQueryTextListener,
+        MediaPlayerServiceListener,
+        AdapterView.OnItemLongClickListener,
+        AdapterView.OnItemClickListener {
 
-    public static final String[] playOptions = {"Play now (Destroy queue)", "Play now (Maintain queue)", "Add To Playlist (Coda)", "Play After"};
+    public static final String[] playOptions = {
+            "Play now (Destroy queue)",
+            "Play now (Maintain queue)",
+            "Add To Playlist (Coda)",
+            "Play After"
+    };
+
+    private static final String TAG = "SearchActivity";
 
     private Track[] listTracks = new Track[0];
     private ArrayList<Track> listTracksFiltered = new ArrayList<>();
@@ -106,26 +118,31 @@ public class Main3Activity extends AppCompatActivity
                     listTracks = new Track[0];
                 }
         } catch (Exception e){
-            Log.e("Main3Activity", e.getMessage());
+            Log.e(TAG, e.getMessage());
         }
-        setContentView(R.layout.activity_main3);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setContentView(R.layout.activity_search);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         TextView smTracks = findViewById(R.id.tvsmlist);
 
         // use a linear layout manager
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
-        RecyclerView.LayoutManager mLayoutManagerAlbum = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this,
+                LinearLayoutManager.HORIZONTAL,
+                false);
+        RecyclerView.LayoutManager mLayoutManagerAlbum = new LinearLayoutManager(this,
+                LinearLayoutManager.HORIZONTAL,
+                false);
+
         mRecyclerView = findViewById(R.id.artistlistview);
         mRecyclerViewAlbums = findViewById(R.id.coverlistview);
         mRecyclerView.setLayoutManager(mLayoutManager);
@@ -148,7 +165,7 @@ public class Main3Activity extends AppCompatActivity
                 try {
                     onQueryTextChange(s.toString());
                 } catch (Exception e) {
-                    Log.e("Main3Activity", e.getMessage());
+                    Log.e("SearchActivity", e.getMessage());
                 }
             }
         });
@@ -159,7 +176,7 @@ public class Main3Activity extends AppCompatActivity
                 EditText editit = findViewById(R.id.searchone);
                 boolean brokeTracks = false;
                 for (int i = (3 + page*10); i < listTracks.length; i++) {
-                    if (asd(listTracks[i], editit.getText().toString()) && !listTracksFiltered.contains(listTracks[i]))
+                    if (checkTrackByTitle(listTracks[i], editit.getText().toString()) && !listTracksFiltered.contains(listTracks[i]))
                         if(listTracksFiltered.size()>2 + ((page+1) *10)) {
                             brokeTracks = true;
                             page ++;
@@ -177,48 +194,50 @@ public class Main3Activity extends AppCompatActivity
 
         NonScrollableListView lsv = findViewById(R.id.listtr);
         // register onClickListener to handle click events on each item
-        lsv.setOnItemClickListener(new AdapterView.OnItemClickListener()
-        {
-            // argument position gives the index of item which is clicked
-            public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3)
-            {
-                mService.seekToTrack(mService.append(listTracksFiltered.get(position)));
-                Intent dd = new Intent(ctx, MainActivity.class);
-                startActivity(dd);
-            }
-        });
+        lsv.setOnItemClickListener(this);
 
-        lsv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int pos, long id) {
-                final List<Track> temp = new ArrayList<>();
-                temp.add(listTracksFiltered.get(pos));
-                if(mBound) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
-                    builder.setTitle("Play options")
-                            .setItems(playOptions, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    Intent dd = new Intent(ctx, MainActivity.class);
-                                    // TODO: use enum rather than integers
-                                    switch (which){
-                                        case 0: mService.updatePlaylist(temp, 0, false);  startActivity(dd); break;
-                                        case 1: mService.seekToTrack(mService.append(temp)); startActivity(dd); break;
-                                        case 2: mService.append(temp); startActivity(dd); break;
-                                        case 3: mService.appendAfterCurrent(temp); startActivity(dd); break;
-                                        default: break;
-                                    }
-                                }
-                            });
-                    builder.create().show();
-                } else {
-                    //Alert service not bound yet
-                    Log.i("Home", "Service not bound yet");
-                }
-                return true;
-            }
-        });
+        lsv.setOnItemLongClickListener(this);
 
         navigationView.setCheckedItem(R.id.nav_home);
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+        mService.seekToTrack(mService.append(listTracksFiltered.get(i)));
+        Intent dd = new Intent(ctx, MainActivity.class);
+        startActivity(dd);
+    }
+
+    @Override
+    public boolean onItemLongClick(AdapterView<?> parent, View view, int pos, long id) {
+        final List<Track> toPlay = new ArrayList<>();
+        toPlay.add(listTracksFiltered.get(pos));
+        if(mBound) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+            builder.setTitle("Play options")
+                    .setItems(playOptions, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent dd = new Intent(ctx, MainActivity.class);
+                            // TODO: use enum rather than integers
+                            switch (which){
+                                // play now clean queue
+                                case 0: mService.updatePlaylist(toPlay, 0, false);  startActivity(dd); break;
+                                // play now keep queue
+                                case 1: mService.seekToTrack(mService.append(toPlay)); startActivity(dd); break;
+                                // add to playlist
+                                case 2: mService.append(toPlay); startActivity(dd); break;
+                                // play after
+                                case 3: mService.appendAfterCurrent(toPlay); startActivity(dd); break;
+                                default: break;
+                            }
+                        }
+                    });
+            builder.create().show();
+        } else {
+            //Alert service not bound yet
+            Log.i("Home", "Service not bound yet");
+        }
+        return true;
     }
 
     @Override
@@ -231,7 +250,7 @@ public class Main3Activity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -242,7 +261,7 @@ public class Main3Activity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main3, menu);
+        getMenuInflater().inflate(R.menu.activity_search_menu, menu);
         return true;
     }
 
@@ -251,7 +270,7 @@ public class Main3Activity extends AppCompatActivity
         switch (item.getItemId()) {
 
             case R.id.action_favorite:
-                DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+                DrawerLayout drawer = findViewById(R.id.drawer_layout);
                 drawer.openDrawer(GravityCompat.START);
                 return true;
 
@@ -265,7 +284,7 @@ public class Main3Activity extends AppCompatActivity
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
@@ -290,7 +309,7 @@ public class Main3Activity extends AppCompatActivity
 
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
@@ -301,50 +320,49 @@ public class Main3Activity extends AppCompatActivity
     }
 
     @Override
-    public boolean onQueryTextChange(final String newT) {
+    public boolean onQueryTextChange(final String query) {
         listTracksFiltered = new ArrayList<>();
         listAlbums = new ArrayList<>();
         listArtists = new ArrayList<>();
         page=0;
-        if(newT.length()!=0) {
-            boolean brokeTracks = false;
-            for (int i = 0; i < listTracks.length; i++) {
-                if (asd(listTracks[i], newT)) {
-                    if(listTracksFiltered.size()>2) {
-                        brokeTracks = true;
-                        break;
+        if(query.length()!=0) {
+            for (Track t : listTracks) {
+                if (listTracksFiltered.size() > 2) {
+                    break;
+                }
+                if (checkTrackByTitle(t, query)) {
+                    listTracksFiltered.add(t);
+                }
+            }
+            for (Track t: listTracks) {
+                if (checkTrackByAlbum(t, query) && !isParsedAlbum(t)) {
+                    if (t.album_artist != null) {
+                        listAlbums.add(new Album(t.album, t.album_artist));
                     } else {
-                        listTracksFiltered.add(listTracks[i]);
+                        listAlbums.add(new Album(t.album, t.artist));
                     }
                 }
             }
-            for (int i = 0; i < listTracks.length; i++) {
-                if (albumSD(listTracks[i], newT) && !isParsedAlbum(listTracks[i])){
-                        Track temp = listTracks[i];
-                        if(temp.album_artist!=null)
-                            listAlbums.add(new Album(temp.album, temp.album_artist));
-                        else
-                            listAlbums.add(new Album(temp.album, temp.artist));
-                    }
+            for (Track t : listTracks) {
+                if (checkTrackByArtist(t, query) && !listArtists.contains(t.artist)) {
+                    listArtists.add(t.artist);
+                }
             }
-            for (int i = 0; i < listTracks.length; i++) {
-                if (artistSD(listTracks[i], newT) && !listArtists.contains(listTracks[i].artist))
-                        listArtists.add(listTracks[i].artist);
-            }
+
             TextView t1 = findViewById(R.id.tvArtists);
-            if(listArtists.size()>0){
+            if (listArtists.size()>0) {
                 t1.setVisibility(View.VISIBLE);
             } else {
                 t1.setVisibility(View.GONE);
             }
             t1 = findViewById(R.id.tvAlbums);
-            if(listAlbums.size()>0){
+            if (listAlbums.size()>0) {
                 t1.setVisibility(View.VISIBLE);
             } else {
                 t1.setVisibility(View.GONE);
             }
             t1 = findViewById(R.id.tvtracks);
-            if(listTracksFiltered.size()>0)
+            if (listTracksFiltered.size()>0)
                 t1.setVisibility(View.VISIBLE);
             else
                 t1.setVisibility(View.GONE);
@@ -380,8 +398,10 @@ public class Main3Activity extends AppCompatActivity
                 android.R.id.text1,
                 listTracksFiltered ){
 
+            @SuppressLint("SetTextI18n")
             @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
+            @NonNull
+            public View getView(int position, View convertView, @NonNull ViewGroup parent) {
                 View view = super.getView(position, convertView, parent);
                 TextView text1 = view.findViewById(android.R.id.text1);
                 TextView text2 = view.findViewById(android.R.id.text2);
@@ -395,17 +415,17 @@ public class Main3Activity extends AppCompatActivity
         lsv.setAdapter(arrayAdapter);
     }
 
-    public boolean asd(Track s, String t){
+    public boolean checkTrackByTitle(Track s, String t){
         String newText = t.toLowerCase();
         return (s.title!=null && (s.title.toLowerCase().startsWith(newText) || s.title.toLowerCase().contains(" " + newText)));
     }
 
-    public boolean artistSD(Track s, String t){
+    public boolean checkTrackByArtist(Track s, String t){
         String newText = t.toLowerCase();
         return (s.artist!=null && (s.artist.toLowerCase().startsWith(newText)|| s.artist.toLowerCase().contains(" " + newText)));
     }
 
-    public boolean albumSD(Track s, String t){
+    public boolean checkTrackByAlbum(Track s, String t){
         String newText = t.toLowerCase();
         return (s.album!=null && (s.album.toLowerCase().startsWith(newText)|| s.album.toLowerCase().contains(" " + newText))) ;
     }

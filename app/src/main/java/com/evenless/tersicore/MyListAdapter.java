@@ -193,7 +193,7 @@ implements ImageRequestTaskListener, CoverDownloadTaskListener {
                 TaskHandler.downloadCover(link, listtypeNumber, key, this);
             }
         } catch (Exception e) {
-            Log.e("Main3Activity", e.getMessage());
+            Log.e("SearchActivity", e.getMessage());
         }
     }
 
