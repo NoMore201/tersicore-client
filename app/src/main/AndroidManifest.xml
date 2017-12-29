@@ -58,6 +58,10 @@
             android:name=".activities.PlaylistListActivity"
             android:label="@string/title_activity_playlist">
         </activity>
+        <activity
+            android:name=".activities.PlaylistsActivity"
+            android:label="@string/title_activity_playlists">
+        </activity>
     </application>
 
 </manifest>

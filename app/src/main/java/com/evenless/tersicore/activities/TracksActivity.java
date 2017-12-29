@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -35,6 +36,7 @@ import com.evenless.tersicore.PlayerInterface;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.TaskHandler;
+import com.evenless.tersicore.model.Playlist;
 import com.evenless.tersicore.model.Track;
 import com.google.gson.Gson;
 
@@ -162,7 +164,8 @@ public class TracksActivity extends AppCompatActivity
             Intent asd = new Intent(this, SearchActivity.class);
             startActivity(asd);
         } else if (id == R.id.nav_playlists) {
-
+            Intent asd = new Intent(this, PlaylistsActivity.class);
+            startActivity(asd);
         } else if (id == R.id.nav_settings) {
 
         } else if (id == R.id.nav_songs) {

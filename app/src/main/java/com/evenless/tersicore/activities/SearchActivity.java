@@ -43,14 +43,19 @@ import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.TaskHandler;
 import com.evenless.tersicore.model.Album;
+import com.evenless.tersicore.model.Playlist;
 import com.evenless.tersicore.model.Track;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import com.evenless.tersicore.view.NonScrollableListView;
 import com.google.gson.Gson;
+
+import io.realm.RealmList;
 
 public class SearchActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -299,7 +304,8 @@ public class SearchActivity extends AppCompatActivity
         } else if (id == R.id.nav_home) {
 
         } else if (id == R.id.nav_playlists) {
-
+            Intent asd = new Intent(this, PlaylistsActivity.class);
+            startActivity(asd);
         } else if (id == R.id.nav_settings) {
 
         } else if (id == R.id.nav_songs) {

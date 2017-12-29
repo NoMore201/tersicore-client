@@ -170,6 +170,7 @@ public class MainActivity extends AppCompatActivity
                     startActivity(asd);
                 }
             });
+
         }
 
         @Override
@@ -254,7 +255,8 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onPlaylistComplete() {
-        //do something
+        ImageButton vie = findViewById(R.id.playbutton);
+        vie.setImageResource(R.drawable.ic_play);
     }
 
     @Override

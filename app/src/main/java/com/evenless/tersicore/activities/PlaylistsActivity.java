@@ -2,6 +2,7 @@ package com.evenless.tersicore.activities;
 
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
@@ -13,26 +14,29 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.evenless.tersicore.ApiRequestTaskListener;
 import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.MediaPlayerService;
 import com.evenless.tersicore.MediaPlayerServiceListener;
-import com.evenless.tersicore.MyListAdapter;
 import com.evenless.tersicore.PlayerInterface;
+import com.evenless.tersicore.PlaylistSingleAdapter;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.TaskHandler;
-import com.evenless.tersicore.model.Album;
+import com.evenless.tersicore.model.Playlist;
 import com.evenless.tersicore.model.Track;
 import com.google.gson.Gson;
 
@@ -44,42 +48,38 @@ import java.util.List;
  * Created by McPhi on 10/12/2017.
  */
 
-public class SingleArtistActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, ApiRequestTaskListener,
-        MediaPlayerServiceListener{
+public class PlaylistsActivity extends AppCompatActivity
+        implements NavigationView.OnNavigationItemSelectedListener,
+        MediaPlayerServiceListener {
 
-    private List<Album> listAlbums;
-    private String artist;
-    private RecyclerView mRecyclerViewAlbums;
+    private static final String TAG = "PlaylistsActivity";
+    private List<Playlist> listPlaylists;
+    private boolean mBound = false;
     private MediaPlayerService mService;
-    private Context ctx =this;
+    private Context ctx = this;
     private ServiceConnection mConnection = new ServiceConnection() {
+
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
             MediaPlayerService.LocalBinder binder = (MediaPlayerService.LocalBinder) service;
             mService = binder.getService();
             mService.setMediaPlayerServiceListener((MediaPlayerServiceListener) ctx);
-            createList();
+            mBound = true;
+            FloatingActionButton asd = findViewById(R.id.floatingActionButton);
+            asd.setVisibility(View.GONE);
             if (mService.getCurrentPlaylist().size() == 0) {
-                FloatingActionButton asd = findViewById(R.id.floatingShuffle);
-                CoordinatorLayout.LayoutParams temp = (CoordinatorLayout.LayoutParams) asd.getLayoutParams();
-                temp.bottomMargin = 112;
-                asd.setLayoutParams(temp);
                 findViewById(R.id.asd2).setVisibility(View.GONE);
             } else {
-                FloatingActionButton asd = findViewById(R.id.floatingShuffle);
-                CoordinatorLayout.LayoutParams temp = (CoordinatorLayout.LayoutParams) asd.getLayoutParams();
-                temp.bottomMargin = 300;
-                asd.setLayoutParams(temp);
-                findViewById(R.id.asd2).setVisibility(View.VISIBLE);
                 PlayerInterface.UpdateTrack(findViewById(R.id.asd2), mService);
             }
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-
+            mBound = false;
         }
+
     };
 
     @Override
@@ -91,13 +91,19 @@ public class SingleArtistActivity extends AppCompatActivity
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+        unbindService(mConnection);
+        mBound = false;
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        artist = getIntent().getStringExtra("EXTRA_ARTIST");
 
-        setContentView(R.layout.activity_artist);
+        setContentView(R.layout.activity_main4);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitle(artist);
+        toolbar.setTitle("Playlists");
         setSupportActionBar(toolbar);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -109,38 +115,14 @@ public class SingleArtistActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        FloatingActionButton asd = findViewById(R.id.floatingShuffle);
-        asd.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                Intent dd = new Intent(v.getContext(), MainActivity.class);
-                mService.updatePlaylist(DataBackend.getTracks(artist), 0, true);
-                startActivity(dd);
-            }
-        });
-
-        Button alltracksButton = findViewById(R.id.alltracksButton);
-        alltracksButton.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                Intent asd = new Intent(v.getContext(), TracksActivity.class);
-                asd.putExtra("EXTRA_ARTIST", artist);
-                startActivity(asd);
-            }
-        });
-
+        navigationView.setCheckedItem(R.id.nav_playlists);
+        listPlaylists = DataBackend.getPlaylists();
         try {
-            if (DataBackend.getArtists().size() != 0) {
-                listAlbums = DataBackend.getAlbums(artist);
-            } else
-                try {
-                    TaskHandler.getTracks(this, PreferencesHandler.getServer(this));
-                } catch (Exception e) {
-                    listAlbums = new ArrayList<>();
-                }
-        } catch (Exception e) {
-            Log.e("ArtistsActivity", e.getMessage());
+            updateList();
+        } catch (Exception e){
+            e.printStackTrace();
         }
+
     }
 
     @Override
@@ -160,8 +142,7 @@ public class SingleArtistActivity extends AppCompatActivity
             Intent asd = new Intent(this, SearchActivity.class);
             startActivity(asd);
         } else if (id == R.id.nav_playlists) {
-            Intent asd = new Intent(this, PlaylistsActivity.class);
-            startActivity(asd);
+
         } else if (id == R.id.nav_settings) {
 
         } else if (id == R.id.nav_songs) {
@@ -176,28 +157,24 @@ public class SingleArtistActivity extends AppCompatActivity
         return true;
     }
 
-    @Override
-    public void onRequestComplete(String response, Exception e) {
-        if (e != null) {
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
-        } else if (response != null) {
-            DataBackend.insertTracks(new ArrayList<>(Arrays.asList(new Gson().fromJson(response, Track[].class))));
-            listAlbums = DataBackend.getAlbums(artist);
-            createList();
-        }
-    }
+    private void updateList() {
+        ListView lsv = findViewById(R.id.listart);
+        PlaylistSingleAdapter arrayAdapter = new PlaylistSingleAdapter(
+                this,
+                R.layout.playlists,
+                listPlaylists);
 
-    private void createList() {
-        RecyclerView.LayoutManager mLayoutManagerAlbum = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
-        mRecyclerViewAlbums = findViewById(R.id.coverAlbumArtist);
-        mRecyclerViewAlbums.setLayoutManager(mLayoutManagerAlbum);
-        mRecyclerViewAlbums.setAdapter(new MyListAdapter(new ArrayList(listAlbums), mService.artistsCover, MyListAdapter.ARTALB_STATE));
-    }
+        lsv.setAdapter(arrayAdapter);
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        unbindService(mConnection);
+        // register onClickListener to handle click events on each item
+        lsv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            // argument position gives the index of item which is clicked
+            public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3) {
+                Intent asd = new Intent(v.getContext(), PlaylistListActivity.class);
+                asd.putExtra("EXTRA_PLAYLIST_ID", listPlaylists.get(position).id);
+                startActivity(asd);
+            }
+        });
     }
 
     @Override

@@ -32,4 +32,5 @@
     <string name="title_activity_artist">Artist</string>
     <string name="title_activity_album">Album</string>
     <string name="title_activity_playlist">Playlist</string>
+    <string name="title_activity_playlists">Playlists</string>
 </resources>

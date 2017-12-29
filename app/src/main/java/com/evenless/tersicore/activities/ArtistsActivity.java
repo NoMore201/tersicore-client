@@ -162,7 +162,8 @@ public class ArtistsActivity  extends AppCompatActivity
             Intent asd = new Intent(this, SearchActivity.class);
             startActivity(asd);
         } else if (id == R.id.nav_playlists) {
-
+            Intent asd = new Intent(this, PlaylistsActivity.class);
+            startActivity(asd);
         } else if (id == R.id.nav_settings) {
 
         } else if (id == R.id.nav_songs) {

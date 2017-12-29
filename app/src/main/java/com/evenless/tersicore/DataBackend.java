@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.Cover;
+import com.evenless.tersicore.model.Playlist;
 import com.evenless.tersicore.model.Track;
 
 import java.security.MessageDigest;
@@ -15,6 +16,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import io.realm.Realm;
+import io.realm.RealmList;
 import io.realm.RealmResults;
 import io.realm.exceptions.RealmException;
 
@@ -41,6 +43,17 @@ public class DataBackend {
         Realm realm = getInstance();
         realm.beginTransaction();
         realm.copyToRealmOrUpdate(track);
+        realm.commitTransaction();
+    }
+
+    /**
+     * Save a single playlist into the database
+     * @param p playlist information to save
+     */
+    public static void insertPlaylist(Playlist p) {
+        Realm realm = getInstance();
+        realm.beginTransaction();
+        realm.copyToRealmOrUpdate(p);
         realm.commitTransaction();
     }
 
@@ -232,5 +245,38 @@ public class DataBackend {
 
     private static Realm getInstance() {
         return Realm.getDefaultInstance();
+    }
+
+    public static List<Playlist> getPlaylists() {
+        ArrayList<Playlist> result = new ArrayList<>();
+        for (Playlist p : getInstance().where(Playlist.class).findAll()){
+            result.add(p);
+        }
+        return result;
+    }
+
+    public static Playlist getPlaylist(String pid) {
+        return getInstance().where(Playlist.class).equalTo("id", pid).findFirst();
+    }
+
+    //Not Working
+    public static RealmList<Track> modifyPlaylistPosition(int fromPosition, int toPosition, String id) {
+        Realm realm = getInstance();
+        realm.beginTransaction();
+        RealmList<Track> listTracks = realm.where(Playlist.class)
+                .equalTo("id", id)
+                .findFirst().tracks;
+        if (fromPosition != toPosition) {
+            Track temp = listTracks.get(fromPosition);
+            if (fromPosition > toPosition) {
+                listTracks.remove(temp);
+                listTracks.add(toPosition, temp);
+            } else {
+                listTracks.add(toPosition, temp);
+                listTracks.remove(temp);
+            }
+        }
+        realm.commitTransaction();
+        return listTracks;
     }
 }

@@ -36,6 +36,7 @@ import com.evenless.tersicore.MediaPlayerServiceListener;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.TaskHandler;
+import com.evenless.tersicore.model.Playlist;
 import com.evenless.tersicore.model.Track;
 import com.google.gson.Gson;
 import com.woxthebox.draglistview.DragListView;
@@ -58,6 +59,7 @@ public class PlaylistListActivity extends AppCompatActivity{
     private boolean mBound = false;
     private MediaPlayerService mService;
     private Context ctx = this;
+    private Playlist pid = null;
     private ServiceConnection mConnection = new ServiceConnection() {
 
         @Override
@@ -66,7 +68,13 @@ public class PlaylistListActivity extends AppCompatActivity{
             MediaPlayerService.LocalBinder binder = (MediaPlayerService.LocalBinder) service;
             mService = binder.getService();
             mBound=true;
-            listTracks = mService.getCurrentPlaylist();
+            String p = getIntent().getStringExtra("EXTRA_PLAYLIST_ID");
+            if(p==null)
+                listTracks = mService.getCurrentPlaylist();
+            else{
+                pid=DataBackend.getPlaylist(p);
+                listTracks = pid.tracks;
+            }
             DragListView mDragListView = (DragListView) findViewById(R.id.dragPlaylist);
             mDragListView.setDragListListener(new DragListView.DragListListener() {
                 @Override
@@ -81,7 +89,10 @@ public class PlaylistListActivity extends AppCompatActivity{
 
                 @Override
                 public void onItemDragEnded(int fromPosition, int toPosition) {
-                    mService.changePlaylistPosition(fromPosition, toPosition);
+                    if(pid==null)
+                        mService.changePlaylistPosition(fromPosition, toPosition);
+                    else
+                        listTracks=DataBackend.modifyPlaylistPosition(fromPosition, toPosition, pid.id);
                 }
             });
 

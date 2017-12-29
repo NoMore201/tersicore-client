@@ -162,6 +162,10 @@ public class SingleAlbumActivity  extends AppCompatActivity
                 intent = new Intent(this, SearchActivity.class);
                 startActivity(intent);
                 break;
+            case R.id.nav_playlists:
+                Intent asd = new Intent(this, PlaylistsActivity.class);
+                startActivity(asd);
+                break;
             default:
                 break;
         }
