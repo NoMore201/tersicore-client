@@ -266,16 +266,9 @@ public class DataBackend {
         RealmList<Track> listTracks = realm.where(Playlist.class)
                 .equalTo("id", id)
                 .findFirst().tracks;
-        if (fromPosition != toPosition) {
-            Track temp = listTracks.get(fromPosition);
-            if (fromPosition > toPosition) {
-                listTracks.remove(temp);
-                listTracks.add(toPosition, temp);
-            } else {
-                listTracks.add(toPosition, temp);
-                listTracks.remove(temp);
-            }
-        }
+        Track temp = listTracks.get(fromPosition);
+        listTracks.remove(temp);
+        listTracks.add(toPosition, temp);
         realm.commitTransaction();
         return listTracks;
     }

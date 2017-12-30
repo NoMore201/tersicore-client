@@ -26,12 +26,16 @@ public class LoginActivity extends AppCompatActivity implements ServerStatusTask
 
         String server = PreferencesHandler.getServer(this);
         if (server != null) {
+            /*
+            Logica sbagliata: Tersicore deve funzionare anche offline
             try {
                 URL url = new URL(server);
                 TaskHandler.isServerRunning(this, url);
+
             } catch (MalformedURLException e) {
                 Log.e(TAG, "onCreate: server url is invalid, resetting...", e);
-            }
+            }*/
+            goToNextActivity();
         } else {
             setContentView(R.layout.activity_login);
             mContentSet = true;

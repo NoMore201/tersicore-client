@@ -91,7 +91,7 @@ public class PlaylistListActivity extends AppCompatActivity{
                 public void onItemDragEnded(int fromPosition, int toPosition) {
                     if(pid==null)
                         mService.changePlaylistPosition(fromPosition, toPosition);
-                    else
+                    else if(fromPosition!=toPosition)
                         listTracks=DataBackend.modifyPlaylistPosition(fromPosition, toPosition, pid.id);
                 }
             });
