@@ -38,10 +38,10 @@
         android:layout_height="match_parent"
         android:layout_alignBottom="@+id/item_layout"
         android:layout_alignTop="@+id/item_layout"
-        android:background="#0000ff"
+        android:background="#00ff00"
         android:gravity="end|center_vertical"
         android:padding="16dp"
-        android:text=""
+        android:text="Play"
         android:textColor="@android:color/white"
         android:textSize="20sp"/>
 

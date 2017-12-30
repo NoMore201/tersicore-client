@@ -283,4 +283,29 @@ public class DataBackend {
         realm.commitTransaction();
         return listTracks;
     }
+
+    public static void createNewPlaylist(String name, List<Track> toPlay) {
+        Playlist p = new Playlist(name, "me");
+        p.tracks.addAll(toPlay);
+        insertPlaylist(p);
+    }
+
+    public static void addToPlaylist(Playlist playlist, List<Track> toPlay) {
+        Realm realm = getInstance();
+        realm.beginTransaction();
+        RealmList<Track> listTracks = realm.where(Playlist.class)
+                .equalTo("id", playlist.id)
+                .findFirst().tracks;
+        listTracks.addAll(toPlay);
+        realm.commitTransaction();
+    }
+
+    public static void setPlaylistFavorite(String id, boolean isChecked) {
+        Realm realm = getInstance();
+        realm.beginTransaction();
+        Playlist p = realm.where(Playlist.class)
+                .equalTo("id", id).findFirst();
+        p.favorite = isChecked;
+        realm.commitTransaction();
+    }
 }

@@ -71,6 +71,7 @@ public class PlaylistsActivity extends AppCompatActivity
             if (mService.getCurrentPlaylist().size() == 0) {
                 findViewById(R.id.asd2).setVisibility(View.GONE);
             } else {
+                findViewById(R.id.asd2).setVisibility(View.VISIBLE);
                 PlayerInterface.UpdateTrack(findViewById(R.id.asd2), mService);
             }
         }
@@ -117,12 +118,14 @@ public class PlaylistsActivity extends AppCompatActivity
 
         navigationView.setCheckedItem(R.id.nav_playlists);
         listPlaylists = DataBackend.getPlaylists();
-        try {
-            updateList();
-        } catch (Exception e){
-            e.printStackTrace();
-        }
+        updateList();
+    }
 
+    @Override
+    protected void onResume(){
+        super.onResume();
+        listPlaylists = DataBackend.getPlaylists();
+        updateList();
     }
 
     @Override

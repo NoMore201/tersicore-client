@@ -11,6 +11,11 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.support.v4.util.Pair;
 import android.view.View;
+import android.widget.CompoundButton;
+import android.widget.ImageButton;
+import android.widget.TextView;
+import android.widget.ToggleButton;
+
 import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.ItemAdapter;
 import com.evenless.tersicore.MediaPlayerService;
@@ -130,14 +135,37 @@ public class PlaylistListActivity extends AppCompatActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         String p = getIntent().getStringExtra("EXTRA_PLAYLIST_ID");
-        setContentView(R.layout.playlist_list);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar2);
+        Toolbar toolbar;
         if(p!=null){
+            setContentView(R.layout.playlist_list_alternative);
+            toolbar = (Toolbar) findViewById(R.id.toolbar2);
             pid=DataBackend.getPlaylist(p);
             listTracks = pid.tracks;
             toolbar.setTitle(pid.name);
-        } else
+            TextView tt = findViewById(R.id.playupload);
+            tt.setText("Uploaded By " + pid.uploader);
+            ImageButton aa = findViewById(R.id.playbutt);
+            aa.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mService.updatePlaylist(listTracks, 0, false);
+                    Intent dd = new Intent(ctx, MainActivity.class);
+                    startActivity(dd);
+                }
+            });
+            ToggleButton tb = findViewById(R.id.likeButt);
+            tb.setChecked(pid.favorite);
+            tb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    DataBackend.setPlaylistFavorite(pid.id, isChecked);
+                }
+            });
+        } else {
+            setContentView(R.layout.playlist_list);
+            toolbar = (Toolbar) findViewById(R.id.toolbar2);
             toolbar.setTitle("Playing List");
+        }
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

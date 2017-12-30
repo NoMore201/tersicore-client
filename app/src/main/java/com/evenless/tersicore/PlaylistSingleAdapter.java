@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import com.evenless.tersicore.model.Playlist;
 import com.evenless.tersicore.model.Track;
@@ -51,7 +52,8 @@ public class PlaylistSingleAdapter extends ArrayAdapter<Playlist> {
             }
             text2.setText(feature);
             text3.setText("Uploaded by: " + data.get(position).uploader);
-
+            ToggleButton tb = view.findViewById(R.id.likeButt);
+            tb.setChecked(data.get(position).favorite);
             return view;
         }
 

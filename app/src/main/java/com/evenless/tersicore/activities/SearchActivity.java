@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -22,6 +23,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
@@ -33,6 +35,8 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.evenless.tersicore.AlertDialogTrack;
 import com.evenless.tersicore.ApiRequestTaskListener;
 import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.MediaPlayerService;
@@ -64,13 +68,6 @@ public class SearchActivity extends AppCompatActivity
         MediaPlayerServiceListener,
         AdapterView.OnItemLongClickListener,
         AdapterView.OnItemClickListener {
-
-    public static final String[] playOptions = {
-            "Play now (Destroy queue)",
-            "Play now (Maintain queue)",
-            "Add To Playlist (Coda)",
-            "Play After"
-    };
 
     private static final String TAG = "SearchActivity";
 
@@ -215,29 +212,8 @@ public class SearchActivity extends AppCompatActivity
 
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view, int pos, long id) {
-        final List<Track> toPlay = new ArrayList<>();
-        toPlay.add(listTracksFiltered.get(pos));
         if(mBound) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
-            builder.setTitle("Play options")
-                    .setItems(playOptions, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            Intent dd = new Intent(ctx, MainActivity.class);
-                            // TODO: use enum rather than integers
-                            switch (which){
-                                // play now clean queue
-                                case 0: mService.updatePlaylist(toPlay, 0, false);  startActivity(dd); break;
-                                // play now keep queue
-                                case 1: mService.seekToTrack(mService.append(toPlay)); startActivity(dd); break;
-                                // add to playlist
-                                case 2: mService.append(toPlay); startActivity(dd); break;
-                                // play after
-                                case 3: mService.appendAfterCurrent(toPlay); startActivity(dd); break;
-                                default: break;
-                            }
-                        }
-                    });
-            builder.create().show();
+            AlertDialogTrack.CreateDialogTrack(ctx, listTracksFiltered.get(pos), mService);
         } else {
             //Alert service not bound yet
             Log.i("Home", "Service not bound yet");

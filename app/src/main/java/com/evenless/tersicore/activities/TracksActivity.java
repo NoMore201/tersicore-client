@@ -28,6 +28,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.evenless.tersicore.AlertDialogTrack;
 import com.evenless.tersicore.ApiRequestTaskListener;
 import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.MediaPlayerService;
@@ -233,38 +234,8 @@ public class TracksActivity extends AppCompatActivity
         lsv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int pos, long id) {
-                final int position = pos;
-                final List<Track> temp = new ArrayList<>();
-                temp.add(listTracks.get(position));
                 if (mBound) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
-                    builder.setTitle("Play options")
-                            .setItems(SearchActivity.playOptions, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    Intent dd = new Intent(ctx, MainActivity.class);
-                                    switch (which) {
-                                        case 0:
-                                            mService.updatePlaylist(temp, 0, false);
-                                            startActivity(dd);
-                                            break;
-                                        case 1:
-                                            mService.seekToTrack(mService.append(temp));
-                                            startActivity(dd);
-                                            break;
-                                        case 2:
-                                            mService.append(temp);
-                                            startActivity(dd);
-                                            break;
-                                        case 3:
-                                            mService.appendAfterCurrent(temp);
-                                            startActivity(dd);
-                                            break;
-                                        default:
-                                            break;
-                                    }
-                                }
-                            });
-                    builder.create().show();
+                    AlertDialogTrack.CreateDialogTrack(ctx, listTracks.get(pos), mService);
                 } else {
                     //Alert service not bound yet
                     Log.i(TAG, "Service not bound yet");

@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"  >
 
     <ToggleButton
-        android:id="@+id/toggleButton"
+        android:id="@+id/likeButt"
         android:layout_width="40dp"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
