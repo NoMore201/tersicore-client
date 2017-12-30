@@ -272,4 +272,15 @@ public class DataBackend {
         realm.commitTransaction();
         return listTracks;
     }
+
+    public static RealmList<Track> deleteFromPlaylist(Track it, String id) {
+        Realm realm = getInstance();
+        realm.beginTransaction();
+        RealmList<Track> listTracks = realm.where(Playlist.class)
+                .equalTo("id", id)
+                .findFirst().tracks;
+        listTracks.remove(it);
+        realm.commitTransaction();
+        return listTracks;
+    }
 }

@@ -37,6 +37,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 {
     private static final String TAG = "MediaPlayerService";
 
+    public void deleteFromPlaylist(Track it) {
+        if(mCurrentIndex==getCurrentPlaylist().indexOf(it))
+            skip(SkipDirection.SKIP_FORWARD);
+        getCurrentPlaylist().remove(it);
+    }
+
     public enum SkipDirection { SKIP_FORWARD, SKIP_BACKWARD }
     public class LocalBinder extends Binder {
         public MediaPlayerService getService() {

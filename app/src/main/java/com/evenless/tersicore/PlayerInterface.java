@@ -52,16 +52,11 @@ public class PlayerInterface {
     }
 
     public static void onClickForward(View v, MediaPlayerService mService) {
-        int temp = mService.getCurrentTrackIndex() + 1;
-        if(temp<mService.getCurrentPlaylist().size()){
-            mService.seekToTrack(temp);
-        }
+        mService.skip(MediaPlayerService.SkipDirection.SKIP_FORWARD);
     }
 
     public static void onClickBackward(View v, MediaPlayerService mService) {
-        if(mService.getCurrentTrackIndex()!=0){
-            mService.seekToTrack(mService.getCurrentTrackIndex()-1);
-        }
+        mService.skip(MediaPlayerService.SkipDirection.SKIP_BACKWARD);
     }
 
     public static void setStop(View v){

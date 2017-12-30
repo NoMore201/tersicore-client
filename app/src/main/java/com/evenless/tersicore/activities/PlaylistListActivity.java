@@ -2,50 +2,25 @@ package com.evenless.tersicore.activities;
 
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.annotation.NonNull;
-import android.support.design.widget.NavigationView;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.view.ViewPager;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.view.MenuItem;
+import android.support.v4.util.Pair;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ImageButton;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import com.evenless.tersicore.ApiRequestTaskListener;
 import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.ItemAdapter;
 import com.evenless.tersicore.MediaPlayerService;
-import com.evenless.tersicore.MediaPlayerServiceListener;
-import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
-import com.evenless.tersicore.TaskHandler;
 import com.evenless.tersicore.model.Playlist;
 import com.evenless.tersicore.model.Track;
-import com.google.gson.Gson;
 import com.woxthebox.draglistview.DragListView;
-
-import java.util.ArrayList;
-import java.util.Arrays;
+import com.woxthebox.draglistview.swipe.ListSwipeHelper;
+import com.woxthebox.draglistview.swipe.ListSwipeItem;
 import java.util.List;
-
-import me.crosswall.lib.coverflow.core.PagerContainer;
 
 /**
  * Created by McPhi on 10/12/2017.
@@ -55,7 +30,6 @@ public class PlaylistListActivity extends AppCompatActivity{
 
     private static final String TAG = "TracksActivity";
     private List<Track> listTracks;
-    private String artist;
     private boolean mBound = false;
     private MediaPlayerService mService;
     private Context ctx = this;
@@ -68,14 +42,10 @@ public class PlaylistListActivity extends AppCompatActivity{
             MediaPlayerService.LocalBinder binder = (MediaPlayerService.LocalBinder) service;
             mService = binder.getService();
             mBound=true;
-            String p = getIntent().getStringExtra("EXTRA_PLAYLIST_ID");
-            if(p==null)
+            if(pid==null)
                 listTracks = mService.getCurrentPlaylist();
-            else{
-                pid=DataBackend.getPlaylist(p);
-                listTracks = pid.tracks;
-            }
-            DragListView mDragListView = (DragListView) findViewById(R.id.dragPlaylist);
+
+            final DragListView mDragListView = (DragListView) findViewById(R.id.dragPlaylist);
             mDragListView.setDragListListener(new DragListView.DragListListener() {
                 @Override
                 public void onItemDragStarted(int position) {
@@ -100,6 +70,38 @@ public class PlaylistListActivity extends AppCompatActivity{
             ItemAdapter listAdapter = new ItemAdapter(listTracks, R.layout.list_item, R.id.image, false);
             mDragListView.setAdapter(listAdapter, true);
             mDragListView.setCanDragHorizontally(false);
+            mDragListView.setSwipeListener(new ListSwipeHelper.OnSwipeListener() {
+                @Override
+                public void onItemSwipeStarted(ListSwipeItem item) {
+
+                }
+
+                @Override
+                public void onItemSwipeEnded(ListSwipeItem item, ListSwipeItem.SwipeDirection swipedDirection) {
+                    Pair<Long, Track> pt =  (Pair<Long, Track>) item.getTag();
+                    Track it = pt.second;
+                    if(swipedDirection == ListSwipeItem.SwipeDirection.RIGHT) {
+                        if (pid == null)
+                            mService.deleteFromPlaylist(it);
+                        else
+                            listTracks = DataBackend.deleteFromPlaylist(it, pid.id);
+                        mDragListView.getAdapter().removeItem(mDragListView.getAdapter().getPositionForItem(pt));
+                    }
+                    else if (swipedDirection == ListSwipeItem.SwipeDirection.LEFT) {
+                        if (pid == null)
+                            mService.seekToTrack(mService.getCurrentPlaylist().indexOf(it));
+                        else
+                            mService.updatePlaylist(listTracks, listTracks.indexOf(it), false);
+                        Intent dd = new Intent(ctx, MainActivity.class);
+                        startActivity(dd);
+                    }
+                }
+
+                @Override
+                public void onItemSwiping(ListSwipeItem item, float swipedDistanceX) {
+
+                }
+            });
         }
 
         @Override
@@ -127,11 +129,15 @@ public class PlaylistListActivity extends AppCompatActivity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        artist = getIntent().getStringExtra("EXTRA_ARTIST");
-
+        String p = getIntent().getStringExtra("EXTRA_PLAYLIST_ID");
         setContentView(R.layout.playlist_list);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar2);
-        toolbar.setTitle("Playing List");
+        if(p!=null){
+            pid=DataBackend.getPlaylist(p);
+            listTracks = pid.tracks;
+            toolbar.setTitle(pid.name);
+        } else
+            toolbar.setTitle("Playing List");
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
