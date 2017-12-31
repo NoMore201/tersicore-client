@@ -12,6 +12,8 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -33,6 +35,8 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -93,8 +97,13 @@ public class SearchActivity extends AppCompatActivity
             if (mService.getCurrentPlaylist().size() == 0) {
                 findViewById(R.id.asd2).setVisibility(View.GONE);
             } else {
-                findViewById(R.id.asd2).setVisibility(View.VISIBLE);
-                PlayerInterface.UpdateTrack(findViewById(R.id.asd2), mService);
+                View v = findViewById(R.id.asd2);
+                v.setVisibility(View.VISIBLE);
+                LinearLayout asd = findViewById(R.id.linearLayout4);
+                ConstraintLayout.LayoutParams x = (ConstraintLayout.LayoutParams) asd.getLayoutParams();
+                x.bottomMargin = x.bottomMargin + v.getHeight();
+                asd.setLayoutParams(x);
+                PlayerInterface.UpdateTrack(v, mService);
             }
         }
 
