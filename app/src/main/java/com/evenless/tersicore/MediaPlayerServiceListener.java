@@ -12,4 +12,5 @@ public interface MediaPlayerServiceListener {
     void onCoverFetched(Track track, int id);
     void onPlaybackError(Exception exception);
     void onPlaybackProgressUpdate(int currentMilliseconds);
+    void onPreparedPlayback();
 }

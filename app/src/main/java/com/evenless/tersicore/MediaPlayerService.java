@@ -60,8 +60,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     private Timer mCurrentTimer = new Timer();
     private boolean isShuffle = false;
 
-    public Map<String, Bitmap> artistsCover;
-
     /*
      * Override methods
      */
@@ -83,7 +81,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
         mCurrentPlaylist = new ArrayList<>();
         mCurrentPlaylistSorted = new ArrayList<>();
-        artistsCover = new HashMap<>();
         mCurrentIndex=-1;
 
         AudioAttributes attributes = new AudioAttributes.Builder()
@@ -121,6 +118,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     public void onPrepared(MediaPlayer mediaPlayer) {
         Log.d(TAG, "onPrepared: called");
         mediaPlayer.start();
+        mListener.onPreparedPlayback();
     }
 
     @Override
@@ -138,8 +136,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     @Override
     public void onCoverRetrieveComplete(Track track, byte[] cover, int id, Exception e) {
-        if (cover == null || e!=null)
+        if (cover == null || e!=null) {
             cover = new byte[0];
+        }
         Track updated = DataBackend.updateTrackCover(track.uuid, cover);
         if (mCurrentPlaylist != null) {
             int index = mCurrentPlaylist.indexOf(track);
@@ -359,7 +358,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         if (track.hasResources()) {
             if (track.resources.get(0).cover_data == null) {
                 TaskHandler.getCover(this, track, PreferencesHandler.getServer(this), id);
-            } else if (track.resources.get(0).cover_data.length != 0 ){
+            } else {
                 mListener.onCoverFetched(track, id);
             }
         }

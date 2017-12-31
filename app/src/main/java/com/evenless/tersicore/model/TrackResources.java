@@ -1,5 +1,7 @@
 package com.evenless.tersicore.model;
 
+import android.graphics.Bitmap;
+
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 

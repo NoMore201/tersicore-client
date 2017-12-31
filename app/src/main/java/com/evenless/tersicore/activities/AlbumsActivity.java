@@ -7,6 +7,7 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -67,11 +68,16 @@ public class AlbumsActivity extends AppCompatActivity
                 asd.setLayoutParams(temp);
                 findViewById(R.id.asd2).setVisibility(View.GONE);
             } else {
-                FloatingActionButton asd = findViewById(R.id.floatingActionButton);
-                CoordinatorLayout.LayoutParams temp = (CoordinatorLayout.LayoutParams) asd.getLayoutParams();
-                temp.bottomMargin = 300;
-                asd.setLayoutParams(temp);
-                findViewById(R.id.asd2).setVisibility(View.VISIBLE);
+                FloatingActionButton fab = findViewById(R.id.floatingActionButton);
+                CoordinatorLayout.LayoutParams temp = (CoordinatorLayout.LayoutParams) fab.getLayoutParams();
+                temp.bottomMargin = 260;
+                fab.setLayoutParams(temp);
+                View v = findViewById(R.id.asd2);
+                v.setVisibility(View.VISIBLE);
+                ListView asd = findViewById(R.id.listart);
+                ConstraintLayout.LayoutParams x = (ConstraintLayout.LayoutParams) asd.getLayoutParams();
+                x.bottomMargin=v.getHeight();
+                asd.setLayoutParams(x);
                 PlayerInterface.UpdateTrack(findViewById(R.id.asd2), mService);
             }
         }
@@ -239,6 +245,11 @@ public class AlbumsActivity extends AppCompatActivity
     @Override
     public void onPlaybackProgressUpdate(int currentMilliseconds) {
 
+    }
+
+    @Override
+    public void onPreparedPlayback() {
+        PlayerInterface.setPlay(findViewById(R.id.asd2));
     }
 
     public void onClickPlay(View v) {

@@ -2,6 +2,9 @@ package com.evenless.tersicore;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.provider.ContactsContract;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,13 +17,18 @@ import android.widget.TextView;
 import com.evenless.tersicore.activities.SingleAlbumActivity;
 import com.evenless.tersicore.activities.SingleArtistActivity;
 import com.evenless.tersicore.model.Album;
+import com.evenless.tersicore.model.Cover;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by McPhi on 05/12/2017.
@@ -52,13 +60,14 @@ implements ImageRequestTaskListener, CoverDownloadTaskListener {
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public MyListAdapter(ArrayList myDataset, Map<String, Bitmap> mImg, int state) {
+    public MyListAdapter(ArrayList myDataset, int state) {
         if(state==ARTIST_STATE)
             mDataset = myDataset;
         else if(state==ALBUMS_STATE || state==ARTALB_STATE)
             mTrackSet = myDataset;
-
-        mImages=mImg;
+        mImages=new HashMap<>();
+        for(Cover c : DataBackend.getCovers())
+            mImages.put(c.album + c.artist, BitmapFactory.decodeByteArray(c.cover, 0, c.cover.length));
         listtypeNumber=state;
     }
 
@@ -201,6 +210,7 @@ implements ImageRequestTaskListener, CoverDownloadTaskListener {
     public void OnCoverDownloaded(Bitmap bitmap, int mState, String query) {
         if(bitmap!=null && mState==ARTIST_STATE) {
             mImages.put(query, bitmap);
+            DataBackend.insertCover(query, "", ConvertToByteArray(bitmap));
             int tempid = mDataset.indexOf(query);
             if (tempid != -1)
                 this.notifyItemChanged(tempid);
@@ -209,10 +219,17 @@ implements ImageRequestTaskListener, CoverDownloadTaskListener {
             String key2 = query.substring(0,query.indexOf("<!!"));
             mImages.put(key1 + key2, bitmap);
             int tempid = findAlbumByArtistAndName(key2, key1);
-
             if (tempid != -1)
                 this.notifyItemChanged(tempid);
+            DataBackend.insertCover(key2, key1, ConvertToByteArray(bitmap));
         }
+    }
+
+    //This could have been done in background with a task
+    private byte[] ConvertToByteArray(Bitmap bmp) {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bmp.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+        return stream.toByteArray();
     }
 
 }

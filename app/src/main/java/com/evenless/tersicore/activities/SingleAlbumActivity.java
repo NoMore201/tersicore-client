@@ -7,9 +7,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -25,6 +28,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,6 +43,7 @@ import com.evenless.tersicore.PlayerInterface;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.TaskHandler;
+import com.evenless.tersicore.model.Cover;
 import com.evenless.tersicore.model.Track;
 import com.google.gson.Gson;
 
@@ -80,8 +85,11 @@ public class SingleAlbumActivity  extends AppCompatActivity
             if (mService.getCurrentPlaylist().size() == 0) {
                 findViewById(R.id.asd2).setVisibility(View.GONE);
             } else {
-                findViewById(R.id.asd2).setVisibility(View.VISIBLE);
-                PlayerInterface.UpdateTrack(findViewById(R.id.asd2), mService);
+                View v = findViewById(R.id.asd2);
+                v.setVisibility(View.VISIBLE);
+                RelativeLayout asd = findViewById(R.id.listalbumR);
+                asd.setMinimumHeight(asd.getHeight() + v.getHeight());
+                PlayerInterface.UpdateTrack(v, mService);
             }
         }
 
@@ -127,7 +135,6 @@ public class SingleAlbumActivity  extends AppCompatActivity
 
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-        navigationView.setCheckedItem(R.id.nav_songs);
 
         try {
             if (DataBackend.getArtists().size() != 0) {
@@ -164,9 +171,12 @@ public class SingleAlbumActivity  extends AppCompatActivity
                 startActivity(intent);
                 break;
             case R.id.nav_playlists:
-                Intent asd = new Intent(this, PlaylistsActivity.class);
-                startActivity(asd);
+                intent = new Intent(this, PlaylistsActivity.class);
+                startActivity(intent);
                 break;
+            case R.id.nav_songs:
+                intent = new Intent(this, TracksActivity.class);
+                startActivity(intent);
             default:
                 break;
         }
@@ -244,12 +254,18 @@ public class SingleAlbumActivity  extends AppCompatActivity
                 startActivity(dd);
             }
         });
-
-        try {
-            TaskHandler.getAlbumImageFromApi(this, artist, albumName, 0);
-        } catch (Exception e) {
-            e.printStackTrace();
+        Cover asd = DataBackend.getCover(artist, albumName);
+        if(asd==null)
+            try {
+                TaskHandler.getAlbumImageFromApi(this, artist, albumName, 0);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        else{
+            ImageView temp = findViewById(R.id.coverAlbum);
+            temp.setImageBitmap(BitmapFactory.decodeByteArray(asd.cover,0,asd.cover.length));
         }
+
     }
 
     @Override
@@ -331,5 +347,10 @@ public class SingleAlbumActivity  extends AppCompatActivity
     public void onClickPlayer(View v) {
         Intent dd = new Intent(this, MainActivity.class);
         startActivity(dd);
+    }
+
+    @Override
+    public void onPreparedPlayback() {
+        PlayerInterface.setPlay(findViewById(R.id.asd2));
     }
 }

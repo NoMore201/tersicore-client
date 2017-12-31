@@ -8,6 +8,7 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -66,13 +67,18 @@ public class PlaylistsActivity extends AppCompatActivity
             mService = binder.getService();
             mService.setMediaPlayerServiceListener((MediaPlayerServiceListener) ctx);
             mBound = true;
-            FloatingActionButton asd = findViewById(R.id.floatingActionButton);
-            asd.setVisibility(View.GONE);
+            FloatingActionButton fab = findViewById(R.id.floatingActionButton);
+            fab.setVisibility(View.GONE);
             if (mService.getCurrentPlaylist().size() == 0) {
                 findViewById(R.id.asd2).setVisibility(View.GONE);
             } else {
-                findViewById(R.id.asd2).setVisibility(View.VISIBLE);
-                PlayerInterface.UpdateTrack(findViewById(R.id.asd2), mService);
+                View v = findViewById(R.id.asd2);
+                v.setVisibility(View.VISIBLE);
+                ListView asd = findViewById(R.id.listart);
+                ConstraintLayout.LayoutParams x = (ConstraintLayout.LayoutParams) asd.getLayoutParams();
+                x.bottomMargin=v.getHeight();
+                asd.setLayoutParams(x);
+                PlayerInterface.UpdateTrack(v, mService);
             }
         }
 
@@ -220,5 +226,10 @@ public class PlaylistsActivity extends AppCompatActivity
     public void onClickPlayer(View v) {
         Intent dd = new Intent(this, MainActivity.class);
         startActivity(dd);
+    }
+
+    @Override
+    public void onPreparedPlayback() {
+        PlayerInterface.setPlay(findViewById(R.id.asd2));
     }
 }

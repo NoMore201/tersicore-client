@@ -1,5 +1,7 @@
 package com.evenless.tersicore;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -181,7 +183,7 @@ public class DataBackend {
     }
 
     /**
-     * Insert cover data into the database, and index it with the MD5 of its data
+     * Insert cover data into the database
      * @param artist string representing the artist
      * @param album string representing album or null if it's an artist image
      * @param cover cover bytes data
@@ -192,28 +194,13 @@ public class DataBackend {
     {
         Realm realm = getInstance();
         realm.beginTransaction();
-        MessageDigest digest;
-        try {
-            digest = MessageDigest.getInstance("MD5");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RealmException("Unable to hash data bytes");
-        }
         Cover toInsert = new Cover();
-        byte[] hash = digest.digest(cover);
-        toInsert.hash = new String(hash);
-        Log.d(TAG, "insertCover: " + toInsert.hash);
+        toInsert.hash = artist+album;
         toInsert.cover = cover;
         toInsert.artist = artist;
         toInsert.album = album;
         realm.copyToRealmOrUpdate(toInsert);
         realm.commitTransaction();
-    }
-
-    public static Cover getCover(byte[] hash) {
-        return getInstance()
-                .where(Cover.class)
-                .equalTo("hash", hash)
-                .findFirst();
     }
 
     public static Cover getCover(String artist, String album) {
@@ -222,6 +209,12 @@ public class DataBackend {
                 .equalTo("artist", artist)
                 .equalTo("album", album)
                 .findFirst();
+    }
+
+    public static List<Cover> getCovers() {
+        return getInstance()
+                .where(Cover.class)
+                .findAll();
     }
 
     /**

@@ -36,9 +36,11 @@ import android.widget.ToggleButton;
 import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.MediaPlayerService;
 import com.evenless.tersicore.MediaPlayerServiceListener;
+import com.evenless.tersicore.PlayerInterface;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.exceptions.InvalidUrlException;
+import com.evenless.tersicore.model.Cover;
 import com.evenless.tersicore.model.Track;
 import com.evenless.tersicore.model.TrackResources;
 import com.evenless.tersicore.view.SquareImageView;
@@ -126,9 +128,9 @@ public class MainActivity extends AppCompatActivity
                 }
             });
             if(mService.isPlaying())
-                vie.setImageResource(R.drawable.ic_play);
-            else
                 vie.setImageResource(R.drawable.ic_pause);
+            else
+                vie.setImageResource(R.drawable.ic_play);
             SeekBar tv_seek=findViewById(R.id.tv_seek);
             tv_seek.setOnSeekBarChangeListener(new seekListener());
             pager.setCurrentItem(mService.getCurrentTrackIndex(), true);
@@ -310,12 +312,22 @@ public class MainActivity extends AppCompatActivity
             return BitmapFactory.decodeByteArray(
                     tr.resources.get(0).cover_data, 0,
                     tr.resources.get(0).cover_data.length);
-        else {
+        else if(tr.resources.get(0).cover_data== null) {
             mService.fetchCover(tr, 0);
             return BitmapFactory.decodeResource(this.getResources(), R.drawable.nocover);
+        } else {
+            String art;
+            if(tr.album_artist!=null)
+                art=tr.album_artist;
+            else
+                art=tr.artist;
+            Cover asd = DataBackend.getCover(art, tr.album);
+            if(asd!=null)
+                return BitmapFactory.decodeByteArray(asd.cover,0,asd.cover.length);
+            else
+                return BitmapFactory.decodeResource(this.getResources(), R.drawable.nocover);
         }
     }
-
 
     private class MyPagerAdapter extends PagerAdapter {
 
@@ -359,6 +371,12 @@ public class MainActivity extends AppCompatActivity
             mService.seekTo(progress);
         }
 
+    }
+
+    @Override
+    public void onPreparedPlayback() {
+        ImageButton vie = findViewById(R.id.playbutton);
+        vie.setImageResource(R.drawable.ic_pause);
     }
 
     public void setStatusBar(Palette palette){

@@ -7,6 +7,7 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -21,6 +22,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.evenless.tersicore.ApiRequestTaskListener;
@@ -67,12 +69,17 @@ public class SingleArtistActivity extends AppCompatActivity
                 asd.setLayoutParams(temp);
                 findViewById(R.id.asd2).setVisibility(View.GONE);
             } else {
-                FloatingActionButton asd = findViewById(R.id.floatingShuffle);
-                CoordinatorLayout.LayoutParams temp = (CoordinatorLayout.LayoutParams) asd.getLayoutParams();
-                temp.bottomMargin = 300;
-                asd.setLayoutParams(temp);
-                findViewById(R.id.asd2).setVisibility(View.VISIBLE);
-                PlayerInterface.UpdateTrack(findViewById(R.id.asd2), mService);
+                FloatingActionButton fab = findViewById(R.id.floatingShuffle);
+                CoordinatorLayout.LayoutParams temp = (CoordinatorLayout.LayoutParams) fab.getLayoutParams();
+                temp.bottomMargin = 260;
+                fab.setLayoutParams(temp);
+                View v = findViewById(R.id.asd2);
+                v.setVisibility(View.VISIBLE);
+                View asd = findViewById(R.id.coverAlbumArtist);
+                ConstraintLayout.LayoutParams x = (ConstraintLayout.LayoutParams) asd.getLayoutParams();
+                x.bottomMargin = v.getHeight();
+                asd.setLayoutParams(x);
+                PlayerInterface.UpdateTrack(v, mService);
             }
         }
 
@@ -191,7 +198,7 @@ public class SingleArtistActivity extends AppCompatActivity
         RecyclerView.LayoutManager mLayoutManagerAlbum = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         mRecyclerViewAlbums = findViewById(R.id.coverAlbumArtist);
         mRecyclerViewAlbums.setLayoutManager(mLayoutManagerAlbum);
-        mRecyclerViewAlbums.setAdapter(new MyListAdapter(new ArrayList(listAlbums), mService.artistsCover, MyListAdapter.ARTALB_STATE));
+        mRecyclerViewAlbums.setAdapter(new MyListAdapter(new ArrayList(listAlbums), MyListAdapter.ARTALB_STATE));
     }
 
     @Override
@@ -240,5 +247,10 @@ public class SingleArtistActivity extends AppCompatActivity
     public void onClickPlayer(View v) {
         Intent dd = new Intent(this, MainActivity.class);
         startActivity(dd);
+    }
+
+    @Override
+    public void onPreparedPlayback() {
+        PlayerInterface.setPlay(findViewById(R.id.asd2));
     }
 }

@@ -3,13 +3,17 @@ package com.evenless.tersicore.tasks;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.provider.ContactsContract;
 import android.util.Log;
 
 import com.evenless.tersicore.CoverDownloadTaskListener;
+import com.evenless.tersicore.DataBackend;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+
+import static com.evenless.tersicore.MyListAdapter.ARTIST_STATE;
 
 public class CoverDownloadTask extends AsyncTask<Void, Integer, Bitmap> {
 

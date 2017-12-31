@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -25,6 +26,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -75,12 +77,17 @@ public class TracksActivity extends AppCompatActivity
                 asd.setLayoutParams(temp);
                 findViewById(R.id.asd2).setVisibility(View.GONE);
             } else {
-                FloatingActionButton asd = findViewById(R.id.floatingActionButton);
-                CoordinatorLayout.LayoutParams temp = (CoordinatorLayout.LayoutParams) asd.getLayoutParams();
-                temp.bottomMargin = 300;
-                asd.setLayoutParams(temp);
-                findViewById(R.id.asd2).setVisibility(View.VISIBLE);
-                PlayerInterface.UpdateTrack(findViewById(R.id.asd2), mService);
+                FloatingActionButton fab = findViewById(R.id.floatingActionButton);
+                CoordinatorLayout.LayoutParams temp = (CoordinatorLayout.LayoutParams) fab.getLayoutParams();
+                temp.bottomMargin = 260;
+                fab.setLayoutParams(temp);
+                View v = findViewById(R.id.asd2);
+                v.setVisibility(View.VISIBLE);
+                ListView asd = findViewById(R.id.listart);
+                ConstraintLayout.LayoutParams x = (ConstraintLayout.LayoutParams) asd.getLayoutParams();
+                x.bottomMargin=v.getHeight();
+                asd.setLayoutParams(x);
+                PlayerInterface.UpdateTrack(v, mService);
             }
         }
 
@@ -296,5 +303,10 @@ public class TracksActivity extends AppCompatActivity
     public void onClickPlayer(View v) {
         Intent dd = new Intent(this, MainActivity.class);
         startActivity(dd);
+    }
+
+    @Override
+    public void onPreparedPlayback() {
+        PlayerInterface.setPlay(findViewById(R.id.asd2));
     }
 }

@@ -75,7 +75,6 @@ public class SearchActivity extends AppCompatActivity
     private ArrayList<Track> listTracksFiltered = new ArrayList<>();
     private ArrayList<Album> listAlbums = new ArrayList<>();
     private ArrayList<String> listArtists = new ArrayList<>();
-    private Map<String, Bitmap> artistsCover;
     private Context ctx = this;
     private boolean mBound=false;
     private RecyclerView mRecyclerView;
@@ -91,7 +90,6 @@ public class SearchActivity extends AppCompatActivity
             mService = binder.getService();
             mBound = true;
             mService.setMediaPlayerServiceListener((MediaPlayerServiceListener) ctx);
-            artistsCover = mService.artistsCover;
             if (mService.getCurrentPlaylist().size() == 0) {
                 findViewById(R.id.asd2).setVisibility(View.GONE);
             } else {
@@ -357,8 +355,8 @@ public class SearchActivity extends AppCompatActivity
             t1.setVisibility(View.GONE);
         }
         updateList();
-        mRecyclerView.setAdapter(new MyListAdapter(listArtists, artistsCover, MyListAdapter.ARTIST_STATE));
-        mRecyclerViewAlbums.setAdapter(new MyListAdapter(listAlbums, artistsCover, MyListAdapter.ALBUMS_STATE));
+        mRecyclerView.setAdapter(new MyListAdapter(listArtists, MyListAdapter.ARTIST_STATE));
+        mRecyclerViewAlbums.setAdapter(new MyListAdapter(listAlbums, MyListAdapter.ALBUMS_STATE));
         return false;
     }
 
@@ -425,12 +423,10 @@ public class SearchActivity extends AppCompatActivity
                     tr.resources.get(0).cover_data, 0,
                     tr.resources.get(0).cover_data.length);
         if(id==MyListAdapter.ARTIST_STATE){
-            artistsCover.put(tr.artist, image);
             int tempid=listArtists.indexOf(tr.artist);
             if(tempid!=-1)
                 mRecyclerView.getAdapter().notifyItemChanged(tempid);
         } else if (id==MyListAdapter.ALBUMS_STATE){
-            artistsCover.put(tr.album + tr.artist, image);
             int tempid = listAlbums.indexOf(tr);
             if(tempid!= -1)
                 mRecyclerViewAlbums.getAdapter().notifyItemChanged(tempid);
@@ -482,5 +478,10 @@ public class SearchActivity extends AppCompatActivity
     public void onClickPlayer(View v) {
         Intent dd = new Intent(this, MainActivity.class);
         startActivity(dd);
+    }
+
+    @Override
+    public void onPreparedPlayback() {
+        PlayerInterface.setPlay(findViewById(R.id.asd2));
     }
 }
