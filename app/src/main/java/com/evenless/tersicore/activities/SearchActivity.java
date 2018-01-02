@@ -242,7 +242,10 @@ public class SearchActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+            if (drawer.isDrawerOpen(GravityCompat.END)) {
+                drawer.closeDrawer(GravityCompat.END);
+            } else
+                super.onBackPressed();
         }
     }
 
@@ -259,7 +262,7 @@ public class SearchActivity extends AppCompatActivity
 
             case R.id.action_favorite:
                 DrawerLayout drawer = findViewById(R.id.drawer_layout);
-                drawer.openDrawer(GravityCompat.START);
+                drawer.openDrawer(GravityCompat.END);
                 return true;
 
             default:

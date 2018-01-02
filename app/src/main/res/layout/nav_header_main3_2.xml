@@ -5,6 +5,7 @@
     android:layout_height="wrap_content"
     android:gravity="bottom"
     android:orientation="vertical"
+    android:fitsSystemWindows="true"
     android:theme="@style/ThemeOverlay.AppCompat.Light">
 
     <LinearLayout
