@@ -6,7 +6,6 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
-
     <application
         android:name=".TersicoreApplication"
         android:allowBackup="true"
@@ -18,50 +17,45 @@
             android:name=".MediaPlayerService"
             android:exported="false" />
 
-        <activity android:name=".activities.MainActivity"
-                android:screenOrientation="nosensor"/>
+        <activity
+            android:name=".activities.MainActivity"
+            android:screenOrientation="nosensor" />
         <activity
             android:name=".activities.LoginActivity"
             android:label="@string/app_name"
-            android:windowSoftInputMode="adjustPan"
-            android:theme="@style/AppTheme">
+            android:theme="@style/AppTheme"
+            android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
             android:name=".activities.SearchActivity"
-            android:label="@string/title_activity_main3">
-        </activity>
+            android:label="@string/title_activity_main3"></activity>
         <activity
             android:name=".activities.ArtistsActivity"
-            android:label="@string/title_activity_artists">
-        </activity>
+            android:label="@string/title_activity_artists"></activity>
         <activity
             android:name=".activities.AlbumsActivity"
-            android:label="@string/title_activity_albums">
-        </activity>
+            android:label="@string/title_activity_albums"></activity>
         <activity
             android:name=".activities.TracksActivity"
-            android:label="@string/title_activity_tracks">
-        </activity>
+            android:label="@string/title_activity_tracks"></activity>
         <activity
             android:name=".activities.SingleArtistActivity"
-            android:label="@string/title_activity_artist">
-        </activity>
+            android:label="@string/title_activity_artist"></activity>
         <activity
             android:name=".activities.SingleAlbumActivity"
-            android:label="@string/title_activity_album">
-        </activity>
+            android:label="@string/title_activity_album"></activity>
         <activity
             android:name=".activities.PlaylistListActivity"
-            android:label="@string/title_activity_playlist">
-        </activity>
+            android:label="@string/title_activity_playlist"></activity>
         <activity
             android:name=".activities.PlaylistsActivity"
-            android:label="@string/title_activity_playlists">
-        </activity>
+            android:label="@string/title_activity_playlists"></activity>
+        <activity android:name=".activities.SingleEmailActivity"></activity>
     </application>
 
 </manifest>
