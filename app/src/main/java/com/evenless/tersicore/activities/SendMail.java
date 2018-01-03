@@ -87,7 +87,6 @@ public class SendMail extends AppCompatActivity {
                                 if(which==1 || which==0) {
                                     AlertDialog.Builder build2 = new AlertDialog.Builder(ctx);
                                     final AutoCompleteTextView albums = new AutoCompleteTextView(ctx);
-                                    final ArrayList<TrackSuggestion> trackList = trackSugg;
                                     switch (which) {
                                         // Album
                                         case 0:
@@ -98,9 +97,15 @@ public class SendMail extends AppCompatActivity {
                                             break;
                                         // Track
                                         case 1:
+                                            while(trackSugg.size()==0)
+                                                try {
+                                                    wait(1000);
+                                                } catch (InterruptedException e) {
+                                                    e.printStackTrace();
+                                                }
                                             build2.setTitle("Search Track");
                                             ArrayAdapter<TrackSuggestion> tadapter = new ArrayAdapter<>(ctx,
-                                                    android.R.layout.simple_dropdown_item_1line, trackList);
+                                                    android.R.layout.simple_dropdown_item_1line, trackSugg);
                                             albums.setAdapter(tadapter);
                                             break;
                                     }
@@ -123,11 +128,11 @@ public class SendMail extends AppCompatActivity {
                                         public void onClick(DialogInterface dialog, int which) {
                                             TextView asd = findViewById(R.id.songsend);
                                             if (suggestion != null) {
-                                                asd.setText("Album Suggested " + suggestion.toString());
+                                                asd.setText("Album Suggested: " + suggestion.toString());
                                                 findViewById(R.id.addsong).setVisibility(View.GONE);
                                                 findViewById(R.id.removesong).setVisibility(View.VISIBLE);
                                             } else if (suggestionTrack != null) {
-                                                asd.setText("Track Suggested " + suggestionTrack.toString());
+                                                asd.setText("Track Suggested: " + suggestionTrack.toString());
                                                 findViewById(R.id.addsong).setVisibility(View.GONE);
                                                 findViewById(R.id.removesong).setVisibility(View.VISIBLE);
                                             }

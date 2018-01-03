@@ -57,6 +57,7 @@
             android:label="@string/title_activity_playlists"></activity>
         <activity android:name=".activities.SingleEmailActivity"></activity>
         <activity android:name=".activities.SendMail"></activity>
+        <activity android:name=".activities.EmailsActivity"></activity>
     </application>
 
 </manifest>
