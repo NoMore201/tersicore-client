@@ -12,7 +12,7 @@ public class Album {
 
     @Override
     public String toString() {
-        return name;
+        return artist + " - " + name;
     }
 
     @Override

@@ -32,22 +32,25 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:src="@drawable/ic_account_circle_black_36dp" />
-            <TextView
-                android:id="@+id/myname"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:layout_weight="1"
-                android:paddingLeft="8dp"
-                android:text="Username"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
+
+        <AutoCompleteTextView
+            android:id="@+id/username"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:background="@null"
+            android:layout_weight="1"
+            android:paddingLeft="8dp"
+            android:hint="Username"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
+
         <ImageButton
-            android:id="@+id/reply"
+            android:id="@+id/send"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="@null"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_reply"/>
+            android:src="@drawable/ic_menu_send" />
     </LinearLayout>
 
     <LinearLayout
@@ -62,21 +65,37 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/linear1">
 
-        <TextView
+        <EditText
             android:id="@+id/subject"
             android:layout_width="wrap_content"
+            android:background="@null"
             android:layout_height="wrap_content"
-            android:text="Subject: "
+            android:hint="Subject "
             android:layout_weight="1"
             android:layout_gravity="center_vertical"
             android:textSize="17sp" />
 
         <ImageButton
+            android:id="@+id/addsong"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:id="@+id/playsong"
-            android:src="@drawable/ic_play"/>
+            android:background="@null"
+            android:scaleType="centerCrop"
+            android:tint="@color/black_overlay"
+            android:src="@android:drawable/ic_menu_add" />
+
+        <ImageButton
+            android:id="@+id/removesong"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@null"
+            android:visibility="gone"
+            android:scaleType="centerCrop"
+            android:src="@android:drawable/ic_delete"
+            android:tint="@color/black_overlay" />
+
     </LinearLayout>
+
     <TextView
         android:id="@+id/songsend"
         android:layout_width="wrap_content"
@@ -91,15 +110,18 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/linear2" />
-    <TextView
+    <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:background="@null"
         android:id="@+id/msg"
+        android:inputType="textLongMessage"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/songsend"
-        android:text="MANNAggiasanta quant'è figo sto pezzo"/>
+        android:hint="Body"/>
+
 </android.support.constraint.ConstraintLayout>

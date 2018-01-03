@@ -33,4 +33,5 @@
     <string name="title_activity_album">Album</string>
     <string name="title_activity_playlist">Playlist</string>
     <string name="title_activity_playlists">Playlists</string>
+    <string name="no_suggestion_added">No suggestion added</string>
 </resources>

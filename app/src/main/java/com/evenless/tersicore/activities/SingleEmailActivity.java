@@ -23,7 +23,13 @@ public class SingleEmailActivity extends AppCompatActivity {
         String mailid = getIntent().getStringExtra("EXTRA_MAIL_ID");
         //Get Mail
         Toolbar toolbar = findViewById(R.id.toolbar2);
-        toolbar.setTitle("Email");
+        toolbar.setTitle("View Email");
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
         ImageView asd = findViewById(R.id.myimg);
         TextView text1 = findViewById(R.id.myname);
         TextView text2 = findViewById(R.id.subject);

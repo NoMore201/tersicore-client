@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.Image;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.ContactsContract;
@@ -35,6 +36,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -262,6 +264,14 @@ public class SearchActivity extends AppCompatActivity
 
             case R.id.action_favorite:
                 DrawerLayout drawer = findViewById(R.id.drawer_layout);
+                ImageButton asdasd = drawer.findViewById(R.id.showmail);
+                asdasd.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent sdsd = new Intent(ctx, EmailsActivity.class);
+                        startActivity(sdsd);
+                    }
+                });
                 drawer.openDrawer(GravityCompat.END);
                 return true;
 

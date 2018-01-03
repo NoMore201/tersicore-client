@@ -32,6 +32,7 @@ public class Track extends RealmObject {
         return resources != null && resources.size() > 0;
     }
 
+    @Override
     public String toString() {
         return artist + " - " + title;
     }

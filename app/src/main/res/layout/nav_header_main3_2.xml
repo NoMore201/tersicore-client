@@ -56,12 +56,12 @@
                 android:background="@null"
                 app:srcCompat="@drawable/ic_empty_mailbox" />
 
-            <FrameLayout
+            <RelativeLayout
                 android:id="@+id/roundcircle"
                 android:layout_width="16dp"
                 android:layout_height="16dp"
                 android:background="@drawable/round"
-                app:layout_anchor="@+id/imageButton"
+                app:layout_anchor="@+id/showmail"
                 android:visibility="gone"
                 app:layout_anchorGravity="right|top">
 
@@ -73,9 +73,8 @@
                     android:layout_margin="0dp"
                     android:padding="0dp"
                     android:textColor="#ffffff"
-                    android:textSize="10dp"
-                    app:layout_anchor="@+id/include" />
-            </FrameLayout>
+                    android:textSize="10dp"/>
+            </RelativeLayout>
         </android.support.design.widget.CoordinatorLayout>
     </LinearLayout>
     <TextView

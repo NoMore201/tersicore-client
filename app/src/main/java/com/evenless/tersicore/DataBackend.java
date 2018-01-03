@@ -9,6 +9,7 @@ import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.Cover;
 import com.evenless.tersicore.model.Playlist;
 import com.evenless.tersicore.model.Track;
+import com.evenless.tersicore.model.TrackSuggestion;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -300,5 +301,19 @@ public class DataBackend {
                 .equalTo("id", id).findFirst();
         p.favorite = isChecked;
         realm.commitTransaction();
+    }
+
+    public static ArrayList<TrackSuggestion> getTracksCopied() {
+        ArrayList<TrackSuggestion> temp = new ArrayList<>();
+        for (Track t : getTracks())
+            temp.add(new TrackSuggestion(t.uuid, t.album, getTrackArtist(t), t.title));
+        return temp;
+    }
+
+    private static String getTrackArtist(Track t) {
+        if(t.album_artist!=null)
+            return t.album_artist;
+        else
+            return t.artist;
     }
 }
