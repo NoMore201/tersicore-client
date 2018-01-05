@@ -10,7 +10,8 @@
     tools:showIn="@layout/app_bar_album">
 <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+    android:id="@+id/mainScrollAlbumView">
 
         <ImageView
             android:id="@+id/coverAlbum"

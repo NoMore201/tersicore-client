@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Path;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -29,6 +30,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -246,7 +248,10 @@ public class SingleAlbumActivity  extends AppCompatActivity
                 } else {
                     text1.setText(temp.track_number + ". " + listTracks.get(position).title);
                 }
-
+                if(position==listTracks.size()-1) {
+                    ScrollView main = (ScrollView) findViewById(R.id.mainScrollAlbumView).getParent();
+                    main.scrollTo(0, 0);
+                }
                 return view;
             }
         };
@@ -275,7 +280,6 @@ public class SingleAlbumActivity  extends AppCompatActivity
             ImageView temp = findViewById(R.id.coverAlbum);
             temp.setImageBitmap(BitmapFactory.decodeByteArray(asd.cover,0,asd.cover.length));
         }
-
     }
 
     @Override
