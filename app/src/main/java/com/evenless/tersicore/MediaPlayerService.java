@@ -41,6 +41,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         if(mCurrentIndex==getCurrentPlaylist().indexOf(it))
             skip(SkipDirection.SKIP_FORWARD);
         getCurrentPlaylist().remove(it);
+        resNumb.remove(mCurrentPlaylist.indexOf(it));
     }
 
     public enum SkipDirection { SKIP_FORWARD, SKIP_BACKWARD }
@@ -59,6 +60,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     private int mCurrentIndex;
     private Timer mCurrentTimer = new Timer();
     private boolean isShuffle = false;
+
+    // CurrentPlaylist index - Selected Resources. Not Required!
+    private Map<Integer, Integer> resNumb;
 
     /*
      * Override methods
@@ -81,6 +85,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
         mCurrentPlaylist = new ArrayList<>();
         mCurrentPlaylistSorted = new ArrayList<>();
+        resNumb = new HashMap<>();
         mCurrentIndex=-1;
 
         AudioAttributes attributes = new AudioAttributes.Builder()
@@ -205,6 +210,13 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             Track temp = getCurrentPlaylist().get(fromPosition);
             getCurrentPlaylist().remove(fromPosition);
             getCurrentPlaylist().add(toPosition, temp);
+            if(!isShuffle) {
+                Integer res = resNumb.get(fromPosition);
+                if (res != null) {
+                    resNumb.remove(fromPosition);
+                    resNumb.put(toPosition, res);
+                }
+            }
         }
     }
 
@@ -238,6 +250,33 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     /**
+     * Update the current playlist with the specified list, choosing to shuffle it or not
+     * @param tracks Tracks to be played
+     * @param position Position to start playing from (valid only for normal playback)
+     * @param random Whether to start shuffling playlist or not
+     * @param res Favorite resources for all, or part of the list
+     */
+    public void updatePlaylist(List<Track> tracks, int position, boolean random, Map<Integer, Integer> res) {
+        if (position >= tracks.size()) {
+            throw new IndexOutOfBoundsException("Position exceed list size");
+        }
+        mCurrentPlaylist = new ArrayList<>(tracks);
+        // initialize sorted playlist with a copy of the normal one. After calling
+        // updatePlaylist or toggleShuffle, it will be correctly processed
+        mCurrentPlaylistSorted = new ArrayList<>(tracks);
+        if (random) {
+            sortPlaylist();
+            isShuffle = true;
+            mCurrentIndex = 0;
+        } else {
+            isShuffle = false;
+            mCurrentIndex = position;
+        }
+        resNumb = res;
+        updateState();
+    }
+
+    /**
      * Append specified list of tracks after the current index
      * @param tracks List of tracks to insert
      * @return starting index of the inserted list
@@ -249,6 +288,44 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             mCurrentIndex = mCurrentPlaylist.indexOf(getCurrentPlaylist().get(mCurrentIndex));
         }
         mCurrentPlaylist.addAll(mCurrentIndex + 1, new ArrayList<>(tracks));
+        return mCurrentIndex + 1;
+    }
+
+    /**
+     * Append specified list of tracks after the current index
+     * @param tracks List of tracks to insert
+     * @param res List of the favorite resources for all, or part of the list
+     * @param res List of the favorite resources for all, or part of the list
+     * @return starting index of the inserted list
+     */
+    public int appendAfterCurrent(List<Track> tracks, Map<Integer,Integer> res) {
+        //TODO: check behaviour
+        if(isShuffle){
+            isShuffle=false;
+            mCurrentIndex = mCurrentPlaylist.indexOf(getCurrentPlaylist().get(mCurrentIndex));
+        }
+        mCurrentPlaylist.addAll(mCurrentIndex + 1, new ArrayList<>(tracks));
+        for (Integer i : res.keySet()) {
+            Track temp = tracks.get(i);
+            resNumb.put(mCurrentPlaylist.indexOf(temp), res.get(i));
+        }
+        return mCurrentIndex + 1;
+    }
+
+    /**
+     * Append specified list of tracks after the current index
+     * @param track Track to insert
+     * @param res Favorite res for track
+     * @return index of the inserted track
+     */
+    public int appendAfterCurrent(Track track, int res) {
+        //TODO: check behaviour
+        if(isShuffle){
+            isShuffle=false;
+            mCurrentIndex = mCurrentPlaylist.indexOf(getCurrentPlaylist().get(mCurrentIndex));
+        }
+        mCurrentPlaylist.add(mCurrentIndex + 1, track);
+        resNumb.put(mCurrentIndex + 1, res);
         return mCurrentIndex + 1;
     }
 
@@ -276,6 +353,34 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         mCurrentPlaylist.addAll(new ArrayList<>(tracks));
         mCurrentPlaylistSorted.addAll(new ArrayList<>(tracks));
         return mCurrentPlaylist.size() - tracks.size();
+    }
+
+    /**
+     * Append the provided Track list at the end of the playlist
+     * @param tracks List of Track to be appended
+     * @return starting index of the list
+     */
+    public int append(List<Track> tracks, Map<Integer, Integer> res) {
+        mCurrentPlaylist.addAll(new ArrayList<>(tracks));
+        mCurrentPlaylistSorted.addAll(new ArrayList<>(tracks));
+        for (Integer i : res.keySet()) {
+            Track temp = tracks.get(i);
+            resNumb.put(mCurrentPlaylist.indexOf(temp), res.get(i));
+        }
+        return mCurrentPlaylist.size() - tracks.size();
+    }
+
+    /**
+     * Append the provided Track at the end of the playlist
+     * @param track Track to be appended
+     * @param res favorite resource for Track
+     * @return index of the inserted Track
+     */
+    public int append(Track track, int res) {
+        mCurrentPlaylist.add(track);
+        mCurrentPlaylistSorted.add(track);
+        resNumb.put(mCurrentPlaylist.size()-1, res);
+        return mCurrentPlaylist.size() - 1;
     }
 
     /**
@@ -397,11 +502,20 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             playlistCompleted();
         } else {
             final Track current = getCurrentPlaylist().get(mCurrentIndex);
+            Integer res;
+            if(current.resources.size()==1)
+                res=0;
+            else {
+                res = resNumb.get(mCurrentPlaylist.indexOf(current));
+                if (res == null  || current.resources.size()<=res)
+                    //Consider preferences!
+                    res = 0;
+            }
             try {
                 newTrackPlaying(current);
                 mMediaPlayer.setDataSource(PreferencesHandler.getServer(this) +
                         "/stream/" +
-                        current.resources.get(0).uuid);
+                        current.resources.get(res).uuid);
                 mMediaPlayer.prepareAsync();
             } catch (IOException e) {
                 e.printStackTrace();
