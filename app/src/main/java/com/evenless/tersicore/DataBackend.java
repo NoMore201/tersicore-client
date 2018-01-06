@@ -151,9 +151,9 @@ public class DataBackend {
      * @return
      */
     public static ArrayList<Track> getTracks(@NonNull String artist, @NonNull String album) {
-        RealmResults<Track> result =  getInstance().where(Track.class)
-                .equalTo("artist", artist)
-                .equalTo("album", album)
+        RealmResults<Track> result =  getInstance().where(Track.class).beginGroup()
+                .equalTo("artist", artist).or().equalTo("album_artist", artist)
+                .endGroup().equalTo("album", album)
                 .findAll();
         ArrayList<Track> toReturn = new ArrayList<>(result);
         orderByTrack(toReturn);

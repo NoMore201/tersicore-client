@@ -41,6 +41,7 @@ import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.ImageRequestTaskListener;
 import com.evenless.tersicore.MediaPlayerService;
 import com.evenless.tersicore.MediaPlayerServiceListener;
+import com.evenless.tersicore.MyListAdapter;
 import com.evenless.tersicore.PlayerInterface;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
@@ -320,6 +321,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
     public void OnCoverDownloaded(Bitmap result, int mState, String key) {
         ImageView temp = findViewById(R.id.coverAlbum);
         temp.setImageBitmap(result);
+        DataBackend.insertCover(artist, albumName, MyListAdapter.ConvertToByteArray(result));
     }
     @Override
     public void onNewTrackPlaying(Track newTrack) {

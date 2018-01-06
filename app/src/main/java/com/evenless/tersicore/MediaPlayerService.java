@@ -158,10 +158,16 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                 mCurrentPlaylistSorted.set(index, updated);
             }
         }
-        if (updated.album != null && cover.length!=0) {
+        if (updated.album != null) {
+            String tr;
+            if(track.album_artist!=null)
+                tr = track.album_artist;
+            else
+                tr = track.artist;
+
             // update all tracks of the same album
             ArrayList<Track> tracksWithSameAlbum =
-                    DataBackend.getTracks(track.artist, track.album);
+                    DataBackend.getTracks(tr, track.album);
             for (Track t : tracksWithSameAlbum) {
                 if (t.resources != null &&
                         t.resources.size() != 0) {
@@ -514,6 +520,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             try {
                 newTrackPlaying(current);
                 mMediaPlayer.setDataSource(PreferencesHandler.getServer(this) +
+                        "/stream/" +
+                        current.resources.get(res).uuid);
+                Log.d(TAG, PreferencesHandler.getServer(this) +
                         "/stream/" +
                         current.resources.get(res).uuid);
                 mMediaPlayer.prepareAsync();

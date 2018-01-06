@@ -68,6 +68,8 @@ public class ItemAdapter extends DragItemAdapter<Pair<Long, Track>, ItemAdapter.
             holder.mImage.setImageBitmap(BitmapFactory.decodeByteArray(
                     tr.resources.get(0).cover_data, 0,
                     tr.resources.get(0).cover_data.length));
+        else
+            holder.mImage.setImageResource(R.drawable.nocover);
         holder.itemView.setTag(mItemList.get(position));
     }
 

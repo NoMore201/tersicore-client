@@ -226,7 +226,7 @@ implements ImageRequestTaskListener, CoverDownloadTaskListener {
     }
 
     //This could have been done in background with a task
-    private byte[] ConvertToByteArray(Bitmap bmp) {
+    public static byte[] ConvertToByteArray(Bitmap bmp) {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         bmp.compress(Bitmap.CompressFormat.JPEG, 100, stream);
         return stream.toByteArray();
