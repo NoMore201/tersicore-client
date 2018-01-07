@@ -1,0 +1,11 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditTextPreference
+        android:key="TersicoreServer"
+        android:title="SERVER"
+        />
+
+    <Preference android:title="Rebuild internal database"
+    android:key="updateservers"
+    android:summary="It could take time"/>
+
+</PreferenceScreen>

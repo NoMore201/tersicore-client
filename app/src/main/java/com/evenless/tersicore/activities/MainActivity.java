@@ -158,6 +158,14 @@ public class MainActivity extends AppCompatActivity
                         tv_artist.setText(tra.artist);
                     else
                         tv_artist.setText(tra.album_artist);
+
+                    TextView tv_currentms = findViewById(R.id.tv_current_time);
+                    tv_currentms.setText("-:-");
+                    SeekBar tv_seek = findViewById(R.id.tv_seek);
+                    tv_seek.setMax(0);
+                    tv_seek.setProgress(0);
+                    TextView fullT = findViewById(R.id.tv_full_time);
+                    fullT.setText("-:-");
                 }
 
                 @Override

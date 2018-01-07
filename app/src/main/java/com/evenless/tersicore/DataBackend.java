@@ -316,4 +316,11 @@ public class DataBackend {
         else
             return t.artist;
     }
+
+    public static void removeAll() {
+        Realm realm = getInstance();
+        realm.beginTransaction();
+        realm.delete(Track.class);
+        realm.commitTransaction();
+    }
 }

@@ -33,31 +33,34 @@
         </activity>
         <activity
             android:name=".activities.SearchActivity"
-            android:label="@string/title_activity_main3"></activity>
+            android:label="@string/title_activity_main3" />
         <activity
             android:name=".activities.ArtistsActivity"
-            android:label="@string/title_activity_artists"></activity>
+            android:label="@string/title_activity_artists" />
         <activity
             android:name=".activities.AlbumsActivity"
-            android:label="@string/title_activity_albums"></activity>
+            android:label="@string/title_activity_albums" />
         <activity
             android:name=".activities.TracksActivity"
-            android:label="@string/title_activity_tracks"></activity>
+            android:label="@string/title_activity_tracks" />
         <activity
             android:name=".activities.SingleArtistActivity"
-            android:label="@string/title_activity_artist"></activity>
+            android:label="@string/title_activity_artist" />
         <activity
             android:name=".activities.SingleAlbumActivity"
-            android:label="@string/title_activity_album"></activity>
+            android:label="@string/title_activity_album" />
         <activity
             android:name=".activities.PlaylistListActivity"
-            android:label="@string/title_activity_playlist"></activity>
+            android:label="@string/title_activity_playlist" />
         <activity
             android:name=".activities.PlaylistsActivity"
-            android:label="@string/title_activity_playlists"></activity>
-        <activity android:name=".activities.SingleEmailActivity"></activity>
-        <activity android:name=".activities.SendMail"></activity>
-        <activity android:name=".activities.EmailsActivity"></activity>
+            android:label="@string/title_activity_playlists" />
+        <activity android:name=".activities.SingleEmailActivity" />
+        <activity android:name=".activities.SendMail" />
+        <activity android:name=".activities.EmailsActivity" />
+        <activity
+            android:name=".activities.SettingsActivity"
+            android:label="@string/title_activity_settings"></activity>
     </application>
 
 </manifest>
