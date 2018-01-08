@@ -230,11 +230,15 @@ public class DataBackend {
         Track track = realm.where(Track.class)
                 .equalTo("uuid", uuid)
                 .findFirst();
+        boolean isUpdated=false;
         if (track != null) {
-            track.updateCover(cover);
+            isUpdated=track.updateCover(cover);
         }
         realm.commitTransaction();
-        return track;
+        if(isUpdated)
+            return track;
+        else
+            return null;
     }
 
     private static Realm getInstance() {

@@ -97,6 +97,7 @@ public class MainActivity extends AppCompatActivity
                 pager.setPageMargin(30);
             }
             Track tr = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex());
+            int curres = mService.getCurrentResource();
             final TextView tv_song = (TextView) findViewById(R.id.tv_song);
             tv_song.setText(tr.title);
             RelativeLayout relativeLayout = (RelativeLayout) pager.getAdapter().instantiateItem(pager, 0);
@@ -106,9 +107,13 @@ public class MainActivity extends AppCompatActivity
             TextView tv_artist = findViewById(R.id.tv_artist);
             ImageButton vie = findViewById(R.id.playbutton);
             tv_artist.setText(tr.artist);
+            TextView tv_currentms = findViewById(R.id.tv_current_time);
+            tv_currentms.setText(parseDuration(mService.getCurrentprogress()));
+            TextView fullT = findViewById(R.id.tv_full_time);
+            fullT.setText(parseDuration((long) tr.duration*1000));
             toolbar.setSubtitle(PreferencesHandler.getServer((Context) ctx));
-            toolbar.setTitle(tr.resources.get(0).codec + " " + tr.resources.get(0).sample_rate/1000 +
-                    "Khz " + tr.resources.get(0).bitrate/1000 + "kbps");
+            toolbar.setTitle(tr.resources.get(curres).codec + " " + tr.resources.get(curres).sample_rate/1000 +
+                    "Khz " + tr.resources.get(curres).bitrate/1000 + "kbps");
             ToggleButton toggleR = (ToggleButton) findViewById(R.id.toggleRepeat);
             toggleR.setChecked(mService.getRepeat());
             toggleR.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -133,6 +138,8 @@ public class MainActivity extends AppCompatActivity
                 vie.setImageResource(R.drawable.ic_play);
             SeekBar tv_seek=findViewById(R.id.tv_seek);
             tv_seek.setOnSeekBarChangeListener(new seekListener());
+            tv_seek.setMax(tr.duration*1000);
+            tv_seek.setProgress(mService.getCurrentprogress());
             pager.setCurrentItem(mService.getCurrentTrackIndex(), true);
             pager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
                 @Override
@@ -151,8 +158,9 @@ public class MainActivity extends AppCompatActivity
                     setStatusBar(palette);
                     Toolbar toolbar = findViewById(R.id.toolbar2);
                     toolbar.setSubtitle(PreferencesHandler.getServer((Context) ctx));
-                    toolbar.setTitle(tra.resources.get(0).codec + " " + tra.resources.get(0).sample_rate/1000 +
-                            "Khz " + tra.resources.get(0).bitrate/1000 + "kbps");
+                    int curres=mService.getCurrentResource();
+                    toolbar.setTitle(tra.resources.get(curres).codec + " " + tra.resources.get(curres).sample_rate/1000 +
+                            "Khz " + tra.resources.get(curres).bitrate/1000 + "kbps");
                     TextView tv_artist = findViewById(R.id.tv_artist);
                     if(tra.artist!=null)
                         tv_artist.setText(tra.artist);
@@ -160,12 +168,15 @@ public class MainActivity extends AppCompatActivity
                         tv_artist.setText(tra.album_artist);
 
                     TextView tv_currentms = findViewById(R.id.tv_current_time);
-                    tv_currentms.setText("-:-");
+                    tv_currentms.setText(parseDuration(mService.getCurrentprogress()));
                     SeekBar tv_seek = findViewById(R.id.tv_seek);
                     tv_seek.setMax(0);
                     tv_seek.setProgress(0);
                     TextView fullT = findViewById(R.id.tv_full_time);
-                    fullT.setText("-:-");
+                    if(tra.duration==0)
+                        fullT.setText("-:-");
+                    else
+                        fullT.setText(parseDuration((long) tra.duration*1000));
                 }
 
                 @Override
@@ -212,7 +223,7 @@ public class MainActivity extends AppCompatActivity
         pager.setCurrentItem(mService.getCurrentTrackIndex(), false);
     }
 
-    private String parseDuration(long durationMs){
+    public static String parseDuration(long durationMs){
         long duration = durationMs / 1000;
         long h = duration / 3600;
         long m = (duration - h * 3600) / 60;
@@ -271,16 +282,9 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onNewTrackPlaying(Track newTrack) {
-        ImageButton vie = findViewById(R.id.playbutton);
-        vie.setImageResource(R.drawable.ic_pause);
-        TextView tv_song = findViewById(R.id.tv_song);
-        tv_song.setText(newTrack.title);
-        TextView tv_artist = findViewById(R.id.tv_artist);
-        tv_artist.setText(newTrack.album_artist);
-        Toolbar toolbar = findViewById(R.id.toolbar2);
-        toolbar.setSubtitle(PreferencesHandler.getServer((Context) ctx));
-        toolbar.setTitle(newTrack.resources.get(0).codec + " " + newTrack.resources.get(0).sample_rate/1000 +
-                "Khz " + newTrack.resources.get(0).bitrate/1000 + "kbps");
+        PagerContainer container = findViewById(R.id.pager_container);
+        ViewPager pager = container.getViewPager();
+        pager.setCurrentItem(mService.getCurrentTrackIndex(), true);
     }
 
     @Override
@@ -315,15 +319,12 @@ public class MainActivity extends AppCompatActivity
     }
 
     private Bitmap getCover(Track tr){
+        byte[] cov = getEmbeddedCover(tr);
+
         // convert the byte array to a bitmap
-        if(tr.resources.get(0).cover_data!= null && tr.resources.get(0).cover_data.length!=0)
-            return BitmapFactory.decodeByteArray(
-                    tr.resources.get(0).cover_data, 0,
-                    tr.resources.get(0).cover_data.length);
-        else if(tr.resources.get(0).cover_data== null) {
-            mService.fetchCover(tr, 0);
-            return BitmapFactory.decodeResource(this.getResources(), R.drawable.nocover);
-        } else {
+        if(cov!= null && cov.length!=0)
+            return BitmapFactory.decodeByteArray(cov, 0, cov.length);
+        else {
             String art;
             if(tr.album_artist!=null)
                 art=tr.album_artist;
@@ -335,6 +336,15 @@ public class MainActivity extends AppCompatActivity
             else
                 return BitmapFactory.decodeResource(this.getResources(), R.drawable.nocover);
         }
+    }
+
+    private byte[] getEmbeddedCover(Track tr){
+        for(TrackResources r : tr.resources)
+            if(r.cover_data!=null && r.cover_data.length!=0)
+                return r.cover_data;
+            else if(r.cover_data==null)
+                mService.fetchCover(tr, tr.resources.indexOf(r));
+        return new byte[0];
     }
 
     private class MyPagerAdapter extends PagerAdapter {

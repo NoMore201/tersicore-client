@@ -35,10 +35,11 @@ public class PlayerInterface {
             vie.setImageResource(R.drawable.ic_play);
         }
         ImageView temp = v.findViewById(R.id.minicover);
-        if(tra.resources.get(0).cover_data!= null && tra.resources.get(0).cover_data.length!=0)
+        byte [] tempcover= tra.getCover();
+        if(tempcover!= null)
             temp.setImageBitmap(BitmapFactory.decodeByteArray(
-                    tra.resources.get(0).cover_data, 0,
-                    tra.resources.get(0).cover_data.length));
+                    tempcover, 0,
+                    tempcover.length));
         else {
             String art;
             if(tra.album_artist!=null)

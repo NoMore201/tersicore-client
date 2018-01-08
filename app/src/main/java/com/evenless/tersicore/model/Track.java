@@ -22,10 +22,27 @@ public class Track extends RealmObject {
     public int total_discs;
     public String label;
     public String isrc;
+    public int duration;
+    public String date_added;
+    public String server;
+    public String genre;
 
-    public void updateCover(byte[] cover) {
+    public boolean updateCover(byte[] cover) {
         for (TrackResources tr : resources)
+            if(tr.cover_data==null || tr.cover_data.length==0)
                 tr.cover_data = cover;
+            else
+                return false;
+
+        return true;
+    }
+
+    public byte[] getCover(){
+        for (TrackResources tr : resources)
+            if(tr.cover_data!=null && tr.cover_data.length!=0)
+                return tr.cover_data;
+
+        return null;
     }
 
     public boolean hasResources() {

@@ -44,6 +44,19 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         resNumb.remove(mCurrentPlaylist.indexOf(it));
     }
 
+    public int getPreferredRes(Track tr) {
+        if(tr.resources.size()==1)
+            return 0;
+
+        int ind=mCurrentPlaylist.indexOf(tr);
+        Integer aa = resNumb.get(ind);
+        if(aa!=null)
+            return aa;
+        else
+            //consider preferences!
+            return 0;
+    }
+
     public enum SkipDirection { SKIP_FORWARD, SKIP_BACKWARD }
     public class LocalBinder extends Binder {
         public MediaPlayerService getService() {
@@ -60,6 +73,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     private int mCurrentIndex;
     private Timer mCurrentTimer = new Timer();
     private boolean isShuffle = false;
+    private Integer res;
+    private int currentprogress;
+
+    public int getCurrentprogress(){return currentprogress;}
+
+    public int getCurrentResource(){return res;}
 
     // CurrentPlaylist index - Selected Resources. Not Required!
     private Map<Integer, Integer> resNumb;
@@ -145,37 +164,39 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             cover = new byte[0];
         }
         Track updated = DataBackend.updateTrackCover(track.uuid, cover);
-        if (mCurrentPlaylist != null) {
-            int index = mCurrentPlaylist.indexOf(track);
-            if (index != -1 && track.resources != null && track.resources.size() != 0) {
-                mCurrentPlaylist.set(index, updated);
-                //DataBackend.insertCover(updated.album_artist, updated.album, cover);
-            }
-        }
-        if (mCurrentPlaylistSorted != null) {
-            int index = mCurrentPlaylistSorted.indexOf(track);
-            if (index != -1 && track.resources != null && track.resources.size() != 0) {
-                mCurrentPlaylistSorted.set(index, updated);
-            }
-        }
-        if (updated.album != null) {
-            String tr;
-            if(track.album_artist!=null)
-                tr = track.album_artist;
-            else
-                tr = track.artist;
-
-            // update all tracks of the same album
-            ArrayList<Track> tracksWithSameAlbum =
-                    DataBackend.getTracks(tr, track.album);
-            for (Track t : tracksWithSameAlbum) {
-                if (t.resources != null &&
-                        t.resources.size() != 0) {
-                    DataBackend.updateTrackCover(t.uuid, cover);
+        if(updated!=null) {
+            if (mCurrentPlaylist != null) {
+                int index = mCurrentPlaylist.indexOf(track);
+                if (index != -1 && track.resources != null && track.resources.size() != 0) {
+                    mCurrentPlaylist.set(index, updated);
+                    //DataBackend.insertCover(updated.album_artist, updated.album, cover);
                 }
             }
+            if (mCurrentPlaylistSorted != null) {
+                int index = mCurrentPlaylistSorted.indexOf(track);
+                if (index != -1 && track.resources != null && track.resources.size() != 0) {
+                    mCurrentPlaylistSorted.set(index, updated);
+                }
+            }
+            if (updated.album != null) {
+                String tr;
+                if (track.album_artist != null)
+                    tr = track.album_artist;
+                else
+                    tr = track.artist;
+
+                // update all tracks of the same album
+                ArrayList<Track> tracksWithSameAlbum =
+                        DataBackend.getTracks(tr, track.album);
+                for (Track t : tracksWithSameAlbum) {
+                    if (t.resources != null &&
+                            t.resources.size() > id) {
+                        DataBackend.updateTrackCover(t.uuid, cover);
+                    }
+                }
+            }
+            mListener.onCoverFetched(updated, id);
         }
-        mListener.onCoverFetched(updated, id);
     }
 
     /*
@@ -421,8 +442,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     public void seekToTrack(int index) {
-        mCurrentIndex = index;
-        updateState();
+        if(index!=mCurrentIndex) {
+            mCurrentIndex = index;
+            updateState();
+        }
     }
 
     public void seekTo(int milliseconds) {
@@ -454,6 +477,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             public void run() {
                 try {
                     if (mMediaPlayer.isPlaying()) {
+                        currentprogress=mediaPlayerInstance.getCurrentPosition();
                         Message a = new Message();
                         a.arg1 = mediaPlayerInstance.getCurrentPosition();
                         mHandler.sendMessage(a);
@@ -503,20 +527,13 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     private void updateState() {
+        currentprogress=0;
         mMediaPlayer.reset();
         if (mCurrentIndex >= getCurrentPlaylist().size()) {
             playlistCompleted();
         } else {
             final Track current = getCurrentPlaylist().get(mCurrentIndex);
-            Integer res;
-            if(current.resources.size()==1)
-                res=0;
-            else {
-                res = resNumb.get(mCurrentPlaylist.indexOf(current));
-                if (res == null  || current.resources.size()<=res)
-                    //Consider preferences!
-                    res = 0;
-            }
+            res = getPreferredRes(current);
             try {
                 newTrackPlaying(current);
                 mMediaPlayer.setDataSource(PreferencesHandler.getServer(this) +

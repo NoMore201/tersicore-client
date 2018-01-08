@@ -175,7 +175,7 @@ public class TracksActivity extends AppCompatActivity
             Intent asd = new Intent(this, PlaylistsActivity.class);
             startActivity(asd);
         } else if (id == R.id.nav_settings) {
-
+            startActivity(new Intent(this, SettingsActivity.class));
         } else if (id == R.id.nav_songs) {
             if(artist!=null) {
                 listTracks = DataBackend.getTracks();

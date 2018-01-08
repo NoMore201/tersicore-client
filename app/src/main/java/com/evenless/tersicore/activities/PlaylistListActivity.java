@@ -161,6 +161,10 @@ public class PlaylistListActivity extends AppCompatActivity{
                     DataBackend.setPlaylistFavorite(pid.id, isChecked);
                 }
             });
+            TextView totd = findViewById(R.id.totduration);
+            long duration = getTotalDurationMs();
+            if(duration!=0)
+                totd.setText("Duration: " + MainActivity.parseDuration(duration));
         } else {
             setContentView(R.layout.playlist_list);
             toolbar = (Toolbar) findViewById(R.id.toolbar2);
@@ -172,5 +176,15 @@ public class PlaylistListActivity extends AppCompatActivity{
                 onBackPressed();
             }
         });
+    }
+
+    private long getTotalDurationMs() {
+        long temp=0;
+        for (Track t : listTracks){
+            if(t.duration==0)
+                return 0;
+            temp=temp+(long)t.duration;
+        }
+        return temp*1000;
     }
 }

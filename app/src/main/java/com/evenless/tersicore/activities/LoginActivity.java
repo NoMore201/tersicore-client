@@ -52,6 +52,8 @@ public class LoginActivity extends AppCompatActivity implements ServerStatusTask
                 URL toValidate = new URL(address);
                 TaskHandler.isServerRunning(this, toValidate);
             } catch (MalformedURLException e) {
+                findViewById(R.id.buttonBegin).setEnabled(true);
+                findViewById(R.id.loginInputText).setEnabled(true);
                 mEdit.setError("URL should have the form protoc://host:port");
             }
         }

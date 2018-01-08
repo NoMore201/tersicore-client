@@ -440,20 +440,7 @@ public class SearchActivity extends AppCompatActivity
     }
 
     @Override
-    public void onCoverFetched(Track tr, int id) {
-        Bitmap image = BitmapFactory.decodeByteArray(
-                    tr.resources.get(0).cover_data, 0,
-                    tr.resources.get(0).cover_data.length);
-        if(id==MyListAdapter.ARTIST_STATE){
-            int tempid=listArtists.indexOf(tr.artist);
-            if(tempid!=-1)
-                mRecyclerView.getAdapter().notifyItemChanged(tempid);
-        } else if (id==MyListAdapter.ALBUMS_STATE){
-            int tempid = listAlbums.indexOf(tr);
-            if(tempid!= -1)
-                mRecyclerViewAlbums.getAdapter().notifyItemChanged(tempid);
-        }
-    }
+    public void onCoverFetched(Track tr, int id) {}
 
     @Override
     public void onPlaybackProgressUpdate(int currentMilliseconds) {

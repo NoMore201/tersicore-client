@@ -26,6 +26,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.evenless.tersicore.activities.MainActivity;
+import com.evenless.tersicore.model.Cover;
 import com.evenless.tersicore.model.Track;
 import com.woxthebox.draglistview.DragItemAdapter;
 
@@ -64,13 +66,25 @@ public class ItemAdapter extends DragItemAdapter<Pair<Long, Track>, ItemAdapter.
         Track tr = mItemList.get(position).second;
         String text = tr.toString();
         holder.mText.setText(text);
-        if(tr.resources.get(0).cover_data!= null && tr.resources.get(0).cover_data.length!=0)
+        byte[] tempcover=tr.getCover();
+        if(tempcover!=null)
             holder.mImage.setImageBitmap(BitmapFactory.decodeByteArray(
-                    tr.resources.get(0).cover_data, 0,
-                    tr.resources.get(0).cover_data.length));
-        else
-            holder.mImage.setImageResource(R.drawable.nocover);
+                    tempcover, 0,
+                    tempcover.length));
+        else {
+            String art;
+            if(tr.album_artist!=null)
+                art=tr.album_artist;
+            else
+                art=tr.artist;
+            Cover asd = DataBackend.getCover(art, tr.album);
+            if(asd!=null)
+                holder.mImage.setImageBitmap(BitmapFactory.decodeByteArray(asd.cover,0,asd.cover.length));
+            else
+                holder.mImage.setImageResource(R.drawable.nocover);
+        }
         holder.itemView.setTag(mItemList.get(position));
+        holder.mDuration.setText(MainActivity.parseDuration((long) tr.duration*1000));
     }
 
     @Override
@@ -81,11 +95,13 @@ public class ItemAdapter extends DragItemAdapter<Pair<Long, Track>, ItemAdapter.
     class ViewHolder extends DragItemAdapter.ViewHolder {
         TextView mText;
         ImageView mImage;
+        TextView mDuration;
 
         ViewHolder(final View itemView) {
             super(itemView, mGrabHandleId, mDragOnLongPress);
             mText = (TextView) itemView.findViewById(R.id.text);
             mImage = itemView.findViewById(R.id.imagecover);
+            mDuration = (TextView) itemView.findViewById(R.id.duration);
         }
 
         @Override

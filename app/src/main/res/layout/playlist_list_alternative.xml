@@ -21,15 +21,29 @@
         android:orientation="horizontal"
         android:weightSum="4"
         app:layout_constraintBottom_toTopOf="@+id/dragPlaylist">
-        <TextView
-            android:id="@+id/playupload"
+        <LinearLayout
             android:layout_width="0dp"
-            android:layout_gravity="center_vertical"
-            android:layout_marginRight="8dp"
-            android:layout_marginLeft="16dp"
+            android:layout_height="wrap_content"
             android:layout_weight="4"
-            android:maxLines="3"
-            android:layout_height="wrap_content" />
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/playupload"
+                android:layout_width="match_parent"
+                android:layout_gravity="center_vertical"
+                android:layout_marginRight="8dp"
+                android:layout_marginLeft="16dp"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:maxLines="2"/>
+            <TextView
+                android:id="@+id/totduration"
+                android:layout_width="match_parent"
+                android:layout_gravity="center_vertical"
+                android:layout_marginRight="8dp"
+                android:layout_marginLeft="16dp"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
         <ToggleButton
             android:id="@+id/likeButt"
             android:layout_width="40dp"

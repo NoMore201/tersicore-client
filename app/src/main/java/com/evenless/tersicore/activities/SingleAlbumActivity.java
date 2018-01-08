@@ -180,6 +180,10 @@ public class SingleAlbumActivity  extends AppCompatActivity
             case R.id.nav_songs:
                 intent = new Intent(this, TracksActivity.class);
                 startActivity(intent);
+                break;
+            case R.id.nav_settings:
+                startActivity(new Intent(this, SettingsActivity.class));
+                break;
             default:
                 break;
         }
@@ -214,6 +218,8 @@ public class SingleAlbumActivity  extends AppCompatActivity
         ListView lsv = findViewById(R.id.listalbum);
         TextView aln = findViewById(R.id.albumname);
         TextView arn = findViewById(R.id.artistname);
+        TextView totr = findViewById(R.id.tottracks);
+        TextView totd = findViewById(R.id.totduration);
         TextView y = findViewById(R.id.year);
         aln.setText(albumName);
         arn.setText(artist);
@@ -230,9 +236,19 @@ public class SingleAlbumActivity  extends AppCompatActivity
                 e.printStackTrace();
             }
         }
+        if(listTracks.size()>0 && listTracks.get(0).genre!=null){
+            TextView g = findViewById(R.id.genre);
+            g.setText(listTracks.get(0).genre);
+        }
+        if(listTracks.size()>0){
+            totr.setText(listTracks.size() + " Tracks");
+            long duration = getTotalDurationMs();
+            if(duration!=0)
+                totd.setText("Duration: " + MainActivity.parseDuration(duration));
+        }
         ArrayAdapter<Track> arrayAdapter = new ArrayAdapter<Track>(
                 this,
-                android.R.layout.simple_list_item_1,
+                android.R.layout.simple_list_item_2,
                 android.R.id.text1,
                 listTracks) {
 
@@ -243,11 +259,13 @@ public class SingleAlbumActivity  extends AppCompatActivity
                 View view = super.getView(position, convertView, parent);
                 TextView text1 = view.findViewById(android.R.id.text1);
                 Track temp = listTracks.get(position);
-                if (temp.track_number.contains("/")) {
-                    text1.setText(temp.track_number.substring(0, temp.track_number.indexOf("/"))
-                            + ". " + listTracks.get(position).title);
-                } else {
-                    text1.setText(temp.track_number + ". " + listTracks.get(position).title);
+                if(temp.track_number!=null)
+                    text1.setText(temp.track_number + " - " + temp.title);
+                else
+                    text1.setText(temp.title);
+                if(temp.duration!=0){
+                    TextView text2 = view.findViewById(android.R.id.text2);
+                    text2.setText("Duration: " + MainActivity.parseDuration((long)temp.duration*1000));
                 }
                 if(position==listTracks.size()-1) {
                     ScrollView main = (ScrollView) findViewById(R.id.mainScrollAlbumView).getParent();
@@ -283,6 +301,16 @@ public class SingleAlbumActivity  extends AppCompatActivity
         }
     }
 
+    private long getTotalDurationMs() {
+        long temp=0;
+        for (Track t : listTracks){
+            if(t.duration==0)
+                return 0;
+            temp=temp+(long)t.duration;
+        }
+        return temp*1000;
+    }
+
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view, int pos, long id) {
         if(mBound) {
@@ -308,8 +336,10 @@ public class SingleAlbumActivity  extends AppCompatActivity
         } else try {
             JSONObject tempJson = new JSONObject(result);
             JSONArray tmp = tempJson.getJSONObject("album").getJSONArray("image");
-            TextView g = findViewById(R.id.genre);
-            g.setText(tempJson.getJSONObject("album").getJSONObject("tags").getJSONArray("tag").getJSONObject(0).getString("name"));
+            if(listTracks.get(0).genre==null) {
+                TextView g = findViewById(R.id.genre);
+                g.setText(tempJson.getJSONObject("album").getJSONObject("tags").getJSONArray("tag").getJSONObject(0).getString("name"));
+            }
             final String link = tmp.getJSONObject(3).getString("#text");
             TaskHandler.downloadCover(link, 0, key, this);
         } catch (Exception e) {
