@@ -1,9 +1,6 @@
 package com.evenless.tersicore;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.Cover;
@@ -11,8 +8,6 @@ import com.evenless.tersicore.model.Playlist;
 import com.evenless.tersicore.model.Track;
 import com.evenless.tersicore.model.TrackSuggestion;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -80,7 +75,7 @@ public class DataBackend {
      * Get all tracks saved in the collection
      * @return list of Track
      */
-    public static RealmResults<Track> getTracks() {
+    public static List<Track> getTracks() {
         return getInstance().where(Track.class).findAll();
     }
 
@@ -134,7 +129,7 @@ public class DataBackend {
 
     /**
      * Get all tracks of a specific artist
-     * @param artist used to filter tracks
+     * @param artist string representing the artist
      * @return list of Track
      */
     public static ArrayList<Track> getTracks(@NonNull String artist) {
@@ -146,8 +141,8 @@ public class DataBackend {
 
     /**
      * Get all tracks of a specific artist and album
-     * @param artist
-     * @param album
+     * @param artist string representing the artist
+     * @param album string representing the album
      * @return
      */
     public static ArrayList<Track> getTracks(@NonNull String artist, @NonNull String album) {
@@ -164,21 +159,7 @@ public class DataBackend {
         Collections.sort(list, new Comparator<Track>() {
             @Override
             public int compare(Track first, Track second) {
-                int firstTrackNumber;
-                if (first.track_number.contains("/")) {
-                    String tmp = first.track_number.substring(0, first.track_number.indexOf("/"));
-                    firstTrackNumber = Integer.parseInt(tmp);
-                } else {
-                    firstTrackNumber = Integer.parseInt(first.track_number);
-                }
-                int secondTrackNumber;
-                if (second.track_number.contains("/")) {
-                    String tmp = second.track_number.substring(0, second.track_number.indexOf("/"));
-                    secondTrackNumber = Integer.parseInt(tmp);
-                } else {
-                    secondTrackNumber = Integer.parseInt(second.track_number);
-                }
-                return firstTrackNumber - secondTrackNumber;
+                return Integer.parseInt(first.track_number) - Integer.parseInt(second.track_number);
             }
         });
     }
@@ -235,10 +216,7 @@ public class DataBackend {
             isUpdated=track.updateCover(cover);
         }
         realm.commitTransaction();
-        if(isUpdated)
-            return track;
-        else
-            return null;
+        return isUpdated ? track : null;
     }
 
     private static Realm getInstance() {
@@ -246,11 +224,7 @@ public class DataBackend {
     }
 
     public static List<Playlist> getPlaylists() {
-        ArrayList<Playlist> result = new ArrayList<>();
-        for (Playlist p : getInstance().where(Playlist.class).findAll()){
-            result.add(p);
-        }
-        return result;
+        return getInstance().where(Playlist.class).findAll();
     }
 
     public static Playlist getPlaylist(String pid) {
