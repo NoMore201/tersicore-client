@@ -28,7 +28,9 @@
             android:layout_height="match_parent"
             android:layout_marginTop="112dp"
             android:orientation="vertical"
-            app:layout_constraintTop_toTopOf="parent"></android.support.v7.widget.RecyclerView>
+            app:layout_constraintTop_toTopOf="parent">
+
+        </android.support.v7.widget.RecyclerView>
 
 </android.support.constraint.ConstraintLayout>
 

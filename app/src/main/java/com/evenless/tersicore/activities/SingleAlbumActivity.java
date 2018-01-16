@@ -90,7 +90,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
             } else {
                 View v = findViewById(R.id.asd2);
                 v.setVisibility(View.VISIBLE);
-                RelativeLayout asd = findViewById(R.id.listalbumR);
+                RelativeLayout asd = findViewById(R.id.albumListLayout);
                 asd.setMinimumHeight(asd.getHeight() + v.getHeight());
                 PlayerInterface.UpdateTrack(v, mService);
             }
@@ -215,7 +215,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
     }
 
     private void updateList() {
-        ListView lsv = findViewById(R.id.listalbum);
+        ListView lsv = findViewById(R.id.albumScrollableList);
         TextView aln = findViewById(R.id.albumname);
         TextView arn = findViewById(R.id.artistname);
         TextView totr = findViewById(R.id.tottracks);

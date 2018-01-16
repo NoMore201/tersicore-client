@@ -19,7 +19,7 @@
         android:visibility="visible" />
 
     <include
-        android:id="@+id/include"
+        android:id="@+id/include4"
         layout="@layout/content_album"
         tools:layout_editor_absoluteY="122dp" />
 

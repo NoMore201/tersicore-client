@@ -22,7 +22,6 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.evenless.tersicore.ApiRequestTaskListener;
@@ -52,15 +51,17 @@ public class SingleArtistActivity extends AppCompatActivity
 
     private List<Album> listAlbums;
     private String artist;
-    private RecyclerView mRecyclerViewAlbums;
     private MediaPlayerService mService;
-    private Context ctx =this;
+    private Context ctx = this;
+    private boolean mBound = false;
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
+            mBound = true;
             MediaPlayerService.LocalBinder binder = (MediaPlayerService.LocalBinder) service;
             mService = binder.getService();
             mService.setMediaPlayerServiceListener((MediaPlayerServiceListener) ctx);
+            Log.d("DEBUG", "EZ onServiceConnected");
             createList();
             if (mService.getCurrentPlaylist().size() == 0) {
                 FloatingActionButton asd = findViewById(R.id.floatingShuffle);
@@ -77,7 +78,7 @@ public class SingleArtistActivity extends AppCompatActivity
                 v.setVisibility(View.VISIBLE);
                 View asd = findViewById(R.id.coverAlbumArtist);
                 ConstraintLayout.LayoutParams x = (ConstraintLayout.LayoutParams) asd.getLayoutParams();
-                x.bottomMargin = v.getHeight();
+                x.bottomMargin = 260;
                 asd.setLayoutParams(x);
                 PlayerInterface.UpdateTrack(v, mService);
             }
@@ -85,7 +86,7 @@ public class SingleArtistActivity extends AppCompatActivity
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-
+            mBound = false;
         }
     };
 
@@ -100,9 +101,10 @@ public class SingleArtistActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_artist);
+
         artist = getIntent().getStringExtra("EXTRA_ARTIST");
 
-        setContentView(R.layout.activity_artist);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle(artist);
         setSupportActionBar(toolbar);
@@ -206,7 +208,7 @@ public class SingleArtistActivity extends AppCompatActivity
 
     private void createList() {
         RecyclerView.LayoutManager mLayoutManagerAlbum = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
-        mRecyclerViewAlbums = findViewById(R.id.coverAlbumArtist);
+        RecyclerView mRecyclerViewAlbums = findViewById(R.id.coverAlbumArtist);
         mRecyclerViewAlbums.setLayoutManager(mLayoutManagerAlbum);
         mRecyclerViewAlbums.setAdapter(new MyListAdapter(new ArrayList(listAlbums), MyListAdapter.ARTALB_STATE));
     }
@@ -214,7 +216,9 @@ public class SingleArtistActivity extends AppCompatActivity
     @Override
     protected void onStop() {
         super.onStop();
-        unbindService(mConnection);
+        if (mBound) {
+            unbindService(mConnection);
+        }
     }
 
     @Override
