@@ -167,6 +167,21 @@ public class SettingsActivity extends AppCompatPreferenceActivity
         // Do Nothing
     }
 
+    @Override
+    public void onPlaylistSingleRequestComplete(String result, Exception e) {
+        // Never Called
+    }
+
+    @Override
+    public void onPlaylistsRequestComplete(String result, Exception e) {
+        // Never Called
+    }
+
+    @Override
+    public void onSuggestionsRequestComplete(String result, Exception e) {
+        // Never called
+    }
+
     /**
      * This fragment shows data and sync preferences only. It is used when the
      * activity is showing a two-pane settings UI.

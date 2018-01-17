@@ -69,173 +69,189 @@ public class MainActivity extends AppCompatActivity
         @Override
         public void onServiceConnected(ComponentName className,
                                        IBinder service) {
+
             // We've bound to LocalService, cast the IBinder and get LocalService instance
             MediaPlayerService.LocalBinder binder = (MediaPlayerService.LocalBinder) service;
             mService = binder.getService();
             mBound = true;
             mService.setMediaPlayerServiceListener(ctx);
-            mService.callTimer(mHandler);
             String uuidnow = getIntent().getStringExtra("EXTRA_UUID");
-
-            if(uuidnow!=null)
-                mService.seekToTrack(mService.append(DataBackend.getTracks(uuidnow)));
-
-            PagerContainer container = (PagerContainer) findViewById(R.id.pager_container);
-            Toolbar toolbar = findViewById(R.id.toolbar2);
-            toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    onBackPressed();
-                }
-            });
-            final ViewPager pager = container.getViewPager();
-            pager.setAdapter(new MainActivity.MyPagerAdapter());
-            pager.setClipChildren(false);
-            pager.setOffscreenPageLimit(4);
-            boolean showTransformer = getIntent().getBooleanExtra("showTransformer",true);
-            if(showTransformer){
-                new CoverFlow.Builder()
-                        .with(pager)
-                        .scale(0.3f)
-                        .pagerMargin(getResources().getDimensionPixelSize(R.dimen.pager_margin))
-                        .spaceSize(0f)
-                        .build();
-            }else{
-                pager.setPageMargin(30);
-            }
-            final Track tr = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex());
-            int curres = mService.getCurrentResource();
-            final TextView tv_song = (TextView) findViewById(R.id.tv_song);
-            tv_song.setText(tr.title);
-            RelativeLayout relativeLayout = (RelativeLayout) pager.getAdapter().instantiateItem(pager, 0);
-            ViewCompat.setElevation(relativeLayout.getRootView(), 8.0f);
-            Palette palette = Palette.from(getCover(tr)).generate();
-            setStatusBar(palette);
-            TextView tv_artist = findViewById(R.id.tv_artist);
-            ImageButton vie = findViewById(R.id.playbutton);
-            tv_artist.setText(tr.artist);
-            TextView tv_currentms = findViewById(R.id.tv_current_time);
-            tv_currentms.setText(parseDuration(mService.getCurrentprogress()));
-            TextView fullT = findViewById(R.id.tv_full_time);
-            fullT.setText(parseDuration((long) tr.duration*1000));
-            toolbar.setSubtitle(PreferencesHandler.getServer((Context) ctx));
-            toolbar.setTitle(tr.resources.get(curres).codec + " " + tr.resources.get(curres).sample_rate/1000 +
-                    "Khz " + tr.resources.get(curres).bitrate/1000 + "kbps");
-            ToggleButton toggleR = (ToggleButton) findViewById(R.id.toggleRepeat);
-            toggleR.setChecked(mService.getRepeat());
-            toggleR.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    mService.setRepeat(isChecked);
-                }
-            });
-            ToggleButton toggleS = (ToggleButton) findViewById(R.id.toggleShuffle);
-            toggleS.setChecked(mService.getShuffle());
-            toggleS.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    if(isChecked!=mService.getShuffle()){
-                        mService.toggleShuffle();
-                        pager.setAdapter(new MainActivity.MyPagerAdapter());
-                        pager.setCurrentItem(mService.getCurrentTrackIndex());
-                    }
-                }
-            });
-            if(mService.isPlaying())
-                vie.setImageResource(R.drawable.ic_pause);
-            else
-                vie.setImageResource(R.drawable.ic_play);
-            ToggleButton lik = findViewById(R.id.tb_love);
-            lik.setChecked(DataBackend.checkFavorite(tr));
-            lik.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    DataBackend.updateFavorite(mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex()), isChecked);
-                }
-            });
-            SeekBar tv_seek=findViewById(R.id.tv_seek);
-            tv_seek.setOnSeekBarChangeListener(new seekListener());
-            tv_seek.setMax(tr.duration*1000);
-            tv_seek.setProgress(mService.getCurrentprogress());
-            pager.setCurrentItem(mService.getCurrentTrackIndex(), true);
-            pager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-                @Override
-                public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
-                }
-
-                @Override
-                public void onPageSelected(int position) {
-                    mService.seekToTrack(position);
-                    final Track tra = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex());
-                    tv_song.setText(tra.title);
-                    RelativeLayout relativeLayout = (RelativeLayout) pager.getAdapter().instantiateItem(pager, 0);
-                    ViewCompat.setElevation(relativeLayout.getRootView(), 8.0f);
-                    Palette palette = Palette.from(getCover(tra)).generate();
-                    setStatusBar(palette);
-                    Toolbar toolbar = findViewById(R.id.toolbar2);
-                    toolbar.setSubtitle(PreferencesHandler.getServer((Context) ctx));
-                    int curres=mService.getCurrentResource();
-                    toolbar.setTitle(tra.resources.get(curres).codec + " " + tra.resources.get(curres).sample_rate/1000 +
-                            "Khz " + tra.resources.get(curres).bitrate/1000 + "kbps");
-                    TextView tv_artist = findViewById(R.id.tv_artist);
-                    if(tra.artist!=null)
-                        tv_artist.setText(tra.artist);
-                    else
-                        tv_artist.setText(tra.album_artist);
-
-                    TextView tv_currentms = findViewById(R.id.tv_current_time);
-                    tv_currentms.setText(parseDuration(mService.getCurrentprogress()));
-                    SeekBar tv_seek = findViewById(R.id.tv_seek);
-                    tv_seek.setMax(0);
-                    tv_seek.setProgress(0);
-                    TextView fullT = findViewById(R.id.tv_full_time);
-                    if(tra.duration==0)
-                        fullT.setText("-:-");
-                    else
-                        fullT.setText(parseDuration((long) tra.duration*1000));
-                    ToggleButton lik = findViewById(R.id.tb_love);
-                    lik.setChecked(DataBackend.checkFavorite(tra));
-                }
-
-                @Override
-                public void onPageScrollStateChanged(int state) {
-
-                }
-            });
-            findViewById(R.id.playlistshow).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent asd = new Intent(v.getContext(), PlaylistListActivity.class);
-                    startActivity(asd);
-                }
-            });
-            findViewById(R.id.playlistshare).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder((Context) ctx);
-                    builder.setTitle("Share your song")
-                            .setItems(shareOptions, new DialogInterface.OnClickListener() {
+            if(uuidnow!=null) {
+                Track toPlay=DataBackend.getTrack(uuidnow);
+                if(toPlay==null){
+                    AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+                    alertDialog.setMessage("You don't have this track in your servers");
+                    alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "BACK",
+                            new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
-                                    Track temp = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex());
-                                    switch (which) {
-                                        case 0:
-                                            Intent sendMail = new Intent((Context) ctx, SendMail.class);
-                                            sendMail.putExtra("EXTRA_UUID", temp.uuid);
-                                            startActivity(sendMail);
-                                            break;
-                                        case 1:
-                                            Intent sendIntent = new Intent();
-                                            sendIntent.setAction(Intent.ACTION_SEND);
-                                            sendIntent.putExtra(Intent.EXTRA_TEXT, "Currently Playing: " +
-                                                    temp.title + " by " + temp.artist + " on #tersicore");
-                                            sendIntent.setType("text/plain");
-                                            startActivity(sendIntent);
-                                            break;
-                                    }
+                                    dialog.dismiss();
+                                    onBackPressed();
                                 }
                             });
-                    builder.show();
+                    alertDialog.show();
                 }
-            });
+                else
+                    mService.seekToTrack(mService.append(toPlay));
+            }
+            if(mService.getCurrentPlaylist().size()>0) {
+                mService.callTimer(mHandler);
+                PagerContainer container = (PagerContainer) findViewById(R.id.pager_container);
+                Toolbar toolbar = findViewById(R.id.toolbar2);
+                toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        onBackPressed();
+                    }
+                });
+                final ViewPager pager = container.getViewPager();
+                pager.setAdapter(new MainActivity.MyPagerAdapter());
+                pager.setClipChildren(false);
+                pager.setOffscreenPageLimit(4);
+                boolean showTransformer = getIntent().getBooleanExtra("showTransformer", true);
+                if (showTransformer) {
+                    new CoverFlow.Builder()
+                            .with(pager)
+                            .scale(0.3f)
+                            .pagerMargin(getResources().getDimensionPixelSize(R.dimen.pager_margin))
+                            .spaceSize(0f)
+                            .build();
+                } else {
+                    pager.setPageMargin(30);
+                }
+                final Track tr = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex());
+                int curres = mService.getCurrentResource();
+                final TextView tv_song = (TextView) findViewById(R.id.tv_song);
+                tv_song.setText(tr.title);
+                RelativeLayout relativeLayout = (RelativeLayout) pager.getAdapter().instantiateItem(pager, 0);
+                ViewCompat.setElevation(relativeLayout.getRootView(), 8.0f);
+                Palette palette = Palette.from(getCover(tr)).generate();
+                setStatusBar(palette);
+                TextView tv_artist = findViewById(R.id.tv_artist);
+                ImageButton vie = findViewById(R.id.playbutton);
+                tv_artist.setText(tr.artist);
+                TextView tv_currentms = findViewById(R.id.tv_current_time);
+                tv_currentms.setText(parseDuration(mService.getCurrentprogress()));
+                TextView fullT = findViewById(R.id.tv_full_time);
+                fullT.setText(parseDuration((long) tr.duration * 1000));
+                toolbar.setSubtitle(PreferencesHandler.getServer((Context) ctx));
+                toolbar.setTitle(tr.resources.get(curres).codec + " " + tr.resources.get(curres).sample_rate / 1000 +
+                        "Khz " + tr.resources.get(curres).bitrate / 1000 + "kbps");
+                ToggleButton toggleR = (ToggleButton) findViewById(R.id.toggleRepeat);
+                toggleR.setChecked(mService.getRepeat());
+                toggleR.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        mService.setRepeat(isChecked);
+                    }
+                });
+                ToggleButton toggleS = (ToggleButton) findViewById(R.id.toggleShuffle);
+                toggleS.setChecked(mService.getShuffle());
+                toggleS.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        if (isChecked != mService.getShuffle()) {
+                            mService.toggleShuffle();
+                            pager.setAdapter(new MainActivity.MyPagerAdapter());
+                            pager.setCurrentItem(mService.getCurrentTrackIndex());
+                        }
+                    }
+                });
+                if (mService.isPlaying())
+                    vie.setImageResource(R.drawable.ic_pause);
+                else
+                    vie.setImageResource(R.drawable.ic_play);
+                ToggleButton lik = findViewById(R.id.tb_love);
+                lik.setChecked(DataBackend.checkFavorite(tr));
+                lik.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        DataBackend.updateFavorite(mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex()), isChecked);
+                    }
+                });
+                SeekBar tv_seek = findViewById(R.id.tv_seek);
+                tv_seek.setOnSeekBarChangeListener(new seekListener());
+                tv_seek.setMax(tr.duration * 1000);
+                tv_seek.setProgress(mService.getCurrentprogress());
+                pager.setCurrentItem(mService.getCurrentTrackIndex(), true);
+                pager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+                    @Override
+                    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+                    }
+
+                    @Override
+                    public void onPageSelected(int position) {
+                        mService.seekToTrack(position);
+                        final Track tra = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex());
+                        tv_song.setText(tra.title);
+                        RelativeLayout relativeLayout = (RelativeLayout) pager.getAdapter().instantiateItem(pager, 0);
+                        ViewCompat.setElevation(relativeLayout.getRootView(), 8.0f);
+                        Palette palette = Palette.from(getCover(tra)).generate();
+                        setStatusBar(palette);
+                        Toolbar toolbar = findViewById(R.id.toolbar2);
+                        toolbar.setSubtitle(PreferencesHandler.getServer((Context) ctx));
+                        int curres = mService.getCurrentResource();
+                        toolbar.setTitle(tra.resources.get(curres).codec + " " + tra.resources.get(curres).sample_rate / 1000 +
+                                "Khz " + tra.resources.get(curres).bitrate / 1000 + "kbps");
+                        TextView tv_artist = findViewById(R.id.tv_artist);
+                        if (tra.artist != null)
+                            tv_artist.setText(tra.artist);
+                        else
+                            tv_artist.setText(tra.album_artist);
+
+                        TextView tv_currentms = findViewById(R.id.tv_current_time);
+                        tv_currentms.setText(parseDuration(mService.getCurrentprogress()));
+                        SeekBar tv_seek = findViewById(R.id.tv_seek);
+                        tv_seek.setMax(0);
+                        tv_seek.setProgress(0);
+                        TextView fullT = findViewById(R.id.tv_full_time);
+                        if (tra.duration == 0)
+                            fullT.setText("-:-");
+                        else
+                            fullT.setText(parseDuration((long) tra.duration * 1000));
+                        ToggleButton lik = findViewById(R.id.tb_love);
+                        lik.setChecked(DataBackend.checkFavorite(tra));
+                    }
+
+                    @Override
+                    public void onPageScrollStateChanged(int state) {
+
+                    }
+                });
+                findViewById(R.id.playlistshow).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent asd = new Intent(v.getContext(), PlaylistListActivity.class);
+                        startActivity(asd);
+                    }
+                });
+                findViewById(R.id.playlistshare).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder((Context) ctx);
+                        builder.setTitle("Share your song")
+                                .setItems(shareOptions, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        Track temp = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex());
+                                        switch (which) {
+                                            case 0:
+                                                Intent sendMail = new Intent((Context) ctx, SendMail.class);
+                                                sendMail.putExtra("EXTRA_UUID", temp.uuid);
+                                                startActivity(sendMail);
+                                                break;
+                                            case 1:
+                                                Intent sendIntent = new Intent();
+                                                sendIntent.setAction(Intent.ACTION_SEND);
+                                                sendIntent.putExtra(Intent.EXTRA_TEXT, "Currently Playing: " +
+                                                        temp.title + " by " + temp.artist + " on #tersicore");
+                                                sendIntent.setType("text/plain");
+                                                startActivity(sendIntent);
+                                                break;
+                                        }
+                                    }
+                                });
+                        builder.show();
+                    }
+                });
+            }
         }
 
         @Override

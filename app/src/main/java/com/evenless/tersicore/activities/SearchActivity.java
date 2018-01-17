@@ -55,6 +55,8 @@ import com.evenless.tersicore.TaskHandler;
 import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.Playlist;
 import com.evenless.tersicore.model.Track;
+
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -62,6 +64,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.evenless.tersicore.model.TrackSuggestion;
 import com.evenless.tersicore.view.NonScrollableListView;
 import com.google.gson.Gson;
 
@@ -129,6 +132,7 @@ public class SearchActivity extends AppCompatActivity
                 listRecentAlbums=DataBackend.getLastTracks();
                 try {
                     TaskHandler.getLatestTracks(this, PreferencesHandler.getServer(this));
+                    TaskHandler.getSuggestions(this, PreferencesHandler.getServer(this));
                 } catch (Exception e) {
                     Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
                 }
@@ -495,7 +499,6 @@ public class SearchActivity extends AppCompatActivity
                     else
                         listRecentUpAlbums.add(new Album(t.album, t.artist));
 
-                // use a linear layout manager
                 RecyclerView.LayoutManager mLayoutM = new LinearLayoutManager(ctx,
                         LinearLayoutManager.HORIZONTAL,
                         false);
@@ -504,6 +507,34 @@ public class SearchActivity extends AppCompatActivity
                 mRecyclerV.setLayoutManager(mLayoutM);
                 findViewById(R.id.textView3).setVisibility(View.VISIBLE);
                 mRecyclerV.setAdapter(new MyListAdapter(listRecentUpAlbums, MyListAdapter.ALBUMS_STATE));
+            }
+        }
+    }
+
+    @Override
+    public void onPlaylistSingleRequestComplete(String result, Exception e) {
+        // never called
+    }
+
+    @Override
+    public void onPlaylistsRequestComplete(String result, Exception e) {
+        // never called
+    }
+
+    @Override
+    public void onSuggestionsRequestComplete(String result, Exception e) {
+        if(e!=null){
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+        } else if (result != null){
+            TrackSuggestion[] temporary = new Gson().fromJson(result, TrackSuggestion[].class);
+            if (temporary.length>0) {
+                RecyclerView.LayoutManager mLayoutM = new LinearLayoutManager(ctx,
+                        LinearLayoutManager.HORIZONTAL,
+                        false);
+                RecyclerView mRecyclerV = findViewById(R.id.suggestionsview);
+                mRecyclerV.setLayoutManager(mLayoutM);
+                findViewById(R.id.textView1).setVisibility(View.VISIBLE);
+                mRecyclerV.setAdapter(new MyListAdapter(new ArrayList<>(Arrays.asList(temporary)), MyListAdapter.SUGGESTIONS_STATE));
             }
         }
     }

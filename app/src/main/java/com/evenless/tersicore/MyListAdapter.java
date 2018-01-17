@@ -17,6 +17,7 @@ import android.widget.TextView;
 import com.evenless.tersicore.activities.MainActivity;
 import com.evenless.tersicore.activities.SingleAlbumActivity;
 import com.evenless.tersicore.activities.SingleArtistActivity;
+import com.evenless.tersicore.exceptions.TrackNotPresentException;
 import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.Cover;
 import com.evenless.tersicore.model.Track;
@@ -142,7 +143,7 @@ implements ImageRequestTaskListener, CoverDownloadTaskListener {
             final TrackSuggestion t = mTrackSugg.get(position);
             temp=t.toString();
             holder.mTextView2.setVisibility(View.VISIBLE);
-            holder.mTextView2.setText("Suggested by " + t.username);
+            holder.mTextView2.setText(t.username);
             tempImg = mImages.get(t.album + t.artist);
             if(tempImg==null)
                 getAlbumCover(new Album(t.album, t.artist), ALBUMS_STATE);

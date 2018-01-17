@@ -19,9 +19,13 @@ public class ApiRequestTask extends GenericRequestTask {
     @Override
     protected void notifyResult(String result, Exception e) {
         super.notifyResult(result, e);
-        if(mState== TaskHandler.ALL_TRACKS)
-            mListener.onRequestComplete(result, e);
-        else
-            mListener.onLatestRequestComplete(result,e);
+        switch (mState){
+            case TaskHandler.ALL_TRACKS: mListener.onRequestComplete(result, e); break;
+            case TaskHandler.TRACKS_LATEST: mListener.onLatestRequestComplete(result,e); break;
+            case TaskHandler.PLAYLIST_SINGLE: mListener.onPlaylistSingleRequestComplete(result,e); break;
+            case TaskHandler.PLAYLISTS: mListener.onPlaylistsRequestComplete(result,e); break;
+            case TaskHandler.SUGGESTIONS: mListener.onSuggestionsRequestComplete(result,e); break;
+            default: break;
+        }
     }
 }

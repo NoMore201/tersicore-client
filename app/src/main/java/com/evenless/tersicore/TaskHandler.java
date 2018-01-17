@@ -22,6 +22,9 @@ public class TaskHandler {
     private static final String API_SHARED_SECRET = "ca91306bbff831733d675dfc6e556b77";
     public static final int ALL_TRACKS = 0;
     public static final int TRACKS_LATEST = 1;
+    public static final int PLAYLISTS = 2;
+    public static final int PLAYLIST_SINGLE = 3;
+    public static final int SUGGESTIONS = 4;
 
     public static void getTracks(ApiRequestTaskListener listener,
                                  String server) throws MalformedURLException
@@ -36,6 +39,30 @@ public class TaskHandler {
     {
         URL url = new URL(server + "/tracks/latest");
         ApiRequestTask task = new ApiRequestTask(listener, url , TRACKS_LATEST);
+        task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+    }
+
+    public static void getPlaylists(ApiRequestTaskListener listener,
+                                 String server) throws MalformedURLException
+    {
+        URL url = new URL(server + "/playlists");
+        ApiRequestTask task = new ApiRequestTask(listener, url, PLAYLISTS);
+        task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+    }
+
+    public static void getPlaylist(ApiRequestTaskListener listener,
+                                    String server, String id) throws MalformedURLException
+    {
+        URL url = new URL(server + "/playlists/" + id);
+        ApiRequestTask task = new ApiRequestTask(listener, url, PLAYLIST_SINGLE);
+        task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+    }
+
+    public static void getSuggestions(ApiRequestTaskListener listener,
+                                    String server) throws MalformedURLException
+    {
+        URL url = new URL(server + "/suggestions");
+        ApiRequestTask task = new ApiRequestTask(listener, url, SUGGESTIONS);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
