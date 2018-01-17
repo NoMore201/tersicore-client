@@ -3,6 +3,7 @@ package com.evenless.tersicore.activities;
 import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
@@ -15,6 +16,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.graphics.Palette;
@@ -57,7 +59,7 @@ import me.crosswall.lib.coverflow.core.PagerContainer;
 public class MainActivity extends AppCompatActivity
     implements MediaPlayerServiceListener {
     private static final String TAG = "MainActivity";
-
+    private final String [] shareOptions = {"Send a mail in Tersicore", "External App"};
     private MediaPlayerService mService;
     private boolean mBound;
     private final MediaPlayerServiceListener ctx = this;
@@ -206,7 +208,34 @@ public class MainActivity extends AppCompatActivity
                     startActivity(asd);
                 }
             });
-
+            findViewById(R.id.playlistshare).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder((Context) ctx);
+                    builder.setTitle("Share your song")
+                            .setItems(shareOptions, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Track temp = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex());
+                                    switch (which) {
+                                        case 0:
+                                            Intent sendMail = new Intent((Context) ctx, SendMail.class);
+                                            sendMail.putExtra("EXTRA_UUID", temp.uuid);
+                                            startActivity(sendMail);
+                                            break;
+                                        case 1:
+                                            Intent sendIntent = new Intent();
+                                            sendIntent.setAction(Intent.ACTION_SEND);
+                                            sendIntent.putExtra(Intent.EXTRA_TEXT, "Currently Playing: " +
+                                                    temp.title + " by " + temp.artist + " on #tersicore");
+                                            sendIntent.setType("text/plain");
+                                            startActivity(sendIntent);
+                                            break;
+                                    }
+                                }
+                            });
+                    builder.show();
+                }
+            });
         }
 
         @Override

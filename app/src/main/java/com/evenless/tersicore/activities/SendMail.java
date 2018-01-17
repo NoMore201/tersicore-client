@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.provider.ContactsContract;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -44,6 +45,20 @@ public class SendMail extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_send_email);
         String mailid = getIntent().getStringExtra("EXTRA_CONTACT_NAME");
+        String tracksuggested = getIntent().getStringExtra("EXTRA_UUID");
+        if(tracksuggested!=null){
+            Track temp = DataBackend.getTrack(tracksuggested);
+            suggestionTrack = new TrackSuggestion();
+            suggestionTrack.title = temp.title;
+            suggestionTrack.uuid = temp.uuid;
+            suggestionTrack.album = temp.album;
+            suggestionTrack.artist = temp.artist;
+            suggestionTrack.username = "Me";
+            TextView asd = findViewById(R.id.songsend);
+            asd.setText("Track Suggested: " + suggestionTrack.toString());
+            findViewById(R.id.addsong).setVisibility(View.GONE);
+            findViewById(R.id.removesong).setVisibility(View.VISIBLE);
+        }
         //Get Mail
         Toolbar toolbar = findViewById(R.id.toolbar2);
         toolbar.setTitle("Send Email");
