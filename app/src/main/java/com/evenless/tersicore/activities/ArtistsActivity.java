@@ -44,7 +44,7 @@ import java.util.List;
  */
 
 public class ArtistsActivity  extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, ApiRequestTaskListener,
+        implements NavigationView.OnNavigationItemSelectedListener,
         MediaPlayerServiceListener {
 
     private List<String> listArtists;
@@ -103,18 +103,7 @@ public class ArtistsActivity  extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        try {
-            if (DataBackend.getArtists().size() != 0) {
-                listArtists= DataBackend.getArtists();
-            } else
-                try {
-                    TaskHandler.getTracks(this, PreferencesHandler.getServer(this));
-                } catch (Exception e) {
-                    listArtists = new ArrayList<>();
-                }
-        } catch (Exception e){
-            Log.e("ArtistsActivity", e.getMessage());
-        }
+        listArtists= DataBackend.getArtists();
         setContentView(R.layout.activity_main4);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -191,23 +180,6 @@ public class ArtistsActivity  extends AppCompatActivity
             drawer.closeDrawer(GravityCompat.START);
         } else {
             super.onBackPressed();
-        }
-    }
-
-    @Override
-    public void onRequestComplete(String response, Exception e) {
-        if(e!=null){
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
-        } else if (response != null) {
-            DataBackend.insertTracks(new ArrayList<>(Arrays.asList(new Gson().fromJson(response, Track[].class))));
-            listArtists = DataBackend.getArtists();
-            ListView lsv = findViewById(R.id.listart);
-            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
-                    this,
-                    android.R.layout.simple_list_item_1,
-                    android.R.id.text1,
-                    listArtists );
-            lsv.setAdapter(arrayAdapter);
         }
     }
 

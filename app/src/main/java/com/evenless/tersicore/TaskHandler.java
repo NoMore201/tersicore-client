@@ -20,12 +20,22 @@ public class TaskHandler {
     private static final String API_BASE_URL = "https://ws.audioscrobbler.com/2.0/";
     private static final String API_KEY = "b6570587abc105bc286cf227cabbba50";
     private static final String API_SHARED_SECRET = "ca91306bbff831733d675dfc6e556b77";
+    public static final int ALL_TRACKS = 0;
+    public static final int TRACKS_LATEST = 1;
 
     public static void getTracks(ApiRequestTaskListener listener,
                                  String server) throws MalformedURLException
     {
         URL url = new URL(server + "/tracks");
-        ApiRequestTask task = new ApiRequestTask(listener, url);
+        ApiRequestTask task = new ApiRequestTask(listener, url, ALL_TRACKS);
+        task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+    }
+
+    public static void getLatestTracks(ApiRequestTaskListener listener,
+                                 String server) throws MalformedURLException
+    {
+        URL url = new URL(server + "/tracks/latest");
+        ApiRequestTask task = new ApiRequestTask(listener, url , TRACKS_LATEST);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 

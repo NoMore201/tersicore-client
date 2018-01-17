@@ -162,6 +162,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity
         }
     }
 
+    @Override
+    public void onLatestRequestComplete(String response, Exception e) {
+        // Do Nothing
+    }
+
     /**
      * This fragment shows data and sync preferences only. It is used when the
      * activity is showing a two-pane settings UI.

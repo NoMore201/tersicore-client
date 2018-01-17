@@ -46,7 +46,7 @@ import java.util.List;
  */
 
 public class SingleArtistActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, ApiRequestTaskListener,
+        implements NavigationView.OnNavigationItemSelectedListener,
         MediaPlayerServiceListener{
 
     private List<Album> listAlbums;
@@ -138,18 +138,10 @@ public class SingleArtistActivity extends AppCompatActivity
             }
         });
 
-        try {
-            if (DataBackend.getArtists().size() != 0) {
-                listAlbums = DataBackend.getAlbums(artist);
-            } else
-                try {
-                    TaskHandler.getTracks(this, PreferencesHandler.getServer(this));
-                } catch (Exception e) {
-                    listAlbums = new ArrayList<>();
-                }
-        } catch (Exception e) {
-            Log.e("ArtistsActivity", e.getMessage());
-        }
+        listAlbums = DataBackend.getAlbums(artist);
+        if(listAlbums!=null)
+            createList();
+
     }
 
     @Override
@@ -192,17 +184,6 @@ public class SingleArtistActivity extends AppCompatActivity
             drawer.closeDrawer(GravityCompat.START);
         } else {
             super.onBackPressed();
-        }
-    }
-
-    @Override
-    public void onRequestComplete(String response, Exception e) {
-        if (e != null) {
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
-        } else if (response != null) {
-            DataBackend.insertTracks(new ArrayList<>(Arrays.asList(new Gson().fromJson(response, Track[].class))));
-            listAlbums = DataBackend.getAlbums(artist);
-            createList();
         }
     }
 

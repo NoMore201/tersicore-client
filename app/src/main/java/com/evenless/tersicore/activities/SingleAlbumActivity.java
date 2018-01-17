@@ -68,7 +68,7 @@ import java.util.List;
 import java.util.Locale;
 
 public class SingleAlbumActivity  extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, ApiRequestTaskListener,
+        implements NavigationView.OnNavigationItemSelectedListener,
         MediaPlayerServiceListener, ImageRequestTaskListener, CoverDownloadTaskListener,
         AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
 
@@ -147,19 +147,9 @@ public class SingleAlbumActivity  extends AppCompatActivity
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        try {
-            if (DataBackend.getArtists().size() != 0) {
-                listTracks=DataBackend.getTracks(artist, albumName);
-                updateList();
-            } else
-                try {
-                    TaskHandler.getTracks(this, PreferencesHandler.getServer(this));
-                } catch (Exception e) {
-                    listTracks = new ArrayList<>();
-                }
-        } catch (Exception e){
-            e.printStackTrace();
-        }
+        listTracks=DataBackend.getTracks(artist, albumName);
+        if(listTracks!=null)
+            updateList();
 
         ToggleButton lik = findViewById(R.id.likeButt);
         lik.setChecked(DataBackend.checkFavorite(new Album(albumName, artist)));
@@ -220,17 +210,6 @@ public class SingleAlbumActivity  extends AppCompatActivity
         }
     }
 
-    @Override
-    public void onRequestComplete(String response, Exception e) {
-        if(e!=null){
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
-        } else if (response != null) {
-            DataBackend.insertTracks(new ArrayList<>(Arrays.asList(new Gson().fromJson(response, Track[].class))));
-            listTracks=DataBackend.getTracks(artist, albumName);
-            updateList();
-        }
-    }
-
     private void updateList() {
         ListView lsv = findViewById(R.id.albumScrollableList);
         TextView aln = findViewById(R.id.albumname);
@@ -249,6 +228,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
                 calendar.setTime(date);
                 int year = calendar.get(Calendar.YEAR);
                 y.setText(year + "");
+                findViewById(R.id.separator).setVisibility(View.VISIBLE);
             } catch (Exception e) {
                 e.printStackTrace();
             }

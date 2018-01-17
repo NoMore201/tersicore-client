@@ -127,6 +127,11 @@ public class SearchActivity extends AppCompatActivity
                 listTracks = new Track[DataBackend.getTracks().size()];
                 DataBackend.getTracks().toArray(listTracks);
                 listRecentAlbums=DataBackend.getLastTracks();
+                try {
+                    TaskHandler.getLatestTracks(this, PreferencesHandler.getServer(this));
+                } catch (Exception e) {
+                    Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+                }
             } else
                 try {
                     TaskHandler.getTracks(this, PreferencesHandler.getServer(this));
@@ -469,11 +474,37 @@ public class SearchActivity extends AppCompatActivity
         } else if (response != null) {
             listTracks = new Gson().fromJson(response, Track[].class);
             DataBackend.insertTracks(new ArrayList<>(Arrays.asList(listTracks)));
-            listRecentAlbums=DataBackend.getLastTracks();
-            if(listRecentAlbums.size()<1)
-                findViewById(R.id.textView2).setVisibility(View.GONE);
-            else
-                mRecyclerViewAlbumsRecent.setAdapter(new MyListAdapter(listRecentAlbums, MyListAdapter.ALBUMS_STATE));
+            try {
+                TaskHandler.getLatestTracks(this, PreferencesHandler.getServer(this));
+            } catch (Exception ex) {
+                Toast.makeText(this, ex.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    @Override
+    public void onLatestRequestComplete(String response, Exception e) {
+        if(e!=null){
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+        } else if (response != null) {
+            Track[] temporary = new Gson().fromJson(response, Track[].class);
+            if (temporary.length>0) {
+                for (Track t : temporary)
+                    if (t.album_artist != null)
+                        listRecentUpAlbums.add(new Album(t.album, t.album_artist));
+                    else
+                        listRecentUpAlbums.add(new Album(t.album, t.artist));
+
+                // use a linear layout manager
+                RecyclerView.LayoutManager mLayoutM = new LinearLayoutManager(ctx,
+                        LinearLayoutManager.HORIZONTAL,
+                        false);
+
+                RecyclerView mRecyclerV = findViewById(R.id.coverlistuploadedview);
+                mRecyclerV.setLayoutManager(mLayoutM);
+                findViewById(R.id.textView3).setVisibility(View.VISIBLE);
+                mRecyclerV.setAdapter(new MyListAdapter(listRecentUpAlbums, MyListAdapter.ALBUMS_STATE));
+            }
         }
     }
 

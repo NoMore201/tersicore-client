@@ -52,7 +52,7 @@ import java.util.List;
  */
 
 public class TracksActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, ApiRequestTaskListener,
+        implements NavigationView.OnNavigationItemSelectedListener,
         MediaPlayerServiceListener {
 
     private static final String TAG = "TracksActivity";
@@ -134,25 +134,16 @@ public class TracksActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
         if(artist==null)
             navigationView.setCheckedItem(R.id.nav_songs);
+        if (artist == null)
+            listTracks = DataBackend.getTracks();
+        else
+            listTracks = DataBackend.getTracks(artist);
 
-        try {
-            if (DataBackend.getArtists().size() != 0) {
-                if (artist == null)
-                    listTracks = DataBackend.getTracks();
-                else
-                    listTracks = DataBackend.getTracks(artist);
-                updateList();
-            } else
-                try {
-                    TaskHandler.getTracks(this, PreferencesHandler.getServer(this));
-                } catch (Exception e) {
-                    listTracks = new ArrayList<>();
-                }
-        } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
-        }
+        updateList();
+
     }
 
     @Override
@@ -200,20 +191,6 @@ public class TracksActivity extends AppCompatActivity
             drawer.closeDrawer(GravityCompat.START);
         } else {
             super.onBackPressed();
-        }
-    }
-
-    @Override
-    public void onRequestComplete(String response, Exception e) {
-        if (e != null) {
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
-        } else if (response != null) {
-            DataBackend.insertTracks(new ArrayList<>(Arrays.asList(new Gson().fromJson(response, Track[].class))));
-            if (artist == null)
-                listTracks = DataBackend.getTracks();
-            else
-                listTracks = DataBackend.getTracks(artist);
-            updateList();
         }
     }
 

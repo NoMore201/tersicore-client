@@ -47,7 +47,7 @@ import java.util.List;
  */
 
 public class AlbumsActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, ApiRequestTaskListener,
+        implements NavigationView.OnNavigationItemSelectedListener,
                     MediaPlayerServiceListener{
 
     private List<Album> listAlbums;
@@ -119,20 +119,9 @@ public class AlbumsActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         navigationView.setCheckedItem(R.id.nav_albums);
-        try {
-            if (DataBackend.getArtists().size() != 0) {
-                listAlbums= DataBackend.getAlbums();
-                createList();
-            } else
-                try {
-                    TaskHandler.getTracks(this, PreferencesHandler.getServer(this));
-                } catch (Exception e) {
-                    listAlbums = new ArrayList<>();
-                }
-        } catch (Exception e){
-            Log.e("AlbumsActivity", e.getMessage());
-        }
-
+        listAlbums= DataBackend.getAlbums();
+        if(listAlbums!=null)
+            createList();
         findViewById(R.id.floatingActionButton).setOnClickListener(
                 new View.OnClickListener() {
                     @Override
@@ -218,17 +207,6 @@ public class AlbumsActivity extends AppCompatActivity
             drawer.closeDrawer(GravityCompat.START);
         } else {
             super.onBackPressed();
-        }
-    }
-
-    @Override
-    public void onRequestComplete(String response, Exception e) {
-        if(e!=null){
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
-        } else if (response != null) {
-            DataBackend.insertTracks(new ArrayList<>(Arrays.asList(new Gson().fromJson(response, Track[].class))));
-            listAlbums = DataBackend.getAlbums();
-            createList();
         }
     }
 
