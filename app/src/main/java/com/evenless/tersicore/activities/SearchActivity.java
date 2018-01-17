@@ -80,11 +80,15 @@ public class SearchActivity extends AppCompatActivity
     private Track[] listTracks = new Track[0];
     private ArrayList<Track> listTracksFiltered = new ArrayList<>();
     private ArrayList<Album> listAlbums = new ArrayList<>();
+    private ArrayList<Album> listRecentAlbums = new ArrayList<>();
+    private ArrayList<Album> listRecentSuggestions = new ArrayList<>();
+    private ArrayList<Album> listRecentUpAlbums = new ArrayList<>();
     private ArrayList<String> listArtists = new ArrayList<>();
     private Context ctx = this;
     private boolean mBound=false;
     private RecyclerView mRecyclerView;
     private RecyclerView mRecyclerViewAlbums;
+    private RecyclerView mRecyclerViewAlbumsRecent;
     private int page = 0;
     private MediaPlayerService mService;
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -103,7 +107,7 @@ public class SearchActivity extends AppCompatActivity
                 v.setVisibility(View.VISIBLE);
                 LinearLayout asd = findViewById(R.id.linearLayout4);
                 ConstraintLayout.LayoutParams x = (ConstraintLayout.LayoutParams) asd.getLayoutParams();
-                x.bottomMargin = x.bottomMargin + v.getHeight();
+                x.bottomMargin = x.bottomMargin + 200;
                 asd.setLayoutParams(x);
                 PlayerInterface.UpdateTrack(v, mService);
             }
@@ -122,6 +126,7 @@ public class SearchActivity extends AppCompatActivity
             if (DataBackend.getTracks().size() != 0) {
                 listTracks = new Track[DataBackend.getTracks().size()];
                 DataBackend.getTracks().toArray(listTracks);
+                listRecentAlbums=DataBackend.getLastTracks();
             } else
                 try {
                     TaskHandler.getTracks(this, PreferencesHandler.getServer(this));
@@ -154,8 +159,18 @@ public class SearchActivity extends AppCompatActivity
                 LinearLayoutManager.HORIZONTAL,
                 false);
 
+        RecyclerView.LayoutManager mLayoutManagerAlbumRecent = new LinearLayoutManager(this,
+                LinearLayoutManager.HORIZONTAL,
+                false);
+
         mRecyclerView = findViewById(R.id.artistlistview);
         mRecyclerViewAlbums = findViewById(R.id.coverlistview);
+        mRecyclerViewAlbumsRecent = findViewById(R.id.coverlistrecentview);
+        mRecyclerViewAlbumsRecent.setLayoutManager(mLayoutManagerAlbumRecent);
+        if(listRecentAlbums.size()<1)
+            findViewById(R.id.textView2).setVisibility(View.GONE);
+        else
+            mRecyclerViewAlbumsRecent.setAdapter(new MyListAdapter(listRecentAlbums, MyListAdapter.ALBUMS_STATE));
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerViewAlbums.setLayoutManager(mLayoutManagerAlbum);
 
@@ -454,6 +469,11 @@ public class SearchActivity extends AppCompatActivity
         } else if (response != null) {
             listTracks = new Gson().fromJson(response, Track[].class);
             DataBackend.insertTracks(new ArrayList<>(Arrays.asList(listTracks)));
+            listRecentAlbums=DataBackend.getLastTracks();
+            if(listRecentAlbums.size()<1)
+                findViewById(R.id.textView2).setVisibility(View.GONE);
+            else
+                mRecyclerViewAlbumsRecent.setAdapter(new MyListAdapter(listRecentAlbums, MyListAdapter.ALBUMS_STATE));
         }
     }
 

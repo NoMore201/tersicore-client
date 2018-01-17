@@ -19,7 +19,6 @@
         android:visibility="visible" />
 
     <include
-        android:id="@+id/include4"
         layout="@layout/content_album"
         tools:layout_editor_absoluteY="122dp" />
 
@@ -33,7 +32,6 @@
     android:background="@android:color/background_light"
     app:layout_anchorGravity="bottom|center">
     <include
-        android:id="@+id/include"
         layout="@layout/mini_player"
         tools:layout_editor_absoluteY="0dp" />
     </LinearLayout>

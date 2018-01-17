@@ -76,7 +76,7 @@ public class PlaylistsActivity extends AppCompatActivity
                 v.setVisibility(View.VISIBLE);
                 ListView asd = findViewById(R.id.listart);
                 ConstraintLayout.LayoutParams x = (ConstraintLayout.LayoutParams) asd.getLayoutParams();
-                x.bottomMargin=v.getHeight();
+                x.bottomMargin=200;
                 asd.setLayoutParams(x);
                 PlayerInterface.UpdateTrack(v, mService);
             }

@@ -14,10 +14,13 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.evenless.tersicore.activities.MainActivity;
 import com.evenless.tersicore.activities.SingleAlbumActivity;
 import com.evenless.tersicore.activities.SingleArtistActivity;
 import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.Cover;
+import com.evenless.tersicore.model.Track;
+import com.evenless.tersicore.model.TrackSuggestion;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -38,10 +41,12 @@ public class MyListAdapter extends RecyclerView.Adapter<MyListAdapter.ViewHolder
 implements ImageRequestTaskListener, CoverDownloadTaskListener {
     private ArrayList<String> mDataset;
     private ArrayList<Album> mTrackSet;
+    private ArrayList<TrackSuggestion> mTrackSugg;
     private Map<String, Bitmap> mImages;
     public static final int ARTIST_STATE = 0;
     public static final int ALBUMS_STATE = 1;
     public static final int ARTALB_STATE = 2;
+    public static final int SUGGESTIONS_STATE = 3;
     private int listtypeNumber;
 
     // Provide a reference to the views for each data item
@@ -50,11 +55,13 @@ implements ImageRequestTaskListener, CoverDownloadTaskListener {
     public static class ViewHolder extends RecyclerView.ViewHolder {
         // each data item is just a string in this case
         public TextView mTextView;
+        public TextView mTextView2;
         public ImageView mImageView;
 
         public ViewHolder(LinearLayout v) {
             super(v);
             mTextView = v.findViewById(R.id.covertitle);
+            mTextView2 = v.findViewById(R.id.suggby);
             mImageView = v.findViewById(R.id.coverimg);
         }
     }
@@ -65,6 +72,8 @@ implements ImageRequestTaskListener, CoverDownloadTaskListener {
             mDataset = myDataset;
         else if(state==ALBUMS_STATE || state==ARTALB_STATE)
             mTrackSet = myDataset;
+        else if(state==SUGGESTIONS_STATE)
+            mTrackSugg=myDataset;
         mImages=new HashMap<>();
         for(Cover c : DataBackend.getCovers())
             mImages.put(c.album + c.artist, BitmapFactory.decodeByteArray(c.cover, 0, c.cover.length));
@@ -79,12 +88,10 @@ implements ImageRequestTaskListener, CoverDownloadTaskListener {
         // create a new view
         if(listtypeNumber!=ARTALB_STATE)
             v = (LinearLayout) LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.layoutlist, parent, false);
+                    .inflate(R.layout.layoutlist, parent, false);
         else
             v = (LinearLayout) LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.layoutlistsecond, parent, false);
-
-        // set the view's size, margins, paddings and layout parameters
 
         ViewHolder vh = new ViewHolder(v);
         return vh;
@@ -131,6 +138,29 @@ implements ImageRequestTaskListener, CoverDownloadTaskListener {
                     v.getContext().startActivity(asd);
                 }
             };
+        } else if(listtypeNumber==SUGGESTIONS_STATE){
+            final TrackSuggestion t = mTrackSugg.get(position);
+            temp=t.toString();
+            holder.mTextView2.setVisibility(View.VISIBLE);
+            holder.mTextView2.setText("Suggested by " + t.username);
+            tempImg = mImages.get(t.album + t.artist);
+            if(tempImg==null)
+                getAlbumCover(new Album(t.album, t.artist), ALBUMS_STATE);
+            list = new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(t.uuid==null) {
+                        Intent asd = new Intent(v.getContext(), SingleAlbumActivity.class);
+                        asd.putExtra("EXTRA_ARTIST", t.artist);
+                        asd.putExtra("EXTRA_ALBUM", t.album);
+                        v.getContext().startActivity(asd);
+                    } else {
+                        Intent asd = new Intent(v.getContext(), MainActivity.class);
+                        asd.putExtra("EXTRA_UUID", t.uuid);
+                        v.getContext().startActivity(asd);
+                    }
+                }
+            };
         }
         else
             temp = "";
@@ -152,6 +182,8 @@ implements ImageRequestTaskListener, CoverDownloadTaskListener {
             return mDataset.size();
         else if (listtypeNumber==ALBUMS_STATE || listtypeNumber==ARTALB_STATE)
             return mTrackSet.size();
+        else if(listtypeNumber == SUGGESTIONS_STATE)
+            return mTrackSugg.size();
         else
             return 0;
     }

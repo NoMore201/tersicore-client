@@ -24,12 +24,14 @@ public class EmailSingleAdapter extends ArrayAdapter<EmailType> {
         Context context;
         int layoutResourceId;
         List<EmailType> data;
+        boolean send;
 
-        public EmailSingleAdapter(Context context, int layoutResourceId, List<EmailType> data) {
+        public EmailSingleAdapter(Context context, int layoutResourceId, List<EmailType> data, boolean s) {
             super(context, layoutResourceId,R.id.user, data);
             this.layoutResourceId = layoutResourceId;
             this.context = context;
             this.data = data;
+            send=s;
         }
 
         @Override
@@ -38,7 +40,10 @@ public class EmailSingleAdapter extends ArrayAdapter<EmailType> {
             TextView text1 = view.findViewById(R.id.user);
             TextView text2 = view.findViewById(R.id.singasong);
             ImageView img = view.findViewById(R.id.accountimg);
-            text1.setText(data.get(position).username);
+            if(send)
+                text1.setText(data.get(position).to);
+            else
+                text1.setText(data.get(position).from);
             text2.setText(data.get(position).object);
             return view;
         }

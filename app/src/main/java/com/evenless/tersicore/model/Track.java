@@ -2,6 +2,8 @@ package com.evenless.tersicore.model;
 
 import android.graphics.Bitmap;
 
+import java.util.Date;
+
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
@@ -26,6 +28,7 @@ public class Track extends RealmObject {
     public String date_added;
     public String server;
     public String genre;
+    public Date playedIn;
 
     public boolean updateCover(byte[] cover) {
         for (TrackResources tr : resources)

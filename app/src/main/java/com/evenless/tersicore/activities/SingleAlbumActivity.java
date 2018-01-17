@@ -27,12 +27,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.evenless.tersicore.AlertDialogTrack;
 import com.evenless.tersicore.ApiRequestTaskListener;
@@ -46,6 +48,7 @@ import com.evenless.tersicore.PlayerInterface;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.TaskHandler;
+import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.Cover;
 import com.evenless.tersicore.model.Track;
 import com.google.gson.Gson;
@@ -69,11 +72,12 @@ public class SingleAlbumActivity  extends AppCompatActivity
         MediaPlayerServiceListener, ImageRequestTaskListener, CoverDownloadTaskListener,
         AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
 
-    private static final String TAG = "TracksActivity";
+    private static final String TAG = "SingleAlbumActivity";
     private List<Track> listTracks;
     private String albumName;
     private String artist;
     private boolean mBound = false;
+    private boolean isPlayer = false;
     private MediaPlayerService mService;
     private Context ctx = this;
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -90,8 +94,12 @@ public class SingleAlbumActivity  extends AppCompatActivity
             } else {
                 View v = findViewById(R.id.asd2);
                 v.setVisibility(View.VISIBLE);
-                RelativeLayout asd = findViewById(R.id.albumListLayout);
-                asd.setMinimumHeight(asd.getHeight() + v.getHeight());
+                if(isPlayer) {
+                    RelativeLayout asd = findViewById(R.id.albumListLayout);
+                    asd.setMinimumHeight(asd.getHeight() + 200);
+                    isPlayer=false;
+                } else
+                    isPlayer=true;
                 PlayerInterface.UpdateTrack(v, mService);
             }
         }
@@ -150,8 +158,17 @@ public class SingleAlbumActivity  extends AppCompatActivity
                     listTracks = new ArrayList<>();
                 }
         } catch (Exception e){
-            Log.e(TAG, e.getMessage());
+            e.printStackTrace();
         }
+
+        ToggleButton lik = findViewById(R.id.likeButt);
+        lik.setChecked(DataBackend.checkFavorite(new Album(albumName, artist)));
+        lik.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                DataBackend.updateFavorite(new Album(albumName, artist), isChecked);
+            }
+        });
     }
 
     @Override
@@ -244,7 +261,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
             totr.setText(listTracks.size() + " Tracks");
             long duration = getTotalDurationMs();
             if(duration!=0)
-                totd.setText("Duration: " + MainActivity.parseDuration(duration));
+                totd.setText(MainActivity.parseDuration(duration));
         }
         ArrayAdapter<Track> arrayAdapter = new ArrayAdapter<Track>(
                 this,
@@ -270,6 +287,11 @@ public class SingleAlbumActivity  extends AppCompatActivity
                 if(position==listTracks.size()-1) {
                     ScrollView main = (ScrollView) findViewById(R.id.mainScrollAlbumView).getParent();
                     main.scrollTo(0, 0);
+                    if(isPlayer) {
+                        RelativeLayout asd = findViewById(R.id.albumListLayout);
+                        asd.setMinimumHeight(asd.getHeight() + 200);
+                        isPlayer=false;
+                    }
                 }
                 return view;
             }
@@ -332,7 +354,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
     @Override
     public void onImgRequestComplete(String result, int state, String key, Exception ex) {
         if(ex!=null){
-            Log.e(TAG, ex.getMessage());
+            ex.printStackTrace();
         } else try {
             JSONObject tempJson = new JSONObject(result);
             JSONArray tmp = tempJson.getJSONObject("album").getJSONArray("image");
@@ -343,7 +365,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
             final String link = tmp.getJSONObject(3).getString("#text");
             TaskHandler.downloadCover(link, 0, key, this);
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            e.printStackTrace();
         }
     }
 

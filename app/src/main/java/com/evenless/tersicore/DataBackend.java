@@ -1,9 +1,11 @@
 package com.evenless.tersicore;
 
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.Cover;
+import com.evenless.tersicore.model.Favorites;
 import com.evenless.tersicore.model.Playlist;
 import com.evenless.tersicore.model.Track;
 import com.evenless.tersicore.model.TrackSuggestion;
@@ -11,11 +13,13 @@ import com.evenless.tersicore.model.TrackSuggestion;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmList;
 import io.realm.RealmResults;
+import io.realm.Sort;
 import io.realm.exceptions.RealmException;
 
 public class DataBackend {
@@ -31,6 +35,51 @@ public class DataBackend {
         realm.beginTransaction();
         realm.copyToRealmOrUpdate(tracks);
         realm.commitTransaction();
+    }
+
+    public static void updateFavorite(Track t, boolean isFav) {
+        Realm realm = getInstance();
+        realm.beginTransaction();
+        if(isFav) {
+            Favorites temp = new Favorites();
+            temp.uuid=t.uuid;
+            realm.copyToRealmOrUpdate(temp);
+        }
+        else
+            try {
+                realm.where(Favorites.class).and().equalTo("uuid", t.uuid).findFirst().deleteFromRealm();
+            } catch (Exception e){
+                Log.i(TAG,"No Favorite Found");
+            }
+        realm.commitTransaction();
+    }
+
+    public static void updateFavorite(Album a, boolean isFav) {
+        Realm realm = getInstance();
+        realm.beginTransaction();
+        if(isFav) {
+            Favorites temp = new Favorites();
+            temp.uuid=a.name + a.artist;
+            realm.copyToRealmOrUpdate(temp);
+        }
+        else
+            try {
+                realm.where(Favorites.class).equalTo("uuid", a.name + a.artist).findFirst().deleteFromRealm();
+            } catch (Exception e){
+                Log.i(TAG,"No Favorite Found");
+            }
+        realm.commitTransaction();
+    }
+
+    public static boolean checkFavorite(Album a) {
+        Realm realm = getInstance();
+        return realm.where(Favorites.class).equalTo("uuid", a.name + a.artist).findFirst()!=null;
+    }
+
+    public static boolean checkFavorite(Track t) {
+        Realm realm = getInstance();
+        Log.i(TAG, "Checking track favorite " + t.title);
+        return realm.where(Favorites.class).equalTo("uuid", t.uuid).findFirst()!=null;
     }
 
     /**
@@ -140,6 +189,31 @@ public class DataBackend {
     }
 
     /**
+     * Get all Albums played lately
+     * @return list of Track
+     */
+    public static ArrayList<Album> getLastTracks() {
+        RealmResults<Track> result = getInstance().where(Track.class).
+                isNotNull("playedIn").findAllSorted("playedIn", Sort.DESCENDING);
+        ArrayList<Album> toReturn = new ArrayList<>();
+        for(Track t : result){
+            String temp;
+            if(t.album_artist==null)
+                temp=t.artist;
+            else
+                temp=t.album_artist;
+
+            Album a = new Album(t.album, temp);
+            if(!toReturn.contains(a))
+                toReturn.add(a);
+
+            if(toReturn.size()>9)
+                break;
+        }
+        return toReturn;
+    }
+
+    /**
      * Get all tracks of a specific artist and album
      * @param artist string representing the artist
      * @param album string representing the album
@@ -159,7 +233,13 @@ public class DataBackend {
         Collections.sort(list, new Comparator<Track>() {
             @Override
             public int compare(Track first, Track second) {
-                return Integer.parseInt(first.track_number) - Integer.parseInt(second.track_number);
+                if(first.disc_number==null || second.disc_number==null || first.disc_number.equals(second.disc_number))
+                    if(first.track_number!=null && second.track_number!=null)
+                        return Integer.parseInt(first.track_number) - Integer.parseInt(second.track_number);
+                    else
+                        return first.title.compareTo(second.title);
+                else
+                    return Integer.parseInt(first.disc_number) - Integer.parseInt(second.disc_number);
             }
         });
     }
@@ -182,6 +262,14 @@ public class DataBackend {
         toInsert.artist = artist;
         toInsert.album = album;
         realm.copyToRealmOrUpdate(toInsert);
+        realm.commitTransaction();
+    }
+
+    public static void setDate(Track t){
+        Realm realm = getInstance();
+        realm.beginTransaction();
+        t.playedIn = new Date();
+        realm.copyToRealmOrUpdate(t);
         realm.commitTransaction();
     }
 
@@ -289,7 +377,7 @@ public class DataBackend {
     }
 
     private static String getTrackArtist(Track t) {
-        if(t.album_artist!=null)
+        if (t.album_artist != null)
             return t.album_artist;
         else
             return t.artist;

@@ -78,7 +78,7 @@ public class SingleArtistActivity extends AppCompatActivity
                 v.setVisibility(View.VISIBLE);
                 View asd = findViewById(R.id.coverAlbumArtist);
                 ConstraintLayout.LayoutParams x = (ConstraintLayout.LayoutParams) asd.getLayoutParams();
-                x.bottomMargin = 260;
+                x.bottomMargin = 200;
                 asd.setLayoutParams(x);
                 PlayerInterface.UpdateTrack(v, mService);
             }

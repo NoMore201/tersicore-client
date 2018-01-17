@@ -13,4 +13,5 @@ public class TrackResources extends RealmObject {
     public int sample_rate;
     public byte[] cover_data;
     public long duration;
+    //public String server;
 }

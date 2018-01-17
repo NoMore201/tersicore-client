@@ -54,6 +54,17 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             return 0;
     }
 
+    public void reset() {
+        mMediaPlayer.reset();
+        mCurrentPlaylist=new ArrayList<>();
+        mCurrentPlaylistSorted=new ArrayList<>();
+        currentprogress=0;
+        mCurrentIndex=0;
+        mCurrentTimer.cancel();
+        isShuffle=false;
+        res=0;
+    }
+
     public enum SkipDirection { SKIP_FORWARD, SKIP_BACKWARD }
     public class LocalBinder extends Binder {
         public MediaPlayerService getService() {
@@ -159,6 +170,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     public void onCoverRetrieveComplete(Track track, byte[] cover, int id, Exception e) {
         if (cover == null || e!=null) {
             cover = new byte[0];
+        } else {
+            String temp = track.album_artist;
+            if(temp==null)
+                temp=track.artist;
+            if(DataBackend.getCover(temp, track.album)==null)
+                DataBackend.insertCover(temp, track.album, cover);
         }
         Track updated = DataBackend.updateTrackCover(track.uuid, cover);
         if(updated!=null) {
@@ -540,6 +557,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                         "/stream/" +
                         current.resources.get(res).uuid);
                 mMediaPlayer.prepareAsync();
+                DataBackend.setDate(current);
             } catch (IOException e) {
                 e.printStackTrace();
                 playbackError(e);

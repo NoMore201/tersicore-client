@@ -6,6 +6,7 @@ public class TrackSuggestion {
     public String album;
     public String artist;
     public String title;
+    public String username;
 
     public TrackSuggestion(){
 
@@ -20,6 +21,9 @@ public class TrackSuggestion {
 
     @Override
     public String toString() {
-        return artist + " - " + title;
+        if(title!=null)
+            return artist + " - " + title;
+        else
+            return artist + " - " + album;
     }
 }

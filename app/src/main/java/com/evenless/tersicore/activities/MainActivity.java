@@ -73,6 +73,11 @@ public class MainActivity extends AppCompatActivity
             mBound = true;
             mService.setMediaPlayerServiceListener(ctx);
             mService.callTimer(mHandler);
+            String uuidnow = getIntent().getStringExtra("EXTRA_UUID");
+
+            if(uuidnow!=null)
+                mService.seekToTrack(mService.append(DataBackend.getTracks(uuidnow)));
+
             PagerContainer container = (PagerContainer) findViewById(R.id.pager_container);
             Toolbar toolbar = findViewById(R.id.toolbar2);
             toolbar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -96,7 +101,7 @@ public class MainActivity extends AppCompatActivity
             }else{
                 pager.setPageMargin(30);
             }
-            Track tr = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex());
+            final Track tr = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex());
             int curres = mService.getCurrentResource();
             final TextView tv_song = (TextView) findViewById(R.id.tv_song);
             tv_song.setText(tr.title);
@@ -136,6 +141,14 @@ public class MainActivity extends AppCompatActivity
                 vie.setImageResource(R.drawable.ic_pause);
             else
                 vie.setImageResource(R.drawable.ic_play);
+            ToggleButton lik = findViewById(R.id.tb_love);
+            lik.setChecked(DataBackend.checkFavorite(tr));
+            lik.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    DataBackend.updateFavorite(mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex()), isChecked);
+                }
+            });
             SeekBar tv_seek=findViewById(R.id.tv_seek);
             tv_seek.setOnSeekBarChangeListener(new seekListener());
             tv_seek.setMax(tr.duration*1000);
@@ -150,7 +163,7 @@ public class MainActivity extends AppCompatActivity
                 @Override
                 public void onPageSelected(int position) {
                     mService.seekToTrack(position);
-                    Track tra = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex());
+                    final Track tra = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex());
                     tv_song.setText(tra.title);
                     RelativeLayout relativeLayout = (RelativeLayout) pager.getAdapter().instantiateItem(pager, 0);
                     ViewCompat.setElevation(relativeLayout.getRootView(), 8.0f);
@@ -177,6 +190,8 @@ public class MainActivity extends AppCompatActivity
                         fullT.setText("-:-");
                     else
                         fullT.setText(parseDuration((long) tra.duration*1000));
+                    ToggleButton lik = findViewById(R.id.tb_love);
+                    lik.setChecked(DataBackend.checkFavorite(tra));
                 }
 
                 @Override
@@ -290,6 +305,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onPlaybackProgressUpdate(int currentMilliseconds) {
         long durat = mService.getDuration();
+        if(durat==0)
+            durat = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex()).duration*1000;
         boolean result = durat!=0;
         // update seekbar
         if(result){

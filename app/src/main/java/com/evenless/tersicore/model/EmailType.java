@@ -8,7 +8,8 @@ public class EmailType extends RealmObject {
 
     @PrimaryKey
     public String id;
-    public String username;
+    public String to;
+    public String from;
     public String date;
     public String object;
     public String msg;
