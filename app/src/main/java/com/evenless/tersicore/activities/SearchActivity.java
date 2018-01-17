@@ -480,6 +480,7 @@ public class SearchActivity extends AppCompatActivity
             DataBackend.insertTracks(new ArrayList<>(Arrays.asList(listTracks)));
             try {
                 TaskHandler.getLatestTracks(this, PreferencesHandler.getServer(this));
+                TaskHandler.getSuggestions(this, PreferencesHandler.getServer(this));
             } catch (Exception ex) {
                 Toast.makeText(this, ex.getMessage(), Toast.LENGTH_LONG).show();
             }
