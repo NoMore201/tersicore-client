@@ -8,8 +8,10 @@ import com.evenless.tersicore.model.Cover;
 import com.evenless.tersicore.model.Favorites;
 import com.evenless.tersicore.model.Playlist;
 import com.evenless.tersicore.model.Track;
+import com.evenless.tersicore.model.TrackResources;
 import com.evenless.tersicore.model.TrackSuggestion;
 
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -389,5 +391,36 @@ public class DataBackend {
         realm.beginTransaction();
         realm.delete(Track.class);
         realm.commitTransaction();
+    }
+
+    public static Track insertOfflineTrack(String key, String id) {
+        Realm realm = getInstance();
+        realm.beginTransaction();
+        Track t = getTrack(id);
+        for (TrackResources r : t.resources)
+            if(r.uuid.compareTo(key)==0)
+                r.isDownloaded=true;
+        realm.insertOrUpdate(t);
+        realm.commitTransaction();
+        return t;
+    }
+
+    public static Track removeOfflineTrack(Track trr, String key) {
+        Realm realm = getInstance();
+        realm.beginTransaction();
+        Track t = getTrack(trr.uuid);
+        for (TrackResources r : t.resources)
+            if(r.uuid.compareTo(key)==0) {
+                try {
+                    TaskHandler.removeFile(key, r.codec);
+                    r.isDownloaded = false;
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
+                break;
+            }
+        realm.insertOrUpdate(t);
+        realm.commitTransaction();
+        return t;
     }
 }

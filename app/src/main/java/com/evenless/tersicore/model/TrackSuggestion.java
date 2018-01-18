@@ -26,4 +26,8 @@ public class TrackSuggestion {
         else
             return artist + " - " + album;
     }
+
+    public boolean isTrack() {
+        return uuid!=null;
+    }
 }

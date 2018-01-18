@@ -25,8 +25,6 @@ public class Track extends RealmObject {
     public String label;
     public String isrc;
     public int duration;
-    public String date_added;
-    public String server;
     public String genre;
     public Date playedIn;
 
@@ -56,4 +54,13 @@ public class Track extends RealmObject {
     public String toString() {
         return artist + " - " + title;
     }
+
+    public boolean hasBeenDownloaded() {
+        for (TrackResources tr : resources)
+            if(tr.isDownloaded)
+                return true;
+
+        return false;
+    }
+
 }

@@ -8,4 +8,12 @@
     android:key="updateservers"
     android:summary="It could take time"/>
 
+    <ListPreference
+        android:key="CacheSize"
+        android:title="Cache Size"
+        android:entries="@array/pref_sync_cache_entries"
+        android:entryValues="@array/pref_sync_cache_values"
+        android:defaultValue="512"
+        />
+
 </PreferenceScreen>

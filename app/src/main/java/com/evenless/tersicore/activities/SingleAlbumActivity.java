@@ -1,11 +1,13 @@
 package com.evenless.tersicore.activities;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Path;
@@ -15,6 +17,8 @@ import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -28,6 +32,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -40,6 +45,7 @@ import com.evenless.tersicore.AlertDialogTrack;
 import com.evenless.tersicore.ApiRequestTaskListener;
 import com.evenless.tersicore.CoverDownloadTaskListener;
 import com.evenless.tersicore.DataBackend;
+import com.evenless.tersicore.FileDownloadTaskListener;
 import com.evenless.tersicore.ImageRequestTaskListener;
 import com.evenless.tersicore.MediaPlayerService;
 import com.evenless.tersicore.MediaPlayerServiceListener;
@@ -51,6 +57,7 @@ import com.evenless.tersicore.TaskHandler;
 import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.Cover;
 import com.evenless.tersicore.model.Track;
+import com.evenless.tersicore.model.TrackResources;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
@@ -64,14 +71,22 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class SingleAlbumActivity  extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         MediaPlayerServiceListener, ImageRequestTaskListener, CoverDownloadTaskListener,
-        AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
+        AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, FileDownloadTaskListener{
 
+    private final String[] playOptions = {
+            "Higher Bitrate Ever",
+            "Lossless Bitrate",
+            "Higher lossy bitrate",
+            "Lower Bitrate"
+    };
     private static final String TAG = "SingleAlbumActivity";
     private List<Track> listTracks;
     private String albumName;
@@ -80,6 +95,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
     private boolean isPlayer = false;
     private MediaPlayerService mService;
     private Context ctx = this;
+    private int downloadedCount = 0;
     private ServiceConnection mConnection = new ServiceConnection() {
 
         @Override
@@ -159,6 +175,88 @@ public class SingleAlbumActivity  extends AppCompatActivity
                 DataBackend.updateFavorite(new Album(albumName, artist), isChecked);
             }
         });
+
+        findViewById(R.id.removeButt).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (ContextCompat.checkSelfPermission(v.getContext(),
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        != PackageManager.PERMISSION_GRANTED) {
+
+                    ActivityCompat.requestPermissions(SingleAlbumActivity.this,
+                            new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                            356);
+
+                } else {
+                    for(Track tt : listTracks)
+                        for (TrackResources tr : tt.resources)
+                            if(tr.isDownloaded) {
+                                Track trt = DataBackend.removeOfflineTrack(tt, tr.uuid);
+                                if(mService.getCurrentPlaylist().contains(tt))
+                                    mService.setDownloaded(trt);
+                            }
+                    listTracks=DataBackend.getTracks(artist, albumName);
+                    v.setVisibility(View.GONE);
+                    findViewById(R.id.downloadButt).setVisibility(View.VISIBLE);
+                }
+            }
+        });
+        findViewById(R.id.downloadButt).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (ContextCompat.checkSelfPermission(v.getContext(),
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        != PackageManager.PERMISSION_GRANTED) {
+
+                    ActivityCompat.requestPermissions(SingleAlbumActivity.this,
+                            new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                            355);
+
+                } else {
+                    final ImageButton d = (ImageButton) v;
+                    d.setImageResource(R.drawable.ic_spinner);
+                    d.setEnabled(false);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+                    builder.setTitle("Play options")
+                            .setItems(playOptions, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    for(Track tt : listTracks) {
+                                        TrackResources res = checkTrackResourceByPreference(tt, which);
+                                        if(!res.isDownloaded){
+                                            downloadedCount++;
+                                            try {
+                                                mService.downloadFile(res, tt.uuid, (FileDownloadTaskListener) ctx);
+                                            } catch (Exception e) {
+                                                Toast.makeText(ctx, "Some files have not been downloaded correctly", Toast.LENGTH_LONG).show();
+                                                d.setImageResource(R.drawable.download);
+                                                d.setEnabled(true);
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                    builder.show();
+                }
+            }
+        });
+    }
+
+    private TrackResources checkTrackResourceByPreference(Track tt, int which) {
+        TrackResources res = tt.resources.get(0);
+        if(tt.resources.size()!=1) {
+            int bitr = tt.resources.get(0).bitrate;
+            for (int i=1; i<tt.resources.size(); i++){
+                int currbit = tt.resources.get(i).bitrate;
+                if((which!=4 || tt.resources.get(i).isDownloaded || !tt.resources.get(0).isDownloaded) &&
+                    ((which==0 && currbit>bitr) || (which==3 && currbit<bitr) ||
+                            (which==1 && ((bitr>1411200 && currbit<bitr) || (bitr<1411200 && currbit>bitr))) ||
+                            (which==2 && ((bitr>350000 && currbit<bitr) || (bitr<350000 && currbit>bitr))))) {
+                        res = tt.resources.get(i);
+                        bitr=currbit;
+                    }
+            }
+        }
+        return res;
     }
 
     @Override
@@ -242,6 +340,16 @@ public class SingleAlbumActivity  extends AppCompatActivity
             long duration = getTotalDurationMs();
             if(duration!=0)
                 totd.setText(MainActivity.parseDuration(duration));
+            boolean hasBeenDownloaded = true;
+            for(Track t : listTracks)
+                if(!t.hasBeenDownloaded()){
+                    hasBeenDownloaded=false;
+                    break;
+                }
+            if(hasBeenDownloaded){
+               findViewById(R.id.removeButt).setVisibility(View.VISIBLE);
+               findViewById(R.id.downloadButt).setVisibility(View.GONE);
+            }
         }
         ArrayAdapter<Track> arrayAdapter = new ArrayAdapter<Track>(
                 this,
@@ -285,9 +393,25 @@ public class SingleAlbumActivity  extends AppCompatActivity
         findViewById(R.id.playbutt).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mService.updatePlaylist(listTracks, 0, false);
-                Intent dd = new Intent(ctx, MainActivity.class);
-                startActivity(dd);
+                String[] pop = new String[5];
+                for(int i=0; i<playOptions.length; i++)
+                    pop[i]=playOptions[i];
+                pop[4]="OFFLINE Version (if available)";
+                AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+                builder.setTitle("Play options")
+                        .setItems(pop, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                Map<Integer, Integer> resfav = new HashMap<>();
+                                for(int i=0; i<listTracks.size(); i++) {
+                                    Track t = listTracks.get(i);
+                                        resfav.put(i, t.resources.indexOf(checkTrackResourceByPreference(t, which)));
+                                }
+                                mService.updatePlaylist(listTracks, 0, false, resfav);
+                                Intent dd = new Intent(ctx, MainActivity.class);
+                                startActivity(dd);
+                            }
+                        });
+                builder.show();
             }
         });
         Cover asd = DataBackend.getCover(artist, albumName);
@@ -400,5 +524,60 @@ public class SingleAlbumActivity  extends AppCompatActivity
     @Override
     public void onPreparedPlayback() {
         PlayerInterface.setPlay(findViewById(R.id.asd2));
+    }
+
+    @Override
+    public void OnFileDownloaded(String key, String id) {
+        if(key==null){
+            ImageButton d = findViewById(R.id.downloadButt);
+            Toast.makeText(ctx, "Some files have not been downloaded correctly. Try another preference!", Toast.LENGTH_LONG).show();
+            d.setImageResource(R.drawable.download);
+            d.setEnabled(true);
+            listTracks = DataBackend.getTracks(artist, albumName);
+        } else {
+            downloadedCount--;
+            Track ins = DataBackend.insertOfflineTrack(key, id);
+            for(int i=0; i< listTracks.size(); i++)
+                if(listTracks.get(i).uuid.equals(id)) {
+                    listTracks.remove(i);
+                    listTracks.add(i, ins);
+                }
+            if(downloadedCount==0) {
+                findViewById(R.id.downloadButt).setVisibility(View.GONE);
+                findViewById(R.id.removeButt).setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case 355: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    ImageButton d = findViewById(R.id.downloadButt);
+                    d.callOnClick();
+
+                } else {
+                    Toast.makeText((Context) ctx, "Cannot download files without permissions", Toast.LENGTH_LONG).show();
+                }
+            }
+            case 356: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    ImageButton d = findViewById(R.id.removeButt);
+                    d.callOnClick();
+
+                } else {
+                    Toast.makeText((Context) ctx, "Cannot remove files without permissions", Toast.LENGTH_LONG).show();
+                }
+            }
+
+        }
     }
 }

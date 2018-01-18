@@ -64,6 +64,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.evenless.tersicore.model.TrackResources;
 import com.evenless.tersicore.model.TrackSuggestion;
 import com.evenless.tersicore.view.NonScrollableListView;
 import com.google.gson.Gson;
@@ -477,6 +478,9 @@ public class SearchActivity extends AppCompatActivity
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         } else if (response != null) {
             listTracks = new Gson().fromJson(response, Track[].class);
+            for(Track t : listTracks)
+                for (TrackResources r : t.resources)
+                    r.server=PreferencesHandler.getServer(this);
             DataBackend.insertTracks(new ArrayList<>(Arrays.asList(listTracks)));
             try {
                 TaskHandler.getLatestTracks(this, PreferencesHandler.getServer(this));

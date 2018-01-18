@@ -9,6 +9,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -16,10 +17,13 @@ import android.os.PowerManager;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.danikula.videocache.HttpProxyCacheServer;
 import com.evenless.tersicore.exceptions.MediaPlayerException;
 import com.evenless.tersicore.model.Track;
+import com.evenless.tersicore.model.TrackResources;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,6 +39,53 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 {
     private static final String TAG = "MediaPlayerService";
     private static final String mToken = "0651863bf5d902262b17c4621ec340544ff016752543d99a92d7d22872d8a455";
+
+    public boolean isOffline() {
+        return getCurrentPlaylist().get(mCurrentIndex)
+                .resources.get(res)
+                .isDownloaded;
+    }
+
+    public void downloadCurrentFile(FileDownloadTaskListener ctx) throws MalformedURLException {
+        TrackResources tr = getCurrentPlaylist().get(mCurrentIndex).resources.get(res);
+        if(tr!=null) {
+            String urlfile = PreferencesHandler.getServer(this) +
+                    "/stream/" + tr.uuid;
+            if(proxy.isCached(urlfile))
+                urlfile=url;
+
+            TaskHandler.downloadFile(urlfile, tr.uuid, tr.codec, ctx, getCurrentPlaylist().get(mCurrentIndex).uuid);
+        }
+    }
+
+    public void downloadFile(TrackResources tr, String uuid, FileDownloadTaskListener ctx) throws MalformedURLException {
+        if(tr!=null) {
+            String urlfile = PreferencesHandler.getServer(this) +
+                    "/stream/" + tr.uuid;
+            if(proxy.isCached(urlfile))
+                urlfile=proxy.getProxyUrl(urlfile);
+            TaskHandler.downloadFile(urlfile, tr.uuid, tr.codec, ctx, uuid);
+        }
+    }
+
+    public void setDownloaded(Track t) {
+        boolean first=false;
+        boolean second=false;
+        for(int i=0; i<mCurrentPlaylist.size(); i++)
+            if(mCurrentPlaylist.get(i).uuid.equals(t.uuid)) {
+                mCurrentPlaylist.remove(i);
+                mCurrentPlaylist.add(i, t);
+                first=true;
+                if(second)
+                    break;
+            } else if (mCurrentPlaylistSorted.get(i).uuid.equals(t.uuid)){
+                mCurrentPlaylistSorted.remove(i);
+                mCurrentPlaylistSorted.add(i, t);
+                second=true;
+                if(first)
+                    break;
+            }
+    }
 
 
     public enum SkipDirection { SKIP_FORWARD, SKIP_BACKWARD }
@@ -55,6 +106,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     private boolean isShuffle = false;
     private Integer res;
     private int currentprogress;
+    private String url;
 
     public int getCurrentprogress(){return currentprogress;}
 
@@ -62,6 +114,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     // CurrentPlaylist index - Selected Resources. Not Required!
     private Map<Integer, Integer> resNumb;
+
+    private HttpProxyCacheServer proxy;
 
     /*
      * Override methods
@@ -84,6 +138,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
         mCurrentPlaylist = new ArrayList<>();
         mCurrentPlaylistSorted = new ArrayList<>();
+        changeProxyCacheSize(PreferencesHandler.getCacheSize(this));
         resNumb = new HashMap<>();
         mCurrentIndex=-1;
 
@@ -551,22 +606,41 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         } else {
             final Track current = getCurrentPlaylist().get(mCurrentIndex);
             res = getPreferredRes(current);
+            newTrackPlaying(current);
+            TrackResources trr = current.resources.get(res);
+            if(trr.isDownloaded)
+                url= Environment.getExternalStorageDirectory() + "/Music/" + trr.uuid + "." + trr.codec;
+            else
+                url = proxy.getProxyUrl(PreferencesHandler.getServer(this) +
+                            "/stream/" + trr.uuid);
             try {
-                newTrackPlaying(current);
-                Map<String,String> headers = new HashMap<String,String>();
-                headers.put("AUTH", mToken);
-                String url = PreferencesHandler.getServer(this) +
-                        "/stream/" +
-                        current.resources.get(res).uuid;
-                mMediaPlayer.setDataSource(getApplicationContext(),
-                        Uri.parse(url),
-                        headers);
-                mMediaPlayer.prepareAsync();
-                DataBackend.setDate(current);
-            } catch (IOException e) {
-                e.printStackTrace();
-                playbackError(e);
+                mMediaPlayer.setDataSource(getApplicationContext(), Uri.parse(url));
+            } catch (IOException e){
+                if(trr.isDownloaded)
+                    try{
+                        setDownloaded(DataBackend.removeOfflineTrack(current, trr.uuid));
+                        url = proxy.getProxyUrl(PreferencesHandler.getServer(this) +
+                                "/stream/" + trr.uuid);
+                        mMediaPlayer.setDataSource(getApplicationContext(), Uri.parse(url));
+                    } catch (Exception ex){
+                        ex.printStackTrace();
+                    }
+                    else
+                        e.printStackTrace();
             }
+            mMediaPlayer.prepareAsync();
+            DataBackend.setDate(current);
         }
+    }
+
+    //Size in MB
+    public void changeProxyCacheSize(int size) {
+        proxy = new HttpProxyCacheServer.Builder(this)
+                .maxCacheSize(size * 1024 * 1024)
+                .build();
+    }
+
+    public boolean checkIsCached(TrackResources t){
+        return proxy.isCached(PreferencesHandler.getServer(this) + "/stream/" + t.uuid);
     }
 }

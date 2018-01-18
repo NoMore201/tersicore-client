@@ -57,6 +57,7 @@ implements ImageRequestTaskListener, CoverDownloadTaskListener {
         // each data item is just a string in this case
         public TextView mTextView;
         public TextView mTextView2;
+        public TextView mTextViewMid;
         public ImageView mImageView;
 
         public ViewHolder(LinearLayout v) {
@@ -64,6 +65,7 @@ implements ImageRequestTaskListener, CoverDownloadTaskListener {
             mTextView = v.findViewById(R.id.covertitle);
             mTextView2 = v.findViewById(R.id.suggby);
             mImageView = v.findViewById(R.id.coverimg);
+            mTextViewMid = v.findViewById(R.id.secondline);
         }
     }
 
@@ -141,9 +143,17 @@ implements ImageRequestTaskListener, CoverDownloadTaskListener {
             };
         } else if(listtypeNumber==SUGGESTIONS_STATE){
             final TrackSuggestion t = mTrackSugg.get(position);
-            temp=t.toString();
+            holder.mTextViewMid.setVisibility(View.VISIBLE);
+            if(t.isTrack()) {
+                temp = t.toString();
+                holder.mTextViewMid.setText("from " + t.album);
+            }
+            else {
+                temp = t.album;
+                holder.mTextViewMid.setText(t.artist);
+            }
             holder.mTextView2.setVisibility(View.VISIBLE);
-            holder.mTextView2.setText(t.username);
+            holder.mTextView2.setText("by " + t.username);
             tempImg = mImages.get(t.album + t.artist);
             if(tempImg==null)
                 getAlbumCover(new Album(t.album, t.artist), ALBUMS_STATE);
@@ -211,10 +221,16 @@ implements ImageRequestTaskListener, CoverDownloadTaskListener {
 
 
     private int findAlbumByArtistAndName(String artist, String name){
-        for (int i=0; i<mTrackSet.size(); i++){
-            if(mTrackSet.get(i).name.equals(name) && mTrackSet.get(i).artist.equals(artist))
-                return i;
-        }
+        if(mTrackSet!=null)
+            for (int i=0; i<mTrackSet.size(); i++){
+                if(mTrackSet.get(i).name.equals(name) && mTrackSet.get(i).artist.equals(artist))
+                    return i;
+            }
+        else if(mTrackSugg!=null)
+            for (int i=0; i<mTrackSugg.size(); i++){
+                if(mTrackSugg.get(i).album.equals(name) && mTrackSugg.get(i).artist.equals(artist))
+                    return i;
+            }
         return -1;
     }
 

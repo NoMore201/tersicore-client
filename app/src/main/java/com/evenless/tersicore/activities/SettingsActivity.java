@@ -22,6 +22,7 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -54,7 +55,7 @@ import java.util.List;
 public class SettingsActivity extends AppCompatPreferenceActivity
         implements ApiRequestTaskListener {
 
-    private MediaPlayerService mService;
+    private static MediaPlayerService mService;
     private boolean mBound = false;
     private ServiceConnection mConnection = new ServiceConnection() {
 
@@ -208,11 +209,24 @@ public class SettingsActivity extends AppCompatPreferenceActivity
                 }
             });
 
+            Preference cacheSize = findPreference("CacheSize");
+
             // Bind the summaries of EditText/List/Dialog/Ringtone preferences
             // to their values. When their values change, their summaries are
             // updated to reflect the new value, per the Android Design
             // guidelines.
             bindPreferenceSummaryToValue(findPreference("TersicoreServer"));
+            bindPreferenceSummaryToValue(cacheSize);
+
+            cacheSize.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    PreferencesHandler.setCacheSize(preference.getContext(), (String) newValue);
+                    bindPreferenceSummaryToValue(preference);
+                    mService.changeProxyCacheSize(Integer.parseInt((String) newValue));
+                    return false;
+                }
+            });
         }
     }
 }

@@ -1,18 +1,25 @@
 package com.evenless.tersicore.activities;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.Image;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
@@ -33,14 +40,17 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.evenless.tersicore.DataBackend;
+import com.evenless.tersicore.FileDownloadTaskListener;
 import com.evenless.tersicore.MediaPlayerService;
 import com.evenless.tersicore.MediaPlayerServiceListener;
 import com.evenless.tersicore.PlayerInterface;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
+import com.evenless.tersicore.TaskHandler;
 import com.evenless.tersicore.exceptions.InvalidUrlException;
 import com.evenless.tersicore.model.Cover;
 import com.evenless.tersicore.model.Track;
@@ -49,6 +59,7 @@ import com.evenless.tersicore.view.SquareImageView;
 
 import org.w3c.dom.Text;
 
+import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -57,7 +68,8 @@ import me.crosswall.lib.coverflow.CoverFlow;
 import me.crosswall.lib.coverflow.core.PagerContainer;
 
 public class MainActivity extends AppCompatActivity
-    implements MediaPlayerServiceListener {
+    implements MediaPlayerServiceListener,
+        FileDownloadTaskListener{
     private static final String TAG = "MainActivity";
     private final String [] shareOptions = {"Send a mail in Tersicore", "External App"};
     private MediaPlayerService mService;
@@ -96,7 +108,7 @@ public class MainActivity extends AppCompatActivity
             if(mService.getCurrentPlaylist().size()>0) {
                 mService.callTimer(mHandler);
                 PagerContainer container = (PagerContainer) findViewById(R.id.pager_container);
-                Toolbar toolbar = findViewById(R.id.toolbar2);
+                final Toolbar toolbar = findViewById(R.id.toolbar2);
                 toolbar.setNavigationOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -133,7 +145,6 @@ public class MainActivity extends AppCompatActivity
                 tv_currentms.setText(parseDuration(mService.getCurrentprogress()));
                 TextView fullT = findViewById(R.id.tv_full_time);
                 fullT.setText(parseDuration((long) tr.duration * 1000));
-                toolbar.setSubtitle(PreferencesHandler.getServer((Context) ctx));
                 toolbar.setTitle(tr.resources.get(curres).codec + " " + tr.resources.get(curres).sample_rate / 1000 +
                         "Khz " + tr.resources.get(curres).bitrate / 1000 + "kbps");
                 ToggleButton toggleR = (ToggleButton) findViewById(R.id.toggleRepeat);
@@ -187,7 +198,6 @@ public class MainActivity extends AppCompatActivity
                         Palette palette = Palette.from(getCover(tra)).generate();
                         setStatusBar(palette);
                         Toolbar toolbar = findViewById(R.id.toolbar2);
-                        toolbar.setSubtitle(PreferencesHandler.getServer((Context) ctx));
                         int curres = mService.getCurrentResource();
                         toolbar.setTitle(tra.resources.get(curres).codec + " " + tra.resources.get(curres).sample_rate / 1000 +
                                 "Khz " + tra.resources.get(curres).bitrate / 1000 + "kbps");
@@ -209,6 +219,19 @@ public class MainActivity extends AppCompatActivity
                             fullT.setText(parseDuration((long) tra.duration * 1000));
                         ToggleButton lik = findViewById(R.id.tb_love);
                         lik.setChecked(DataBackend.checkFavorite(tra));
+                        ImageButton download = findViewById(R.id.downloadButt2);
+                        if(mService.isOffline()) {
+                            download.setVisibility(View.GONE);
+                            toolbar.setSubtitle("OFFLINE");
+                            findViewById(R.id.removeButt2).setVisibility(View.VISIBLE);
+                        }
+                        else {
+                            download.setVisibility(View.VISIBLE);
+                            toolbar.setSubtitle(tra.resources.get(mService.getCurrentResource()).server);
+                            download.setImageResource(R.drawable.download);
+                            download.setEnabled(true);
+                            findViewById(R.id.removeButt2).setVisibility(View.GONE);
+                        }
                     }
 
                     @Override
@@ -249,6 +272,68 @@ public class MainActivity extends AppCompatActivity
                                     }
                                 });
                         builder.show();
+                    }
+                });
+                ImageButton download = findViewById(R.id.downloadButt2);
+                ImageButton remove = findViewById(R.id.removeButt2);
+                if(mService.isOffline()) {
+                    download.setVisibility(View.GONE);
+                    toolbar.setSubtitle("OFFLINE");
+                    remove.setVisibility(View.VISIBLE);
+                }
+                else {
+                    toolbar.setSubtitle(tr.resources.get(mService.getCurrentResource()).server);
+                    download.setVisibility(View.VISIBLE);
+                    download.setImageResource(R.drawable.download);
+                    download.setEnabled(true);
+                    remove.setVisibility(View.GONE);
+                }
+                download.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (ContextCompat.checkSelfPermission(v.getContext(),
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                                != PackageManager.PERMISSION_GRANTED) {
+
+                                ActivityCompat.requestPermissions(MainActivity.this,
+                                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                                        355);
+
+                        } else {
+                            ImageButton d = (ImageButton) v;
+                            d.setImageResource(R.drawable.ic_spinner);
+                            d.setEnabled(false);
+                            try {
+                                mService.downloadCurrentFile((FileDownloadTaskListener) ctx);
+                            } catch (MalformedURLException e) {
+                                d.setEnabled(true);
+                                d.setImageResource(R.drawable.download);
+                                Toast.makeText((Context) ctx,
+                                        "Error in downloading file from server",
+                                        Toast.LENGTH_LONG).show();
+                            }
+                        }
+                    }
+                });
+                remove.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (ContextCompat.checkSelfPermission(v.getContext(),
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                                != PackageManager.PERMISSION_GRANTED) {
+
+                            ActivityCompat.requestPermissions(MainActivity.this,
+                                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                                    356);
+
+                        } else {
+                            Track temp = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex());
+                            mService.setDownloaded(DataBackend.removeOfflineTrack(temp,
+                                    temp.resources.get(mService.getCurrentResource()).uuid));
+                            toolbar.setSubtitle(temp.resources.get(mService.getCurrentResource()).server);
+                            v.setVisibility(View.GONE);
+                            findViewById(R.id.downloadButt2).setVisibility(View.VISIBLE);
+                        }
                     }
                 });
             }
@@ -409,6 +494,26 @@ public class MainActivity extends AppCompatActivity
         return new byte[0];
     }
 
+    @Override
+    public void OnFileDownloaded(String key, String id) {
+        if(key!=null) {
+            Track modify = DataBackend.insertOfflineTrack(key, id);
+            if (modify != null)
+                mService.setDownloaded(modify);
+            if (mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex()).uuid.compareTo(id) == 0) {
+                findViewById(R.id.downloadButt2).setVisibility(View.GONE);
+                Toolbar toolbar = findViewById(R.id.toolbar2);
+                toolbar.setSubtitle("OFFLINE");
+                findViewById(R.id.removeButt2).setVisibility(View.VISIBLE);
+            }
+        } else {
+            ImageButton d = findViewById(R.id.downloadButt2);
+            d.setImageResource(R.drawable.download);
+            d.setEnabled(true);
+            Toast.makeText((Context) ctx, "There was some errors in downloading file", Toast.LENGTH_LONG).show();
+        }
+    }
+
     private class MyPagerAdapter extends PagerAdapter {
 
         @Override
@@ -468,6 +573,38 @@ public class MainActivity extends AppCompatActivity
             if (vibrant != null) {
                 window.setStatusBarColor(vibrant.getRgb());
             }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case 355: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    ImageButton d = findViewById(R.id.downloadButt2);
+                    d.callOnClick();
+
+                } else {
+                    Toast.makeText((Context) ctx, "Cannot download file without permissions", Toast.LENGTH_LONG).show();
+                }
+            }
+            case 356: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    ImageButton d = findViewById(R.id.removeButt2);
+                    d.callOnClick();
+
+                } else {
+                    Toast.makeText((Context) ctx, "Cannot remove file without permissions", Toast.LENGTH_LONG).show();
+                }
+            }
+
         }
     }
 
