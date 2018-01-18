@@ -35,10 +35,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -131,12 +133,13 @@ public class SearchActivity extends AppCompatActivity
                 listTracks = new Track[DataBackend.getTracks().size()];
                 DataBackend.getTracks().toArray(listTracks);
                 listRecentAlbums=DataBackend.getLastTracks();
-                try {
-                    TaskHandler.getLatestTracks(this, PreferencesHandler.getServer(this));
-                    TaskHandler.getSuggestions(this, PreferencesHandler.getServer(this));
-                } catch (Exception e) {
-                    Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
-                }
+                if(!PreferencesHandler.getOffline(this))
+                    try {
+                        TaskHandler.getLatestTracks(this, PreferencesHandler.getServer(this));
+                        TaskHandler.getSuggestions(this, PreferencesHandler.getServer(this));
+                    } catch (Exception e) {
+                        Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
             } else
                 try {
                     TaskHandler.getTracks(this, PreferencesHandler.getServer(this));
@@ -235,6 +238,17 @@ public class SearchActivity extends AppCompatActivity
         lsv.setOnItemLongClickListener(this);
 
         navigationView.setCheckedItem(R.id.nav_home);
+        navigationView.setCheckedItem(R.id.app_bar_switch);
+
+        Switch asd = navigationView.getMenu().findItem(R.id.app_bar_switch).getActionView().findViewById(R.id.switcharr);
+        asd.setChecked(PreferencesHandler.getOffline(this));
+        asd.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                PreferencesHandler.setOffline(ctx, isChecked);
+                recreate();
+            }
+        });
     }
 
     @Override

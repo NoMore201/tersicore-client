@@ -34,8 +34,9 @@
             <item
                 android:id="@+id/app_bar_switch"
                 android:icon="@android:drawable/presence_offline"
-                android:title="Offline"
-                app:actionLayout="@layout/switch_item" />
+                android:title="Offline Mode"
+                app:actionLayout="@layout/switch_item"
+                />
         </menu>
     </item>
 

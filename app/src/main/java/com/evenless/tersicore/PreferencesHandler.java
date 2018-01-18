@@ -8,6 +8,8 @@ public class PreferencesHandler {
     private static final String PREF_SERVER_KEY = "TersicoreServer";
     private static final String PREF_TOKEN_KEY = "TersicoreToken";
     private static final String PREF_CACHE_SIZE_KEY = "CacheSize";
+    private static final String PREF_OFFLINE = "Offline";
+    public static boolean offline;
 
     private static SharedPreferences getSharedPreferences(Context ctx) {
         return PreferenceManager.getDefaultSharedPreferences(ctx);
@@ -19,6 +21,10 @@ public class PreferencesHandler {
 
     public static String getServer(Context ctx) {
         return getSharedPreferences(ctx).getString(PREF_SERVER_KEY, null);
+    }
+
+    public static boolean getOffline(Context ctx) {
+        return getSharedPreferences(ctx).getBoolean(PREF_OFFLINE, false);
     }
 
     public static String getToken(Context ctx) {
@@ -34,6 +40,13 @@ public class PreferencesHandler {
     public static void setCacheSize(Context ctx, String cacheSize) {
         SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
         editor.putString(PREF_CACHE_SIZE_KEY, cacheSize);
+        editor.apply();
+    }
+
+    public static void setOffline(Context ctx, boolean is) {
+        offline = is;
+        SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
+        editor.putBoolean(PREF_OFFLINE, is);
         editor.apply();
     }
 }

@@ -87,6 +87,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             }
     }
 
+    public static boolean hasBeenCached(Track t) {
+        for(TrackResources tr : t.resources)
+            if(checkIsCached(tr))
+                return true;
+
+        return false;
+    }
+
 
     public enum SkipDirection { SKIP_FORWARD, SKIP_BACKWARD }
     public class LocalBinder extends Binder {
@@ -115,7 +123,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     // CurrentPlaylist index - Selected Resources. Not Required!
     private Map<Integer, Integer> resNumb;
 
-    private HttpProxyCacheServer proxy;
+    private static HttpProxyCacheServer proxy;
 
     /*
      * Override methods
@@ -640,7 +648,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                 .build();
     }
 
-    public boolean checkIsCached(TrackResources t){
-        return proxy.isCached(PreferencesHandler.getServer(this) + "/stream/" + t.uuid);
+    public static boolean checkIsCached(TrackResources t){
+        return proxy.isCached(t.server + "/stream/" + t.uuid);
     }
 }
