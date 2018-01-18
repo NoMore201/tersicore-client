@@ -19,7 +19,9 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.CompoundButton;
 import android.widget.ListView;
+import android.widget.Switch;
 
 import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.EmailSingleAdapter;
@@ -27,6 +29,7 @@ import com.evenless.tersicore.MediaPlayerService;
 import com.evenless.tersicore.MediaPlayerServiceListener;
 import com.evenless.tersicore.PlayerInterface;
 import com.evenless.tersicore.PlaylistSingleAdapter;
+import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.model.EmailType;
 import com.evenless.tersicore.model.Playlist;
@@ -114,6 +117,16 @@ public class EmailsActivity extends AppCompatActivity
 
         listEmails = new ArrayList<>();
         updateList();
+        Switch asd = navigationView.getMenu().findItem(R.id.app_bar_switch).getActionView().findViewById(R.id.switcharr);
+        asd.setChecked(PreferencesHandler.getOffline(this));
+        asd.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                PreferencesHandler.setOffline(ctx, isChecked);
+                finish();
+                startActivity(getIntent());
+            }
+        });
     }
 
     @Override

@@ -22,6 +22,8 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import com.evenless.tersicore.ApiRequestTaskListener;
@@ -118,8 +120,19 @@ public class SingleArtistActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        FloatingActionButton asd = findViewById(R.id.floatingShuffle);
-        asd.setOnClickListener(new View.OnClickListener(){
+        Switch asd = navigationView.getMenu().findItem(R.id.app_bar_switch).getActionView().findViewById(R.id.switcharr);
+        asd.setChecked(PreferencesHandler.getOffline(this));
+        asd.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                PreferencesHandler.setOffline(ctx, isChecked);
+                finish();
+                startActivity(getIntent());
+            }
+        });
+
+        FloatingActionButton er = findViewById(R.id.floatingShuffle);
+        er.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
                 Intent dd = new Intent(v.getContext(), MainActivity.class);

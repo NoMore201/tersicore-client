@@ -246,7 +246,8 @@ public class SearchActivity extends AppCompatActivity
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 PreferencesHandler.setOffline(ctx, isChecked);
-                recreate();
+                finish();
+                startActivity(getIntent());
             }
         });
     }

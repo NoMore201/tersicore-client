@@ -37,6 +37,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -173,6 +174,17 @@ public class SingleAlbumActivity  extends AppCompatActivity
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 DataBackend.updateFavorite(new Album(albumName, artist), isChecked);
+            }
+        });
+
+        Switch asd = navigationView.getMenu().findItem(R.id.app_bar_switch).getActionView().findViewById(R.id.switcharr);
+        asd.setChecked(PreferencesHandler.getOffline(this));
+        asd.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                PreferencesHandler.setOffline(ctx, isChecked);
+                finish();
+                startActivity(getIntent());
             }
         });
 

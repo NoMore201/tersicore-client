@@ -25,8 +25,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -85,7 +87,7 @@ public class TracksActivity extends AppCompatActivity
                 v.setVisibility(View.VISIBLE);
                 ListView asd = findViewById(R.id.listart);
                 ConstraintLayout.LayoutParams x = (ConstraintLayout.LayoutParams) asd.getLayoutParams();
-                x.bottomMargin=200;
+                x.bottomMargin=160;
                 asd.setLayoutParams(x);
                 PlayerInterface.UpdateTrack(v, mService);
             }
@@ -143,6 +145,17 @@ public class TracksActivity extends AppCompatActivity
             listTracks = DataBackend.getTracks(artist);
 
         updateList();
+
+        Switch asd = navigationView.getMenu().findItem(R.id.app_bar_switch).getActionView().findViewById(R.id.switcharr);
+        asd.setChecked(PreferencesHandler.getOffline(this));
+        asd.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                PreferencesHandler.setOffline(ctx, isChecked);
+                finish();
+                startActivity(getIntent());
+            }
+        });
 
     }
 

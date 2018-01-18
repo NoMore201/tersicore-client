@@ -24,6 +24,7 @@ public class PreferencesHandler {
     }
 
     public static boolean getOffline(Context ctx) {
+        offline=getSharedPreferences(ctx).getBoolean(PREF_OFFLINE, false);
         return getSharedPreferences(ctx).getBoolean(PREF_OFFLINE, false);
     }
 

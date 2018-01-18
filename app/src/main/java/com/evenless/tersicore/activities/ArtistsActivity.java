@@ -21,7 +21,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CompoundButton;
 import android.widget.ListView;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import com.evenless.tersicore.ApiRequestTaskListener;
@@ -73,7 +75,7 @@ public class ArtistsActivity  extends AppCompatActivity
                 v.setVisibility(View.VISIBLE);
                 ListView asd = findViewById(R.id.listart);
                 ConstraintLayout.LayoutParams x = (ConstraintLayout.LayoutParams) asd.getLayoutParams();
-                x.bottomMargin=200;
+                x.bottomMargin=160;
                 asd.setLayoutParams(x);
                 PlayerInterface.UpdateTrack(findViewById(R.id.asd2), mService);
             }
@@ -137,6 +139,16 @@ public class ArtistsActivity  extends AppCompatActivity
                 Intent asd = new Intent(v.getContext(), SingleArtistActivity.class);
                 asd.putExtra("EXTRA_ARTIST", listArtists.get(position));
                 v.getContext().startActivity(asd);
+            }
+        });
+        Switch asd = navigationView.getMenu().findItem(R.id.app_bar_switch).getActionView().findViewById(R.id.switcharr);
+        asd.setChecked(PreferencesHandler.getOffline(this));
+        asd.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                PreferencesHandler.setOffline(ctx, isChecked);
+                finish();
+                startActivity(getIntent());
             }
         });
     }
