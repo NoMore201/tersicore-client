@@ -17,9 +17,11 @@ public class GenericRequestTask extends AsyncTask<Void, Integer, String> {
 
     protected URL mUrl;
     protected Exception mThrownException;
+    protected String mToken;
 
-    protected GenericRequestTask(URL url) {
+    protected GenericRequestTask(URL url, String token) {
         mUrl = url;
+        mToken = token;
     }
 
     @Override
@@ -45,6 +47,9 @@ public class GenericRequestTask extends AsyncTask<Void, Integer, String> {
                 httpConnection = (HttpURLConnection) mUrl.openConnection();
                 httpConnection.setRequestMethod("GET");
                 httpConnection.setDoInput(true);
+                if (mToken != null) {
+                    httpConnection.setRequestProperty("AUTH", mToken);
+                }
                 httpConnection.connect();
                 int responseCode = httpConnection.getResponseCode();
                 if (responseCode != HttpURLConnection.HTTP_OK) {
@@ -73,6 +78,9 @@ public class GenericRequestTask extends AsyncTask<Void, Integer, String> {
                     httpsConnection = (HttpsURLConnection) mUrl.openConnection();
                     httpsConnection.setRequestMethod("GET");
                     httpsConnection.setDoInput(true);
+                    if (mToken != null) {
+                        httpsConnection.setRequestProperty("AUTH", mToken);
+                    }
                     httpsConnection.connect();
                     int responseCode = httpsConnection.getResponseCode();
                     if (responseCode != HttpURLConnection.HTTP_OK) {

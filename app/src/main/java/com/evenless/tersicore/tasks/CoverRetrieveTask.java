@@ -1,6 +1,7 @@
 package com.evenless.tersicore.tasks;
 
 import android.media.MediaMetadataRetriever;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -8,6 +9,7 @@ import com.evenless.tersicore.CoverRetrieveTaskListener;
 import com.evenless.tersicore.model.Track;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class CoverRetrieveTask extends AsyncTask<Void, Integer, byte[]> {
     private final static String TAG = "CoverRetrieveTask";
@@ -15,16 +17,19 @@ public class CoverRetrieveTask extends AsyncTask<Void, Integer, byte[]> {
     private CoverRetrieveTaskListener mListener;
     private Track mTrack;
     private String mUrl;
+    private String mToken;
     private int id;
     private Exception mThrownException;
 
     public CoverRetrieveTask(CoverRetrieveTaskListener listener,
                              Track track,
                              String url,
+                             String token,
                              int imageId) {
         mListener = listener;
         mTrack = track;
         mUrl = url;
+        mToken = token;
         id = imageId;
     }
 
@@ -32,7 +37,9 @@ public class CoverRetrieveTask extends AsyncTask<Void, Integer, byte[]> {
     protected byte[] doInBackground(Void... params) {
         MediaMetadataRetriever mmr = new MediaMetadataRetriever();
         try {
-            mmr.setDataSource(mUrl, new HashMap<String, String>());
+            Map<String,String> headers = new HashMap<String,String>();
+            headers.put("AUTH", mToken);
+            mmr.setDataSource(mUrl, headers);
         } catch (Exception e) {
             Log.e("CoverRetrieveTask", e.getMessage());
             mThrownException = e;

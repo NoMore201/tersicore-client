@@ -1,6 +1,5 @@
 package com.evenless.tersicore;
 
-import android.graphics.Bitmap;
 import android.os.AsyncTask;
 
 import com.evenless.tersicore.model.Track;
@@ -20,6 +19,7 @@ public class TaskHandler {
     private static final String API_BASE_URL = "https://ws.audioscrobbler.com/2.0/";
     private static final String API_KEY = "b6570587abc105bc286cf227cabbba50";
     private static final String API_SHARED_SECRET = "ca91306bbff831733d675dfc6e556b77";
+    private static final String TERSICORE_TOKEN = "0651863bf5d902262b17c4621ec340544ff016752543d99a92d7d22872d8a455";
     public static final int ALL_TRACKS = 0;
     public static final int TRACKS_LATEST = 1;
     public static final int PLAYLISTS = 2;
@@ -30,7 +30,7 @@ public class TaskHandler {
                                  String server) throws MalformedURLException
     {
         URL url = new URL(server + "/tracks");
-        ApiRequestTask task = new ApiRequestTask(listener, url, ALL_TRACKS);
+        ApiRequestTask task = new ApiRequestTask(listener, url, TERSICORE_TOKEN, ALL_TRACKS);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
@@ -38,7 +38,7 @@ public class TaskHandler {
                                  String server) throws MalformedURLException
     {
         URL url = new URL(server + "/tracks/latest");
-        ApiRequestTask task = new ApiRequestTask(listener, url , TRACKS_LATEST);
+        ApiRequestTask task = new ApiRequestTask(listener, url, TERSICORE_TOKEN, TRACKS_LATEST);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
@@ -46,7 +46,7 @@ public class TaskHandler {
                                  String server) throws MalformedURLException
     {
         URL url = new URL(server + "/playlists");
-        ApiRequestTask task = new ApiRequestTask(listener, url, PLAYLISTS);
+        ApiRequestTask task = new ApiRequestTask(listener, url, TERSICORE_TOKEN, PLAYLISTS);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
@@ -54,7 +54,7 @@ public class TaskHandler {
                                     String server, String id) throws MalformedURLException
     {
         URL url = new URL(server + "/playlists/" + id);
-        ApiRequestTask task = new ApiRequestTask(listener, url, PLAYLIST_SINGLE);
+        ApiRequestTask task = new ApiRequestTask(listener, url, TERSICORE_TOKEN, PLAYLIST_SINGLE);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
@@ -62,7 +62,7 @@ public class TaskHandler {
                                     String server) throws MalformedURLException
     {
         URL url = new URL(server + "/suggestions");
-        ApiRequestTask task = new ApiRequestTask(listener, url, SUGGESTIONS);
+        ApiRequestTask task = new ApiRequestTask(listener, url, TERSICORE_TOKEN, SUGGESTIONS);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
@@ -73,7 +73,7 @@ public class TaskHandler {
             UnsupportedEncodingException
     {
         URL url = new URL(buildArtistUrl(query));
-        ImageRequestTask task = new ImageRequestTask(listener, id, query, url);
+        ImageRequestTask task = new ImageRequestTask(listener, id, query, TERSICORE_TOKEN, url);
         task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
@@ -85,7 +85,11 @@ public class TaskHandler {
             UnsupportedEncodingException
     {
         URL url = new URL(buildAlbumUrl(artist, album));
-        ImageRequestTask task = new ImageRequestTask(listener, id, artist+"<!!"+album, url);
+        ImageRequestTask task = new ImageRequestTask(listener,
+                id,
+                artist+"<!!"+album,
+                TERSICORE_TOKEN,
+                url);
         task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
@@ -93,14 +97,14 @@ public class TaskHandler {
                                 Track track, String server, int id)
     {
         String url = server + "/stream/" + track.resources.get(0).uuid;
-        CoverRetrieveTask task = new CoverRetrieveTask(listener, track, url, id);
+        CoverRetrieveTask task = new CoverRetrieveTask(listener, track, url, TERSICORE_TOKEN, id);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
     public static void isServerRunning(ServerStatusTaskListener listener,
                                        URL serverUrl)
     {
-        ServerStatusTask task = new ServerStatusTask(listener, serverUrl);
+        ServerStatusTask task = new ServerStatusTask(listener, serverUrl, TERSICORE_TOKEN);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 

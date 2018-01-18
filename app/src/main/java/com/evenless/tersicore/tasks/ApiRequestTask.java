@@ -10,8 +10,8 @@ public class ApiRequestTask extends GenericRequestTask {
     private int mState;
 
     public ApiRequestTask(ApiRequestTaskListener listener,
-                          URL url, int state) {
-        super(url);
+                          URL url, String token, int state) {
+        super(url, token);
         mListener = listener;
         mState=state;
     }

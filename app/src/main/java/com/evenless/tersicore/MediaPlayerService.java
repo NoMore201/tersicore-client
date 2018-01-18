@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.Handler;
@@ -33,37 +34,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         CoverRetrieveTaskListener
 {
     private static final String TAG = "MediaPlayerService";
+    private static final String mToken = "0651863bf5d902262b17c4621ec340544ff016752543d99a92d7d22872d8a455";
 
-    public void deleteFromPlaylist(Track it) {
-        if(mCurrentIndex==getCurrentPlaylist().indexOf(it))
-            skip(SkipDirection.SKIP_FORWARD);
-        getCurrentPlaylist().remove(it);
-        resNumb.remove(mCurrentPlaylist.indexOf(it));
-    }
-
-    public int getPreferredRes(Track tr) {
-        if(tr.resources.size()==1)
-            return 0;
-
-        int ind=mCurrentPlaylist.indexOf(tr);
-        Integer aa = resNumb.get(ind);
-        if(aa!=null)
-            return aa;
-        else
-            //consider preferences!
-            return 0;
-    }
-
-    public void reset() {
-        mMediaPlayer.reset();
-        mCurrentPlaylist=new ArrayList<>();
-        mCurrentPlaylistSorted=new ArrayList<>();
-        currentprogress=0;
-        mCurrentIndex=0;
-        mCurrentTimer.cancel();
-        isShuffle=false;
-        res=0;
-    }
 
     public enum SkipDirection { SKIP_FORWARD, SKIP_BACKWARD }
     public class LocalBinder extends Binder {
@@ -216,6 +188,37 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     /*
      * Custom methods
      */
+
+    public void deleteFromPlaylist(Track it) {
+        if(mCurrentIndex==getCurrentPlaylist().indexOf(it))
+            skip(SkipDirection.SKIP_FORWARD);
+        getCurrentPlaylist().remove(it);
+        resNumb.remove(mCurrentPlaylist.indexOf(it));
+    }
+
+    public int getPreferredRes(Track tr) {
+        if(tr.resources.size()==1)
+            return 0;
+
+        int ind=mCurrentPlaylist.indexOf(tr);
+        Integer aa = resNumb.get(ind);
+        if(aa!=null)
+            return aa;
+        else
+            //consider preferences!
+            return 0;
+    }
+
+    public void reset() {
+        mMediaPlayer.reset();
+        mCurrentPlaylist=new ArrayList<>();
+        mCurrentPlaylistSorted=new ArrayList<>();
+        currentprogress=0;
+        mCurrentIndex=0;
+        mCurrentTimer.cancel();
+        isShuffle=false;
+        res=0;
+    }
 
     public boolean getRepeat() {return mMediaPlayer.isLooping();}
 
@@ -550,12 +553,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             res = getPreferredRes(current);
             try {
                 newTrackPlaying(current);
-                mMediaPlayer.setDataSource(PreferencesHandler.getServer(this) +
+                Map<String,String> headers = new HashMap<String,String>();
+                headers.put("AUTH", mToken);
+                String url = PreferencesHandler.getServer(this) +
                         "/stream/" +
-                        current.resources.get(res).uuid);
-                Log.d(TAG, PreferencesHandler.getServer(this) +
-                        "/stream/" +
-                        current.resources.get(res).uuid);
+                        current.resources.get(res).uuid;
+                mMediaPlayer.setDataSource(getApplicationContext(),
+                        Uri.parse(url),
+                        headers);
                 mMediaPlayer.prepareAsync();
                 DataBackend.setDate(current);
             } catch (IOException e) {

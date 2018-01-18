@@ -9,8 +9,9 @@ public class ServerStatusTask extends GenericRequestTask {
     private ServerStatusTaskListener mListener;
 
     public ServerStatusTask(ServerStatusTaskListener listener,
-                            URL serverUrl) {
-        super(serverUrl);
+                            URL serverUrl,
+                            String token) {
+        super(serverUrl, token);
         mListener = listener;
     }
 

@@ -12,8 +12,9 @@ public class ImageRequestTask extends GenericRequestTask {
     public ImageRequestTask(ImageRequestTaskListener listener,
                             int id,
                             String query,
+                            String token,
                             URL url) {
-        super(url);
+        super(url, token);
         mListener = listener;
         mId = id;
         mQuery = query;
