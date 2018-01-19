@@ -145,7 +145,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity
                 mService.reset();
             DataBackend.removeAll();
             Track[] listTracks = new Gson().fromJson(response, Track[].class);
-            DataBackend.insertTracks(new ArrayList<>(Arrays.asList(listTracks)));
+            DataBackend.insertTracks(new ArrayList<>(Arrays.asList(listTracks)), PreferencesHandler.getServer(this));
             Toast.makeText(this, "Rebuild Complete", Toast.LENGTH_LONG).show();
         }
     }

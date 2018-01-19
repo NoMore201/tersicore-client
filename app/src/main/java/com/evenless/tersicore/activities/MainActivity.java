@@ -219,6 +219,7 @@ public class MainActivity extends AppCompatActivity
                             fullT.setText(parseDuration((long) tra.duration * 1000));
                         ToggleButton lik = findViewById(R.id.tb_love);
                         lik.setChecked(DataBackend.checkFavorite(tra));
+                        findViewById(R.id.progressani2).setVisibility(View.GONE);
                         ImageButton download = findViewById(R.id.downloadButt2);
                         if(mService.isOffline()) {
                             download.setVisibility(View.GONE);
@@ -228,8 +229,6 @@ public class MainActivity extends AppCompatActivity
                         else {
                             download.setVisibility(View.VISIBLE);
                             toolbar.setSubtitle(tra.resources.get(mService.getCurrentResource()).server);
-                            download.setImageResource(R.drawable.download);
-                            download.setEnabled(true);
                             findViewById(R.id.removeButt2).setVisibility(View.GONE);
                         }
                     }
@@ -276,6 +275,7 @@ public class MainActivity extends AppCompatActivity
                 });
                 ImageButton download = findViewById(R.id.downloadButt2);
                 ImageButton remove = findViewById(R.id.removeButt2);
+                findViewById(R.id.progressani2).setVisibility(View.GONE);
                 if(mService.isOffline()) {
                     download.setVisibility(View.GONE);
                     toolbar.setSubtitle("OFFLINE");
@@ -284,8 +284,6 @@ public class MainActivity extends AppCompatActivity
                 else {
                     toolbar.setSubtitle(tr.resources.get(mService.getCurrentResource()).server);
                     download.setVisibility(View.VISIBLE);
-                    download.setImageResource(R.drawable.download);
-                    download.setEnabled(true);
                     remove.setVisibility(View.GONE);
                 }
                 download.setOnClickListener(new View.OnClickListener() {
@@ -300,14 +298,13 @@ public class MainActivity extends AppCompatActivity
                                         355);
 
                         } else {
-                            ImageButton d = (ImageButton) v;
-                            d.setImageResource(R.drawable.ic_spinner);
-                            d.setEnabled(false);
+                            v.setVisibility(View.GONE);
+                            findViewById(R.id.progressani2).setVisibility(View.VISIBLE);
                             try {
                                 mService.downloadCurrentFile((FileDownloadTaskListener) ctx);
                             } catch (MalformedURLException e) {
-                                d.setEnabled(true);
-                                d.setImageResource(R.drawable.download);
+                                findViewById(R.id.progressani2).setVisibility(View.GONE);
+                                v.setVisibility(View.VISIBLE);
                                 Toast.makeText((Context) ctx,
                                         "Error in downloading file from server",
                                         Toast.LENGTH_LONG).show();
@@ -501,15 +498,14 @@ public class MainActivity extends AppCompatActivity
             if (modify != null)
                 mService.setDownloaded(modify);
             if (mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex()).uuid.compareTo(id) == 0) {
-                findViewById(R.id.downloadButt2).setVisibility(View.GONE);
+                findViewById(R.id.progressani2).setVisibility(View.GONE);
                 Toolbar toolbar = findViewById(R.id.toolbar2);
                 toolbar.setSubtitle("OFFLINE");
                 findViewById(R.id.removeButt2).setVisibility(View.VISIBLE);
             }
         } else {
-            ImageButton d = findViewById(R.id.downloadButt2);
-            d.setImageResource(R.drawable.download);
-            d.setEnabled(true);
+            findViewById(R.id.downloadButt2).setVisibility(View.VISIBLE);
+            findViewById(R.id.progressani2).setVisibility(View.GONE);
             Toast.makeText((Context) ctx, "There was some errors in downloading file", Toast.LENGTH_LONG).show();
         }
     }

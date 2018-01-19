@@ -17,7 +17,17 @@ public class FileRemoveTask extends AsyncTask<Void, Integer, Boolean> {
 
     @Override
     protected Boolean doInBackground(Void... params) {
-        File asd = new File(Environment.getExternalStorageDirectory() + "/Music/" + mQuery + "." + mFormat);
-        return asd.delete();
+        boolean yes = true;
+        if(mQuery.equals("ALL")){
+            File ass = new File(Environment.getExternalStorageDirectory() + "/TersicoreMusic");
+            for(File f : ass.listFiles())
+                if(!f.delete())
+                    yes=false;
+        }
+        else{
+            File asd = new File(Environment.getExternalStorageDirectory() + "/TersicoreMusic/" + mQuery + "." + mFormat);
+            yes = asd.delete();
+        }
+        return yes;
     }
 }

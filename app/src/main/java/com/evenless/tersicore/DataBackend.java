@@ -35,7 +35,7 @@ public class DataBackend {
      * Save tracks into the database
      * @param tracks list of track informations to save
      */
-    public static void insertTracks(List<Track> tracks) {
+    public static void insertTracks(List<Track> tracks, String server) {
         Realm realm = getInstance();
         realm.beginTransaction();
         realm.copyToRealmOrUpdate(tracks);
@@ -468,6 +468,7 @@ public class DataBackend {
     public static void removeAll() {
         Realm realm = getInstance();
         realm.beginTransaction();
+        TaskHandler.removeAllFiles();
         realm.delete(Track.class);
         realm.commitTransaction();
     }

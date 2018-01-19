@@ -38,14 +38,17 @@ public class FileDownloadTask extends AsyncTask<Void, Integer, Boolean> {
 
             byte[] buffer = new byte[1024];
             int length;
+            File s = new File(Environment.getExternalStorageDirectory() + "/TersicoreMusic");
+            if(!s.exists())
+                s.mkdir();
 
-            FileOutputStream fos = new FileOutputStream(new File(Environment.getExternalStorageDirectory() + "/Music/" + mQuery + "." + mFormat));
+            FileOutputStream fos = new FileOutputStream(new File(Environment.getExternalStorageDirectory() + "/TersicoreMusic/" + mQuery + "." + mFormat));
             while ((length = dis.read(buffer))>0) {
                 fos.write(buffer, 0, length);
             }
 
         } catch (IOException e) {
-            Log.e("CoverDownloadTask", e.getMessage());
+            Log.e("FileDownloadTask", e.getMessage());
             return false;
         }
         return true;
@@ -56,5 +59,7 @@ public class FileDownloadTask extends AsyncTask<Void, Integer, Boolean> {
         super.onPostExecute(aBoolean);
         if(aBoolean)
             mListener.OnFileDownloaded(mQuery, idm);
+        else
+            mListener.OnFileDownloaded(null, null);
     }
 }

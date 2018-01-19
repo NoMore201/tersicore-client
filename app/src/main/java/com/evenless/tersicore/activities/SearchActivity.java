@@ -478,10 +478,7 @@ public class SearchActivity extends AppCompatActivity
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         } else if (response != null) {
             listTracks = new Gson().fromJson(response, Track[].class);
-            for(Track t : listTracks)
-                for (TrackResources r : t.resources)
-                    r.server=PreferencesHandler.getServer(this);
-            DataBackend.insertTracks(new ArrayList<>(Arrays.asList(listTracks)));
+            DataBackend.insertTracks(new ArrayList<>(Arrays.asList(listTracks)), PreferencesHandler.getServer(ctx));
             try {
                 TaskHandler.getLatestTracks(this, PreferencesHandler.getServer(this));
                 TaskHandler.getSuggestions(this, PreferencesHandler.getServer(this));

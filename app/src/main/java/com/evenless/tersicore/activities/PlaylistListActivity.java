@@ -343,12 +343,12 @@ implements FileDownloadTaskListener{
 
                 } else {
                     final ImageButton d = (ImageButton) v;
-                    d.setImageResource(R.drawable.ic_spinner);
-                    d.setEnabled(false);
                     AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
                     builder.setTitle("Play options")
                             .setItems(MediaPlayerService.playOptions, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
+                                    d.setVisibility(View.GONE);
+                                    findViewById(R.id.progressani3).setVisibility(View.VISIBLE);
                                     for(Track tt : listTracks) {
                                         TrackResources res = MediaPlayerService.checkTrackResourceByPreference(tt, which, false);
                                         if(!res.isDownloaded){
@@ -357,8 +357,8 @@ implements FileDownloadTaskListener{
                                                 mService.downloadFile(res, tt.uuid, (FileDownloadTaskListener) ctx);
                                             } catch (Exception e) {
                                                 Toast.makeText(ctx, "Some files have not been downloaded correctly", Toast.LENGTH_LONG).show();
-                                                d.setImageResource(R.drawable.download);
-                                                d.setEnabled(true);
+                                                findViewById(R.id.downloadButt).setVisibility(View.VISIBLE);
+                                                findViewById(R.id.progressani).setVisibility(View.GONE);
                                             }
                                         }
                                     }
@@ -385,8 +385,8 @@ implements FileDownloadTaskListener{
         if(key==null){
             ImageButton d = findViewById(R.id.downloadButt);
             Toast.makeText(ctx, "Some files have not been downloaded correctly. Try another preference!", Toast.LENGTH_LONG).show();
-            d.setImageResource(R.drawable.download);
-            d.setEnabled(true);
+            d.setVisibility(View.VISIBLE);
+            findViewById(R.id.progressani3).setVisibility(View.GONE);
             listTracks = pid.getTrackObjects();
         } else {
             downloadedCount--;
@@ -397,7 +397,7 @@ implements FileDownloadTaskListener{
                     listTracks.add(i, ins);
                 }
             if(downloadedCount==0) {
-                findViewById(R.id.downloadButt).setVisibility(View.GONE);
+                findViewById(R.id.progressani3).setVisibility(View.GONE);
                 findViewById(R.id.removeButt).setVisibility(View.VISIBLE);
             }
         }

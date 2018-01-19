@@ -198,4 +198,9 @@ public class TaskHandler {
         FileRemoveTask task = new FileRemoveTask(key, format);
         task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
+
+    public static void removeAllFiles() {
+        FileRemoveTask task = new FileRemoveTask("ALL", null);
+        task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
 }

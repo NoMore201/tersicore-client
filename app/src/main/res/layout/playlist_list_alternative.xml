@@ -67,6 +67,18 @@
             android:scaleType="fitCenter"
             android:src="@drawable/download" />
 
+        <ProgressBar
+            android:id="@+id/progressani3"
+            android:indeterminate="true"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="8dp"
+            android:visibility="gone"
+            android:background="@null"
+            android:elevation="2dp"
+            android:padding="10dp"
+            android:scaleType="fitCenter"/>
+
         <ImageButton
             android:id="@+id/removeButt"
             android:layout_width="50dp"
