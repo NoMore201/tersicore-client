@@ -24,23 +24,18 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.Switch;
-import android.widget.Toast;
 
-import com.evenless.tersicore.ApiRequestTaskListener;
 import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.MediaPlayerService;
-import com.evenless.tersicore.MediaPlayerServiceListener;
+import com.evenless.tersicore.interfaces.MediaPlayerServiceListener;
 import com.evenless.tersicore.MyListAdapter;
 import com.evenless.tersicore.PlayerInterface;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
-import com.evenless.tersicore.TaskHandler;
 import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.Track;
-import com.google.gson.Gson;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**

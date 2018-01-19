@@ -2,21 +2,43 @@ package com.evenless.tersicore.model;
 
 public class TrackSuggestion {
 
+    // suggestion id
+    public String id;
+    // referring track uuid
     public String uuid;
     public String album;
     public String artist;
     public String title;
     public String username;
 
-    public TrackSuggestion(){
+    public TrackSuggestion() {}
 
-    };
+    /**
+     * Constructor for a single track
+     * @param id
+     * @param uuid
+     * @param album
+     * @param artist
+     * @param title
+     */
+    public TrackSuggestion (String id, String uuid, String album, String artist, String title ){
+        this.id = id;
+        this.uuid = uuid;
+        this.album = album;
+        this.artist = artist;
+        this.title = title;
+    }
 
-    public TrackSuggestion(String u, String a, String ar, String t){
-        uuid=u;
-        album=a;
-        artist=ar;
-        title=t;
+    /**
+     * Constructor for album
+     * @param id
+     * @param album
+     * @param artist
+     */
+    public TrackSuggestion(String id, String album, String artist) {
+        this.id = id;
+        this.album = album;
+        this.artist = artist;
     }
 
     @Override
@@ -28,6 +50,6 @@ public class TrackSuggestion {
     }
 
     public boolean isTrack() {
-        return uuid!=null;
+        return uuid != null;
     }
 }

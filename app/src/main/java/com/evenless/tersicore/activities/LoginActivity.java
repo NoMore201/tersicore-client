@@ -3,13 +3,12 @@ package com.evenless.tersicore.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.PreferencesHandler;
-import com.evenless.tersicore.ServerStatusTaskListener;
+import com.evenless.tersicore.interfaces.ServerStatusTaskListener;
 import com.evenless.tersicore.TaskHandler;
 
 import java.net.MalformedURLException;

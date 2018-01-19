@@ -1,16 +1,16 @@
 package com.evenless.tersicore.tasks;
 
-import com.evenless.tersicore.ApiRequestTaskListener;
+import com.evenless.tersicore.interfaces.ApiRequestTaskListener;
 import com.evenless.tersicore.TaskHandler;
 
 import java.net.URL;
 
-public class ApiRequestTask extends GenericRequestTask {
+public class ApiGetTask extends GenericGetTask {
     private ApiRequestTaskListener mListener;
     private int mState;
 
-    public ApiRequestTask(ApiRequestTaskListener listener,
-                          URL url, String token, int state) {
+    public ApiGetTask(ApiRequestTaskListener listener,
+                      URL url, String token, int state) {
         super(url, token);
         mListener = listener;
         mState=state;

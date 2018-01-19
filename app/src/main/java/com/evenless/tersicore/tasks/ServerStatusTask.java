@@ -1,10 +1,10 @@
 package com.evenless.tersicore.tasks;
 
-import com.evenless.tersicore.ServerStatusTaskListener;
+import com.evenless.tersicore.interfaces.ServerStatusTaskListener;
 
 import java.net.URL;
 
-public class ServerStatusTask extends GenericRequestTask {
+public class ServerStatusTask extends GenericGetTask {
 
     private ServerStatusTaskListener mListener;
 

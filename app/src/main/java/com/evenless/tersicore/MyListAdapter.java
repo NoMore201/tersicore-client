@@ -3,8 +3,6 @@ package com.evenless.tersicore;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.provider.ContactsContract;
-import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,10 +15,10 @@ import android.widget.TextView;
 import com.evenless.tersicore.activities.MainActivity;
 import com.evenless.tersicore.activities.SingleAlbumActivity;
 import com.evenless.tersicore.activities.SingleArtistActivity;
-import com.evenless.tersicore.exceptions.TrackNotPresentException;
+import com.evenless.tersicore.interfaces.CoverDownloadTaskListener;
+import com.evenless.tersicore.interfaces.ImageRequestTaskListener;
 import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.Cover;
-import com.evenless.tersicore.model.Track;
 import com.evenless.tersicore.model.TrackSuggestion;
 
 import org.json.JSONArray;
@@ -28,11 +26,8 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by McPhi on 05/12/2017.

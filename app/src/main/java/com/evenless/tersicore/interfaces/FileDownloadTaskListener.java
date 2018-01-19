@@ -1,4 +1,4 @@
-package com.evenless.tersicore;
+package com.evenless.tersicore.interfaces;
 
 import android.graphics.Bitmap;
 

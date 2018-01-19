@@ -2,7 +2,6 @@ package com.evenless.tersicore.activities;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -11,13 +10,10 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.Image;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.provider.ContactsContract;
-import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.PagerAdapter;
@@ -44,26 +40,20 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.evenless.tersicore.DataBackend;
-import com.evenless.tersicore.FileDownloadTaskListener;
+import com.evenless.tersicore.TaskHandler;
+import com.evenless.tersicore.interfaces.FileDownloadTaskListener;
 import com.evenless.tersicore.MediaPlayerService;
-import com.evenless.tersicore.MediaPlayerServiceListener;
-import com.evenless.tersicore.PlayerInterface;
+import com.evenless.tersicore.interfaces.MediaPlayerServiceListener;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
-import com.evenless.tersicore.TaskHandler;
 import com.evenless.tersicore.exceptions.InvalidUrlException;
 import com.evenless.tersicore.model.Cover;
 import com.evenless.tersicore.model.Track;
 import com.evenless.tersicore.model.TrackResources;
 import com.evenless.tersicore.view.SquareImageView;
 
-import org.w3c.dom.Text;
-
 import java.net.MalformedURLException;
-import java.util.Arrays;
-import java.util.List;
 
-import io.realm.RealmList;
 import me.crosswall.lib.coverflow.CoverFlow;
 import me.crosswall.lib.coverflow.core.PagerContainer;
 
@@ -107,7 +97,7 @@ public class MainActivity extends AppCompatActivity
             }
             if(mService.getCurrentPlaylist().size()>0) {
                 mService.callTimer(mHandler);
-                PagerContainer container = (PagerContainer) findViewById(R.id.pager_container);
+                PagerContainer container = findViewById(R.id.pager_container);
                 final Toolbar toolbar = findViewById(R.id.toolbar2);
                 toolbar.setNavigationOnClickListener(new View.OnClickListener() {
                     @Override
@@ -132,7 +122,7 @@ public class MainActivity extends AppCompatActivity
                 }
                 final Track tr = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex());
                 int curres = mService.getCurrentResource();
-                final TextView tv_song = (TextView) findViewById(R.id.tv_song);
+                final TextView tv_song = findViewById(R.id.tv_song);
                 tv_song.setText(tr.title);
                 RelativeLayout relativeLayout = (RelativeLayout) pager.getAdapter().instantiateItem(pager, 0);
                 ViewCompat.setElevation(relativeLayout.getRootView(), 8.0f);
@@ -154,7 +144,7 @@ public class MainActivity extends AppCompatActivity
                         mService.setRepeat(isChecked);
                     }
                 });
-                ToggleButton toggleS = (ToggleButton) findViewById(R.id.toggleShuffle);
+                ToggleButton toggleS = findViewById(R.id.toggleShuffle);
                 toggleS.setChecked(mService.getShuffle());
                 toggleS.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {

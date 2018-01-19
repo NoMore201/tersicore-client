@@ -1,4 +1,4 @@
-package com.evenless.tersicore;
+package com.evenless.tersicore.interfaces;
 
 import com.evenless.tersicore.model.Track;
 

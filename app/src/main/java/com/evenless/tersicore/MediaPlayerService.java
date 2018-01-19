@@ -19,6 +19,9 @@ import android.util.Log;
 
 import com.danikula.videocache.HttpProxyCacheServer;
 import com.evenless.tersicore.exceptions.MediaPlayerException;
+import com.evenless.tersicore.interfaces.CoverRetrieveTaskListener;
+import com.evenless.tersicore.interfaces.FileDownloadTaskListener;
+import com.evenless.tersicore.interfaces.MediaPlayerServiceListener;
 import com.evenless.tersicore.model.Track;
 import com.evenless.tersicore.model.TrackResources;
 

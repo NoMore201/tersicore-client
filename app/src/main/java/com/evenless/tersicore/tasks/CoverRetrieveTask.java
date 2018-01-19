@@ -1,11 +1,10 @@
 package com.evenless.tersicore.tasks;
 
 import android.media.MediaMetadataRetriever;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.evenless.tersicore.CoverRetrieveTaskListener;
+import com.evenless.tersicore.interfaces.CoverRetrieveTaskListener;
 import com.evenless.tersicore.model.Track;
 
 import java.util.HashMap;

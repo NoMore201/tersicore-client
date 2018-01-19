@@ -12,14 +12,14 @@ import java.net.URL;
 import javax.net.ssl.HttpsURLConnection;
 
 
-public class GenericRequestTask extends AsyncTask<Void, Integer, String> {
-    private final static String TAG = "GenericRequestTask";
+public class GenericGetTask extends AsyncTask<Void, Integer, String> {
+    private final static String TAG = "GenericGetTask";
 
     protected URL mUrl;
     protected Exception mThrownException;
     protected String mToken;
 
-    protected GenericRequestTask(URL url, String token) {
+    protected GenericGetTask(URL url, String token) {
         mUrl = url;
         mToken = token;
     }

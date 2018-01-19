@@ -432,7 +432,7 @@ public class DataBackend {
     public static ArrayList<TrackSuggestion> getTracksCopied() {
         ArrayList<TrackSuggestion> temp = new ArrayList<>();
         for (Track t : getTracks())
-            temp.add(new TrackSuggestion(t.uuid, t.album, getTrackArtist(t), t.title));
+            temp.add(new TrackSuggestion("temp", t.uuid, t.album, getTrackArtist(t), t.title));
         return temp;
     }
 

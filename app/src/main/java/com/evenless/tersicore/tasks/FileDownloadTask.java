@@ -4,7 +4,7 @@ import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Log;
 
-import com.evenless.tersicore.FileDownloadTaskListener;
+import com.evenless.tersicore.interfaces.FileDownloadTaskListener;
 
 import java.io.DataInputStream;
 import java.io.File;

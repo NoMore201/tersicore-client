@@ -1,4 +1,4 @@
-package com.evenless.tersicore;
+package com.evenless.tersicore.interfaces;
 
 public interface ApiRequestTaskListener {
     void onRequestComplete(String response, Exception e);

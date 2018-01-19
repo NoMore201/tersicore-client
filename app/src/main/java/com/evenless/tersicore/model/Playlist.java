@@ -13,15 +13,15 @@ public class Playlist extends RealmObject {
     public RealmList<Track> tracks;
 
     public Playlist(){
-        favorite=false;
-        tracks=new RealmList<>();
+        favorite = false;
+        tracks = new RealmList<>();
     }
 
     public Playlist(String n, String u){
         name = n;
         uploader = u;
-        favorite=false;
+        favorite = false;
         id = n + u;
-        tracks=new RealmList<>();
+        tracks = new RealmList<>();
     }
 }

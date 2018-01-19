@@ -1,20 +1,38 @@
 package com.evenless.tersicore;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
+import com.evenless.tersicore.interfaces.ApiPostTaskListener;
+import com.evenless.tersicore.interfaces.ApiRequestTaskListener;
+import com.evenless.tersicore.interfaces.CoverDownloadTaskListener;
+import com.evenless.tersicore.interfaces.CoverRetrieveTaskListener;
+import com.evenless.tersicore.interfaces.FileDownloadTaskListener;
+import com.evenless.tersicore.interfaces.ImageRequestTaskListener;
+import com.evenless.tersicore.interfaces.ServerStatusTaskListener;
+import com.evenless.tersicore.model.Playlist;
 import com.evenless.tersicore.model.Track;
-import com.evenless.tersicore.tasks.ApiRequestTask;
+import com.evenless.tersicore.model.TrackSuggestion;
+import com.evenless.tersicore.tasks.ApiGetTask;
 import com.evenless.tersicore.tasks.CoverDownloadTask;
 import com.evenless.tersicore.tasks.CoverRetrieveTask;
 import com.evenless.tersicore.tasks.FileDownloadTask;
 import com.evenless.tersicore.tasks.FileRemoveTask;
-import com.evenless.tersicore.tasks.ImageRequestTask;
+import com.evenless.tersicore.tasks.GenericPostTask;
+import com.evenless.tersicore.tasks.ImageGetTask;
 import com.evenless.tersicore.tasks.ServerStatusTask;
+import com.google.gson.Gson;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TaskHandler {
     private static final String TAG = "TaskHandler";
@@ -28,11 +46,15 @@ public class TaskHandler {
     public static final int PLAYLIST_SINGLE = 3;
     public static final int SUGGESTIONS = 4;
 
+    /*
+      GET REQUESTS
+     */
+
     public static void getTracks(ApiRequestTaskListener listener,
                                  String server) throws MalformedURLException
     {
         URL url = new URL(server + "/tracks");
-        ApiRequestTask task = new ApiRequestTask(listener, url, TERSICORE_TOKEN, ALL_TRACKS);
+        ApiGetTask task = new ApiGetTask(listener, url, TERSICORE_TOKEN, ALL_TRACKS);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
@@ -40,7 +62,7 @@ public class TaskHandler {
                                  String server) throws MalformedURLException
     {
         URL url = new URL(server + "/tracks/latest");
-        ApiRequestTask task = new ApiRequestTask(listener, url, TERSICORE_TOKEN, TRACKS_LATEST);
+        ApiGetTask task = new ApiGetTask(listener, url, TERSICORE_TOKEN, TRACKS_LATEST);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
@@ -48,7 +70,7 @@ public class TaskHandler {
                                  String server) throws MalformedURLException
     {
         URL url = new URL(server + "/playlists");
-        ApiRequestTask task = new ApiRequestTask(listener, url, TERSICORE_TOKEN, PLAYLISTS);
+        ApiGetTask task = new ApiGetTask(listener, url, TERSICORE_TOKEN, PLAYLISTS);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
@@ -56,7 +78,7 @@ public class TaskHandler {
                                     String server, String id) throws MalformedURLException
     {
         URL url = new URL(server + "/playlists/" + id);
-        ApiRequestTask task = new ApiRequestTask(listener, url, TERSICORE_TOKEN, PLAYLIST_SINGLE);
+        ApiGetTask task = new ApiGetTask(listener, url, TERSICORE_TOKEN, PLAYLIST_SINGLE);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
@@ -64,7 +86,7 @@ public class TaskHandler {
                                     String server) throws MalformedURLException
     {
         URL url = new URL(server + "/suggestions");
-        ApiRequestTask task = new ApiRequestTask(listener, url, TERSICORE_TOKEN, SUGGESTIONS);
+        ApiGetTask task = new ApiGetTask(listener, url, TERSICORE_TOKEN, SUGGESTIONS);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
@@ -75,7 +97,7 @@ public class TaskHandler {
             UnsupportedEncodingException
     {
         URL url = new URL(buildArtistUrl(query));
-        ImageRequestTask task = new ImageRequestTask(listener, id, query, TERSICORE_TOKEN, url);
+        ImageGetTask task = new ImageGetTask(listener, id, query, TERSICORE_TOKEN, url);
         task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
@@ -87,7 +109,7 @@ public class TaskHandler {
             UnsupportedEncodingException
     {
         URL url = new URL(buildAlbumUrl(artist, album));
-        ImageRequestTask task = new ImageRequestTask(listener,
+        ImageGetTask task = new ImageGetTask(listener,
                 id,
                 artist+"<!!"+album,
                 TERSICORE_TOKEN,
@@ -107,6 +129,38 @@ public class TaskHandler {
                                        URL serverUrl)
     {
         ServerStatusTask task = new ServerStatusTask(listener, serverUrl, TERSICORE_TOKEN);
+        task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+    }
+
+    /*
+      POST REQUESTS
+     */
+
+    public static void setSuggestion(URL serverUrl,
+                                     ApiPostTaskListener listener,
+                                     TrackSuggestion suggestion)
+    {
+        Gson gson = new Gson();
+        String data = gson.toJson(suggestion);
+        GenericPostTask task = new GenericPostTask(serverUrl,
+                GenericPostTask.POST_SUGGESTION,
+                TERSICORE_TOKEN,
+                data,
+                listener);
+        task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+    }
+
+    public static void setPlaylist(URL serverUrl,
+                                   ApiPostTaskListener listener,
+                                   Playlist playlist)
+    {
+        Gson gson = new Gson();
+        String data = gson.toJson(playlist);
+        GenericPostTask task = new GenericPostTask(serverUrl,
+                GenericPostTask.POST_PLAYLIST,
+                TERSICORE_TOKEN,
+                data,
+                listener);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
