@@ -3,12 +3,16 @@ package com.evenless.tersicore;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.provider.ContactsContract;
+
+import com.evenless.tersicore.model.User;
 
 public class PreferencesHandler {
     private static final String PREF_SERVER_KEY = "TersicoreServer";
     private static final String PREF_TOKEN_KEY = "TersicoreToken";
     private static final String PREF_CACHE_SIZE_KEY = "CacheSize";
     private static final String PREF_OFFLINE = "Offline";
+    private static final String PREF_USER = "User";
     public static boolean offline;
 
     private static SharedPreferences getSharedPreferences(Context ctx) {
@@ -49,5 +53,15 @@ public class PreferencesHandler {
         SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
         editor.putBoolean(PREF_OFFLINE, is);
         editor.apply();
+    }
+
+    public static void setUser(Context ctx, String u){
+        SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
+        editor.putString(PREF_USER, u);
+        editor.apply();
+    }
+
+    public static String getUsername(Context ctx){
+        return getSharedPreferences(ctx).getString(PREF_TOKEN_KEY, "Pepsi");
     }
 }

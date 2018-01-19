@@ -2,6 +2,7 @@ package com.evenless.tersicore;
 
 import android.app.Activity;
 import android.support.annotation.NonNull;
+import android.support.v7.graphics.Palette;
 import android.util.Log;
 
 import com.evenless.tersicore.model.Album;
@@ -11,6 +12,7 @@ import com.evenless.tersicore.model.Playlist;
 import com.evenless.tersicore.model.Track;
 import com.evenless.tersicore.model.TrackResources;
 import com.evenless.tersicore.model.TrackSuggestion;
+import com.evenless.tersicore.model.User;
 
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -371,8 +373,21 @@ public class DataBackend {
         return Realm.getDefaultInstance();
     }
 
-    public static List<Playlist> getPlaylists() {
-        return getInstance().where(Playlist.class).findAll();
+    public static List<Playlist> getPlaylists(String username) {
+        return sortByUploader(getInstance().where(Playlist.class)
+                .findAllSorted("favorite", Sort.DESCENDING), username);
+    }
+
+    private static List<Playlist> sortByUploader(RealmResults<Playlist> favorite, final String u) {
+        List<Playlist> favorites = new ArrayList<>();
+        List<Playlist> remains = new ArrayList<>();
+        for(Playlist p : favorite)
+            if(p.uploader.equals(u))
+                favorites.add(p);
+            else
+                remains.add(p);
+        favorites.addAll(remains);
+        return favorites;
     }
 
     public static Playlist getPlaylist(String pid) {
@@ -383,43 +398,48 @@ public class DataBackend {
     public static List<Track> modifyPlaylistPosition(int fromPosition, int toPosition, String id) {
         Realm realm = getInstance();
         realm.beginTransaction();
-        List<Track> listTracks = realm.where(Playlist.class)
+        Playlist p = realm.where(Playlist.class)
                 .equalTo("id", id)
-                .findFirst().getTrackObjects();
-        Track temp = listTracks.get(fromPosition);
+                .findFirst();
+        List<String> listTracks = p.tracks;
+        String temp = listTracks.get(fromPosition);
         listTracks.remove(temp);
         listTracks.add(toPosition, temp);
         realm.commitTransaction();
-        return listTracks;
+        return p.getTrackObjects();
     }
 
     public static List<Track> deleteFromPlaylist(Track it, String id) {
         Realm realm = getInstance();
         realm.beginTransaction();
-        List<Track> listTracks = realm.where(Playlist.class)
+        Playlist p = realm.where(Playlist.class)
                 .equalTo("id", id)
-                .findFirst().getTrackObjects();
-        listTracks.remove(it);
+                .findFirst();
+        List<Track> listTracks = p.getTrackObjects();
+        p.tracks.remove(listTracks.indexOf(it));
         realm.commitTransaction();
-        return listTracks;
+        return p.getTrackObjects();
     }
 
-    public static void createNewPlaylist(String name, List<Track> toPlay) {
-        Playlist p = new Playlist(name, "me");
+    public static Playlist createNewPlaylist(String name, List<Track> toPlay, String username) {
+        Playlist p = new Playlist(name, username);
         for (Track t: toPlay) {
             p.tracks.add(t.uuid);
         }
         insertPlaylist(p);
+        return p;
     }
 
-    public static void addToPlaylist(Playlist playlist, List<Track> toPlay) {
+    public static Playlist addToPlaylist(Playlist playlist, List<Track> toPlay) {
         Realm realm = getInstance();
         realm.beginTransaction();
-        List<Track> listTracks = realm.where(Playlist.class)
-                .equalTo("id", playlist.id)
-                .findFirst().getTrackObjects();
-        listTracks.addAll(toPlay);
+        List<String> toAdd = new ArrayList<>();
+        for(Track t : toPlay)
+            toAdd.add(t.uuid);
+        playlist.tracks.addAll(toAdd);
+        realm.insertOrUpdate(playlist);
         realm.commitTransaction();
+        return playlist;
     }
 
     public static void setPlaylistFavorite(String id, boolean isChecked) {
@@ -434,7 +454,7 @@ public class DataBackend {
     public static ArrayList<TrackSuggestion> getTracksCopied() {
         ArrayList<TrackSuggestion> temp = new ArrayList<>();
         for (Track t : getTracks())
-            temp.add(new TrackSuggestion("temp", t.uuid, t.album, getTrackArtist(t), t.title));
+            temp.add(new TrackSuggestion(t.uuid, t.album, getTrackArtist(t), t.title, null));
         return temp;
     }
 
@@ -481,5 +501,11 @@ public class DataBackend {
         realm.insertOrUpdate(t);
         realm.commitTransaction();
         return t;
+    }
+
+    public static List<Playlist> getMyPlaylists(String username) {
+        return getInstance().where(Playlist.class)
+                .equalTo("uploader", username)
+                .findAllSorted("favorite", Sort.DESCENDING);
     }
 }

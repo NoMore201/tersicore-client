@@ -136,12 +136,12 @@ public class TaskHandler {
       POST REQUESTS
      */
 
-    public static void setSuggestion(URL serverUrl,
+    public static void setSuggestion(String server,
                                      ApiPostTaskListener listener,
-                                     TrackSuggestion suggestion)
-    {
+                                     TrackSuggestion suggestion) throws MalformedURLException {
+        URL serverUrl = new URL(server + "/suggestions");
         Gson gson = new Gson();
-        String data = gson.toJson(suggestion);
+        String data = gson.toJson(suggestion, TrackSuggestion.class);
         GenericPostTask task = new GenericPostTask(serverUrl,
                 GenericPostTask.POST_SUGGESTION,
                 TERSICORE_TOKEN,
@@ -150,12 +150,12 @@ public class TaskHandler {
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
-    public static void setPlaylist(URL serverUrl,
+    public static void setPlaylist(String server,
                                    ApiPostTaskListener listener,
-                                   Playlist playlist)
-    {
+                                   Playlist playlist) throws MalformedURLException {
+        URL serverUrl = new URL(server + "/playlists");
         Gson gson = new Gson();
-        String data = gson.toJson(playlist);
+        String data = gson.toJson(playlist, Playlist.class);
         GenericPostTask task = new GenericPostTask(serverUrl,
                 GenericPostTask.POST_PLAYLIST,
                 TERSICORE_TOKEN,

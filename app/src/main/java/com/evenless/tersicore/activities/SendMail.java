@@ -20,6 +20,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.TextView;
 
 import com.evenless.tersicore.DataBackend;
+import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.EmailType;
@@ -53,7 +54,7 @@ public class SendMail extends AppCompatActivity {
             suggestionTrack.uuid = temp.uuid;
             suggestionTrack.album = temp.album;
             suggestionTrack.artist = temp.artist;
-            suggestionTrack.username = "Me";
+            suggestionTrack.username = PreferencesHandler.getUsername(this);
             TextView asd = findViewById(R.id.songsend);
             asd.setText("Track Suggested: " + suggestionTrack.toString());
             findViewById(R.id.addsong).setVisibility(View.GONE);

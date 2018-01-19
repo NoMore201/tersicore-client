@@ -15,9 +15,9 @@ import javax.net.ssl.HttpsURLConnection;
 
 public class GenericPostTask extends AsyncTask<Void, Integer, Void> {
     public final static int POST_LOGIN = 1;
-    public final static int POST_MESSAGE = 1;
-    public final static int POST_SUGGESTION = 1;
-    public final static int POST_PLAYLIST = 1;
+    public final static int POST_MESSAGE = 2;
+    public final static int POST_SUGGESTION = 3;
+    public final static int POST_PLAYLIST = 4;
 
     private final static String TAG = "GenericGetTask";
 
@@ -97,7 +97,8 @@ public class GenericPostTask extends AsyncTask<Void, Integer, Void> {
                 bs.flush();
                 httpsConnection.connect();
                 int responseCode = httpsConnection.getResponseCode();
-                if (responseCode != HttpURLConnection.HTTP_OK) {
+                if (responseCode != HttpURLConnection.HTTP_OK && responseCode!=HttpURLConnection.HTTP_ACCEPTED
+                        && responseCode!=HttpURLConnection.HTTP_CREATED) {
                     throw new IOException(responseCode + ": " + httpsConnection.getResponseMessage());
                 }
             } catch (Exception e) {

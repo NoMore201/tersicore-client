@@ -100,6 +100,9 @@ public class SearchActivity extends AppCompatActivity
                 asd.setLayoutParams(x);
                 PlayerInterface.UpdateTrack(v, mService);
             }
+            NavigationView navigationView = findViewById(R.id.nav_view);
+            if(navigationView!=null)
+                navigationView.setCheckedItem(R.id.nav_home);
         }
 
         @Override
@@ -221,7 +224,6 @@ public class SearchActivity extends AppCompatActivity
         lsv.setOnItemLongClickListener(this);
 
         navigationView.setCheckedItem(R.id.nav_home);
-        navigationView.setCheckedItem(R.id.app_bar_switch);
 
         Switch asd = navigationView.getMenu().findItem(R.id.app_bar_switch).getActionView().findViewById(R.id.switcharr);
         asd.setChecked(PreferencesHandler.getOffline(this));

@@ -42,6 +42,30 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 {
     private static final String TAG = "MediaPlayerService";
     private static final String mToken = "0651863bf5d902262b17c4621ec340544ff016752543d99a92d7d22872d8a455";
+    public static final String[] playOptions = {
+            "Higher Bitrate Ever",
+            "Lossless Bitrate",
+            "Higher lossy bitrate",
+            "Lower Bitrate"
+    };
+
+    public static TrackResources checkTrackResourceByPreference(Track tt, int which, boolean preferDownloaded) {
+        TrackResources res = tt.resources.get(0);
+        if(tt.resources.size()!=1) {
+            int bitr = tt.resources.get(0).bitrate;
+            for (int i=1; i<tt.resources.size(); i++){
+                int currbit = tt.resources.get(i).bitrate;
+                if((!preferDownloaded || tt.resources.get(i).isDownloaded || !tt.resources.get(0).isDownloaded) &&
+                        ((which==0 && currbit>bitr) || (which==3 && currbit<bitr) ||
+                                (which==1 && ((bitr>1411200 && currbit<bitr) || (bitr<1411200 && currbit<1411200 && currbit>bitr))) ||
+                                (which==2 && ((bitr>350000 && currbit<bitr) || (bitr<350000 && currbit<350000 && currbit>bitr))))) {
+                    res = tt.resources.get(i);
+                    bitr=currbit;
+                }
+            }
+        }
+        return res;
+    }
 
     public boolean isOffline() {
         return getCurrentPlaylist().get(mCurrentIndex)

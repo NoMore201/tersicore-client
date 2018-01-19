@@ -72,6 +72,9 @@ public class ArtistsActivity  extends AppCompatActivity
                 asd.setLayoutParams(x);
                 PlayerInterface.UpdateTrack(findViewById(R.id.asd2), mService);
             }
+            NavigationView navigationView = findViewById(R.id.nav_view);
+            if(navigationView!=null)
+                navigationView.setCheckedItem(R.id.nav_artists);
         }
 
         @Override

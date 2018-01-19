@@ -12,6 +12,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -22,6 +23,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.InputType;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,6 +31,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -40,6 +43,7 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.evenless.tersicore.AlertDialogTrack;
+import com.evenless.tersicore.interfaces.ApiPostTaskListener;
 import com.evenless.tersicore.interfaces.CoverDownloadTaskListener;
 import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.interfaces.FileDownloadTaskListener;
@@ -53,12 +57,16 @@ import com.evenless.tersicore.R;
 import com.evenless.tersicore.TaskHandler;
 import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.Cover;
+import com.evenless.tersicore.model.Playlist;
 import com.evenless.tersicore.model.Track;
 import com.evenless.tersicore.model.TrackResources;
+import com.evenless.tersicore.model.TrackSuggestion;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -71,14 +79,9 @@ import java.util.Map;
 public class SingleAlbumActivity  extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         MediaPlayerServiceListener, ImageRequestTaskListener, CoverDownloadTaskListener,
-        AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, FileDownloadTaskListener{
+        AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener,
+        FileDownloadTaskListener, ApiPostTaskListener{
 
-    private final String[] playOptions = {
-            "Higher Bitrate Ever",
-            "Lossless Bitrate",
-            "Higher lossy bitrate",
-            "Lower Bitrate"
-    };
     private static final String TAG = "SingleAlbumActivity";
     private List<Track> listTracks;
     private String albumName;
@@ -87,6 +90,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
     private boolean isPlayer = false;
     private MediaPlayerService mService;
     private Context ctx = this;
+    private static int choice = 0;
     private int downloadedCount = 0;
     private ServiceConnection mConnection = new ServiceConnection() {
 
@@ -164,7 +168,15 @@ public class SingleAlbumActivity  extends AppCompatActivity
         lik.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                DataBackend.updateFavorite(new Album(albumName, artist), isChecked);
+                Album a = new Album(albumName, artist);
+                DataBackend.updateFavorite(a, isChecked);
+                if(isChecked)
+                    try {
+                        TaskHandler.setSuggestion(PreferencesHandler.getServer(ctx),
+                                (ApiPostTaskListener) ctx, new TrackSuggestion(albumName, artist, PreferencesHandler.getUsername(ctx)));
+                    } catch (MalformedURLException e) {
+                        e.printStackTrace();
+                    }
             }
         });
 
@@ -221,10 +233,10 @@ public class SingleAlbumActivity  extends AppCompatActivity
                     d.setEnabled(false);
                     AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
                     builder.setTitle("Play options")
-                            .setItems(playOptions, new DialogInterface.OnClickListener() {
+                            .setItems(MediaPlayerService.playOptions, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
                                     for(Track tt : listTracks) {
-                                        TrackResources res = checkTrackResourceByPreference(tt, which);
+                                        TrackResources res = MediaPlayerService.checkTrackResourceByPreference(tt, which, false);
                                         if(!res.isDownloaded){
                                             downloadedCount++;
                                             try {
@@ -242,24 +254,6 @@ public class SingleAlbumActivity  extends AppCompatActivity
                 }
             }
         });
-    }
-
-    private TrackResources checkTrackResourceByPreference(Track tt, int which) {
-        TrackResources res = tt.resources.get(0);
-        if(tt.resources.size()!=1) {
-            int bitr = tt.resources.get(0).bitrate;
-            for (int i=1; i<tt.resources.size(); i++){
-                int currbit = tt.resources.get(i).bitrate;
-                if((which!=4 || tt.resources.get(i).isDownloaded || !tt.resources.get(0).isDownloaded) &&
-                    ((which==0 && currbit>bitr) || (which==3 && currbit<bitr) ||
-                            (which==1 && ((bitr>1411200 && currbit<bitr) || (bitr<1411200 && currbit>bitr))) ||
-                            (which==2 && ((bitr>350000 && currbit<bitr) || (bitr<350000 && currbit>bitr))))) {
-                        res = tt.resources.get(i);
-                        bitr=currbit;
-                    }
-            }
-        }
-        return res;
     }
 
     @Override
@@ -393,28 +387,96 @@ public class SingleAlbumActivity  extends AppCompatActivity
 
         lsv.setOnItemLongClickListener(this);
 
+        findViewById(R.id.playbutt).setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+                builder.setTitle("Play options")
+                        .setItems(AlertDialogTrack.playOptions, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                choice=which;
+                                findViewById(R.id.playbutt).callOnClick();
+                            }});
+                builder.show();
+                return false;
+            }
+        });
+
         findViewById(R.id.playbutt).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String[] pop = new String[5];
-                for(int i=0; i<playOptions.length; i++)
-                    pop[i]=playOptions[i];
-                pop[4]="OFFLINE Version (if available)";
-                AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
-                builder.setTitle("Play options")
-                        .setItems(pop, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                Map<Integer, Integer> resfav = new HashMap<>();
-                                for(int i=0; i<listTracks.size(); i++) {
-                                    Track t = listTracks.get(i);
-                                        resfav.put(i, t.resources.indexOf(checkTrackResourceByPreference(t, which)));
-                                }
-                                mService.updatePlaylist(listTracks, 0, false, resfav);
-                                Intent dd = new Intent(ctx, MainActivity.class);
-                                startActivity(dd);
+                if(choice==4){
+                    AlertDialog.Builder bd = new AlertDialog.Builder(ctx);
+                    bd.setTitle("Playlists");
+                    final List<Playlist> asd = DataBackend.getMyPlaylists(PreferencesHandler.getUsername(ctx));
+                    CharSequence[] data = new CharSequence[asd.size()+1];
+                    data[0]="NEW PLAYLIST";
+                    int i = 1;
+                    for(Playlist p : asd) {
+                        data[i] = p.name;
+                        i++;
+                    }
+                    bd.setItems(data, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            if(which==0){
+                                AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+                                builder.setTitle("Name the New Playlist");
+                                final EditText input = new EditText(ctx);
+                                input.setInputType(InputType.TYPE_CLASS_TEXT);
+                                builder.setView(input);
+                                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        AlertDialogTrack.updatePlaylistOnServer(ctx,
+                                                DataBackend.createNewPlaylist(input.getText().toString(),
+                                                        listTracks, PreferencesHandler.getUsername(ctx)));
+                                    }
+                                });
+                                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.cancel();
+                                    }
+                                });
+
+                                builder.show();
                             }
-                        });
-                builder.show();
+                            else
+                                AlertDialogTrack.updatePlaylistOnServer(ctx,
+                                        DataBackend.addToPlaylist(asd.get(which-1), listTracks));
+                        }});
+                    bd.create().show();
+                    choice=0;
+                } else{
+                    String[] pop = new String[5];
+                    for(int i=0; i<MediaPlayerService.playOptions.length; i++)
+                        pop[i]=MediaPlayerService.playOptions[i];
+                    pop[4]="OFFLINE Version (if available)";
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+                    builder.setTitle("Play options")
+                            .setItems(pop, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Map<Integer, Integer> resfav = new HashMap<>();
+                                    Intent dd = new Intent(ctx, MainActivity.class);
+                                    for(int i=0; i<listTracks.size(); i++) {
+                                        Track t = listTracks.get(i);
+                                        resfav.put(i, t.resources.indexOf(MediaPlayerService.checkTrackResourceByPreference(t, which, which!=4)));
+                                    }
+                                    switch (choice){
+                                        case 0: mService.updatePlaylist(listTracks, 0, false, resfav); startActivity(dd); break;
+                                        // play now keep queue
+                                        case 1: mService.seekToTrack(mService.append(listTracks, resfav)); startActivity(dd); break;
+                                        // add to current playlist
+                                        case 2: mService.append(listTracks, resfav); startActivity(dd); break;
+                                        // play after
+                                        case 3: mService.appendAfterCurrent(listTracks, resfav); startActivity(dd); break;
+                                        default: break;
+                                    }
+                                    choice=0;
+                                }
+                            });
+                    builder.show();
+                }
             }
         });
         Cover asd = DataBackend.getCover(artist, albumName);
@@ -582,5 +644,11 @@ public class SingleAlbumActivity  extends AppCompatActivity
             }
 
         }
+    }
+
+    @Override
+    public void onRequestComplete(int requestType, Exception e) {
+        if(e==null && requestType==3)
+            Toast.makeText(ctx, "Album Suggested to friends", Toast.LENGTH_SHORT).show();
     }
 }

@@ -81,6 +81,9 @@ public class TracksActivity extends AppCompatActivity
                 asd.setLayoutParams(x);
                 PlayerInterface.UpdateTrack(v, mService);
             }
+            NavigationView navigationView = findViewById(R.id.nav_view);
+            if(navigationView!=null && artist==null)
+                navigationView.setCheckedItem(R.id.nav_songs);
         }
 
         @Override
@@ -129,6 +132,7 @@ public class TracksActivity extends AppCompatActivity
 
         if(artist==null)
             navigationView.setCheckedItem(R.id.nav_songs);
+
         if (artist == null)
             listTracks = DataBackend.getTracks();
         else

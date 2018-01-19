@@ -6,11 +6,13 @@ import android.content.Intent;
 import android.support.v7.app.AlertDialog;
 import android.text.InputType;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.evenless.tersicore.activities.MainActivity;
 import com.evenless.tersicore.model.Playlist;
 import com.evenless.tersicore.model.Track;
 
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,11 +54,7 @@ public class AlertDialogTrack {
                             // Add to Playlist
                             case 4: AlertDialog.Builder bd = new AlertDialog.Builder(ctx);
                                 bd.setTitle("Playlists");
-                                final List<Playlist> asd = DataBackend.getPlaylists();
-                                for(Playlist p : asd)
-                                    if(!p.uploader.equalsIgnoreCase("me"))
-                                        asd.remove(p);
-
+                                final List<Playlist> asd = DataBackend.getMyPlaylists(PreferencesHandler.getUsername(ctx));
                                 CharSequence[] data = new CharSequence[asd.size()+1];
                                 data[0]="NEW PLAYLIST";
                                 int i = 1;
@@ -75,7 +73,8 @@ public class AlertDialogTrack {
                                             builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                                 @Override
                                                 public void onClick(DialogInterface dialog, int which) {
-                                                    DataBackend.createNewPlaylist(input.getText().toString(), toPlay);
+                                                    Playlist p = DataBackend.createNewPlaylist(input.getText().toString(), toPlay, PreferencesHandler.getUsername(ctx));
+                                                    updatePlaylistOnServer(ctx, p);
                                                 }
                                             });
                                             builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -88,7 +87,7 @@ public class AlertDialogTrack {
                                             builder.show();
                                         }
                                         else
-                                            DataBackend.addToPlaylist(asd.get(which-1), toPlay);
+                                            updatePlaylistOnServer(ctx, DataBackend.addToPlaylist(asd.get(which-1), toPlay));
                                     }});
                                 bd.create().show();
                             default: break;
@@ -96,5 +95,13 @@ public class AlertDialogTrack {
                     }
                 });
         builder.create().show();
+    }
+
+    public static void updatePlaylistOnServer(Context ctx, Playlist p) {
+        try {
+            TaskHandler.setPlaylist(PreferencesHandler.getServer(ctx), null, p);
+        } catch (MalformedURLException e) {
+            Toast.makeText(ctx, "There can be errors in synchronizing with server", Toast.LENGTH_LONG);
+        }
     }
 }

@@ -41,6 +41,7 @@ import android.widget.ToggleButton;
 
 import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.TaskHandler;
+import com.evenless.tersicore.interfaces.ApiPostTaskListener;
 import com.evenless.tersicore.interfaces.FileDownloadTaskListener;
 import com.evenless.tersicore.MediaPlayerService;
 import com.evenless.tersicore.interfaces.MediaPlayerServiceListener;
@@ -50,6 +51,7 @@ import com.evenless.tersicore.exceptions.InvalidUrlException;
 import com.evenless.tersicore.model.Cover;
 import com.evenless.tersicore.model.Track;
 import com.evenless.tersicore.model.TrackResources;
+import com.evenless.tersicore.model.TrackSuggestion;
 import com.evenless.tersicore.view.SquareImageView;
 
 import java.net.MalformedURLException;
@@ -59,13 +61,12 @@ import me.crosswall.lib.coverflow.core.PagerContainer;
 
 public class MainActivity extends AppCompatActivity
     implements MediaPlayerServiceListener,
-        FileDownloadTaskListener{
+        FileDownloadTaskListener, ApiPostTaskListener{
     private static final String TAG = "MainActivity";
     private final String [] shareOptions = {"Send a mail in Tersicore", "External App"};
     private MediaPlayerService mService;
     private boolean mBound;
     private final MediaPlayerServiceListener ctx = this;
-
     private ServiceConnection mConnection = new ServiceConnection() {
 
         @Override
@@ -164,7 +165,16 @@ public class MainActivity extends AppCompatActivity
                 lik.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                     @Override
                     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                        DataBackend.updateFavorite(mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex()), isChecked);
+                        Track t = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex());
+                        DataBackend.updateFavorite(t , isChecked);
+                        if(isChecked)
+                            try {
+                                TaskHandler.setSuggestion(PreferencesHandler.getServer((Context) ctx),
+                                        (ApiPostTaskListener) ctx,
+                                        new TrackSuggestion(t.uuid, t.album, t.artist, t.title, PreferencesHandler.getUsername((Context) ctx)));
+                            } catch (MalformedURLException e) {
+                                e.printStackTrace();
+                            }
                     }
                 });
                 SeekBar tv_seek = findViewById(R.id.tv_seek);
@@ -502,6 +512,12 @@ public class MainActivity extends AppCompatActivity
             d.setEnabled(true);
             Toast.makeText((Context) ctx, "There was some errors in downloading file", Toast.LENGTH_LONG).show();
         }
+    }
+
+    @Override
+    public void onRequestComplete(int requestType, Exception e) {
+        if(e==null && requestType==3)
+            Toast.makeText((Context) ctx, "Track Suggested to friends", Toast.LENGTH_SHORT).show();
     }
 
     private class MyPagerAdapter extends PagerAdapter {

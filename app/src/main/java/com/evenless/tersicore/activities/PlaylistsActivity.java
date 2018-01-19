@@ -69,6 +69,9 @@ public class PlaylistsActivity extends AppCompatActivity
                 asd.setLayoutParams(x);
                 PlayerInterface.UpdateTrack(v, mService);
             }
+            NavigationView navigationView = findViewById(R.id.nav_view);
+            if(navigationView!=null)
+                navigationView.setCheckedItem(R.id.nav_playlists);
         }
 
         @Override
@@ -112,7 +115,7 @@ public class PlaylistsActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         navigationView.setCheckedItem(R.id.nav_playlists);
-        listPlaylists = DataBackend.getPlaylists();
+        listPlaylists = DataBackend.getPlaylists(PreferencesHandler.getUsername(this));
         updateList();
         Switch asd = navigationView.getMenu().findItem(R.id.app_bar_switch).getActionView().findViewById(R.id.switcharr);
         asd.setChecked(PreferencesHandler.getOffline(this));
@@ -129,7 +132,7 @@ public class PlaylistsActivity extends AppCompatActivity
     @Override
     protected void onResume(){
         super.onResume();
-        listPlaylists = DataBackend.getPlaylists();
+        listPlaylists = DataBackend.getPlaylists(PreferencesHandler.getUsername(this));
         updateList();
     }
 
