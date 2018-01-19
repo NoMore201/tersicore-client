@@ -380,12 +380,12 @@ public class DataBackend {
     }
 
     //Not Working
-    public static RealmList<Track> modifyPlaylistPosition(int fromPosition, int toPosition, String id) {
+    public static List<Track> modifyPlaylistPosition(int fromPosition, int toPosition, String id) {
         Realm realm = getInstance();
         realm.beginTransaction();
-        RealmList<Track> listTracks = realm.where(Playlist.class)
+        List<Track> listTracks = realm.where(Playlist.class)
                 .equalTo("id", id)
-                .findFirst().tracks;
+                .findFirst().getTrackObjects();
         Track temp = listTracks.get(fromPosition);
         listTracks.remove(temp);
         listTracks.add(toPosition, temp);
@@ -393,12 +393,12 @@ public class DataBackend {
         return listTracks;
     }
 
-    public static RealmList<Track> deleteFromPlaylist(Track it, String id) {
+    public static List<Track> deleteFromPlaylist(Track it, String id) {
         Realm realm = getInstance();
         realm.beginTransaction();
-        RealmList<Track> listTracks = realm.where(Playlist.class)
+        List<Track> listTracks = realm.where(Playlist.class)
                 .equalTo("id", id)
-                .findFirst().tracks;
+                .findFirst().getTrackObjects();
         listTracks.remove(it);
         realm.commitTransaction();
         return listTracks;
@@ -406,16 +406,18 @@ public class DataBackend {
 
     public static void createNewPlaylist(String name, List<Track> toPlay) {
         Playlist p = new Playlist(name, "me");
-        p.tracks.addAll(toPlay);
+        for (Track t: toPlay) {
+            p.tracks.add(t.uuid);
+        }
         insertPlaylist(p);
     }
 
     public static void addToPlaylist(Playlist playlist, List<Track> toPlay) {
         Realm realm = getInstance();
         realm.beginTransaction();
-        RealmList<Track> listTracks = realm.where(Playlist.class)
+        List<Track> listTracks = realm.where(Playlist.class)
                 .equalTo("id", playlist.id)
-                .findFirst().tracks;
+                .findFirst().getTrackObjects();
         listTracks.addAll(toPlay);
         realm.commitTransaction();
     }

@@ -40,7 +40,7 @@ public class PlaylistSingleAdapter extends ArrayAdapter<Playlist> {
             text1.setText(data.get(position).name);
             String feature = "Featuring ";
             ArrayList<String> artists = new ArrayList<>();
-            for (Track t : data.get(position).tracks){
+            for (Track t : data.get(position).getTrackObjects()) {
                 if(!artists.contains(t.artist)) {
                     artists.add(t.artist);
                     feature = feature + t.artist + ", ";

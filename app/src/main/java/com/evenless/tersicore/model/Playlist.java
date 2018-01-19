@@ -1,5 +1,12 @@
 package com.evenless.tersicore.model;
 
+import android.provider.ContactsContract;
+
+import com.evenless.tersicore.DataBackend;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
@@ -10,7 +17,7 @@ public class Playlist extends RealmObject {
     public String name;
     public String uploader;
     public boolean favorite;
-    public RealmList<Track> tracks;
+    public RealmList<String> tracks;
 
     public Playlist(){
         favorite = false;
@@ -23,5 +30,13 @@ public class Playlist extends RealmObject {
         favorite = false;
         id = n + u;
         tracks = new RealmList<>();
+    }
+
+    public List<Track> getTrackObjects() {
+        List<Track> out = new ArrayList<>();
+        for (String s: tracks) {
+            out.add(DataBackend.getTrack(s));
+        }
+        return out;
     }
 }

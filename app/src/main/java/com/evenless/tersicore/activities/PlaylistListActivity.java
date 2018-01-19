@@ -140,7 +140,7 @@ public class PlaylistListActivity extends AppCompatActivity{
             setContentView(R.layout.playlist_list_alternative);
             toolbar = (Toolbar) findViewById(R.id.toolbar2);
             pid=DataBackend.getPlaylist(p);
-            listTracks = pid.tracks;
+            listTracks = pid.getTrackObjects();
             toolbar.setTitle(pid.name);
             TextView tt = findViewById(R.id.playupload);
             tt.setText("Uploaded By " + pid.uploader);
