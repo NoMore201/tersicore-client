@@ -172,7 +172,8 @@ public class SingleAlbumActivity  extends AppCompatActivity
                 DataBackend.updateFavorite(a, isChecked);
                 if(isChecked)
                     try {
-                        TaskHandler.setSuggestion(PreferencesHandler.getServer(ctx),
+                        for(String ss : PreferencesHandler.getServer(ctx))
+                        TaskHandler.setSuggestion(ss,
                                 (ApiPostTaskListener) ctx, new TrackSuggestion(albumName, artist, PreferencesHandler.getUsername(ctx)));
                     } catch (MalformedURLException e) {
                         e.printStackTrace();
@@ -646,7 +647,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
     }
 
     @Override
-    public void onRequestComplete(int requestType, Exception e) {
+    public void onRequestComplete(int requestType, Exception e, String result) {
         if(e==null && requestType==3)
             Toast.makeText(ctx, "Album Suggested to friends", Toast.LENGTH_SHORT).show();
     }

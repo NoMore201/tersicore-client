@@ -137,7 +137,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity
     }
 
     @Override
-    public void onRequestComplete(String response, Exception e) {
+    public void onRequestComplete(String response, Exception e, String ss) {
         if(e!=null)
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         else {
@@ -145,7 +145,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity
                 mService.reset();
             DataBackend.removeAll();
             Track[] listTracks = new Gson().fromJson(response, Track[].class);
-            DataBackend.insertTracks(new ArrayList<>(Arrays.asList(listTracks)), PreferencesHandler.getServer(this));
+            DataBackend.insertTracks(new ArrayList<>(Arrays.asList(listTracks)), DataBackend.getToken(ss));
             Toast.makeText(this, "Rebuild Complete", Toast.LENGTH_LONG).show();
         }
     }
@@ -187,7 +187,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
                     try {
-                        TaskHandler.getTracks((ApiRequestTaskListener) preference.getContext(), PreferencesHandler.getServer(preference.getContext()));
+                        for(String ss : PreferencesHandler.getServer(preference.getContext()))
+                        TaskHandler.getTracks((ApiRequestTaskListener) preference.getContext(), ss);
                     } catch (MalformedURLException e) {
                         Toast.makeText(preference.getContext(), "There was an  error with a non valid server", Toast.LENGTH_LONG).show();
                     }

@@ -99,7 +99,8 @@ public class AlertDialogTrack {
 
     public static void updatePlaylistOnServer(Context ctx, Playlist p) {
         try {
-            TaskHandler.setPlaylist(PreferencesHandler.getServer(ctx), null, p);
+            for(String ss : PreferencesHandler.getServer(ctx))
+                TaskHandler.setPlaylist(ss, null, p);
         } catch (MalformedURLException e) {
             Toast.makeText(ctx, "There can be errors in synchronizing with server", Toast.LENGTH_LONG);
         }

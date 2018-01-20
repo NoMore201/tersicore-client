@@ -55,6 +55,9 @@ import com.evenless.tersicore.model.TrackSuggestion;
 import com.evenless.tersicore.view.SquareImageView;
 
 import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import me.crosswall.lib.coverflow.CoverFlow;
 import me.crosswall.lib.coverflow.core.PagerContainer;
@@ -169,9 +172,11 @@ public class MainActivity extends AppCompatActivity
                         DataBackend.updateFavorite(t , isChecked);
                         if(isChecked)
                             try {
-                                TaskHandler.setSuggestion(PreferencesHandler.getServer((Context) ctx),
-                                        (ApiPostTaskListener) ctx,
-                                        new TrackSuggestion(t.uuid, t.album, t.artist, t.title, PreferencesHandler.getUsername((Context) ctx)));
+                                Set<String> servers = PreferencesHandler.getServer((Context) ctx);
+                                for(String ss : servers)
+                                    TaskHandler.setSuggestion(ss,
+                                            (ApiPostTaskListener) ctx,
+                                            new TrackSuggestion(t.uuid, t.album, t.artist, t.title, PreferencesHandler.getUsername((Context) ctx)));
                             } catch (MalformedURLException e) {
                                 e.printStackTrace();
                             }
@@ -511,7 +516,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onRequestComplete(int requestType, Exception e) {
+    public void onRequestComplete(int requestType, Exception e, String result) {
         if(e==null && requestType==3)
             Toast.makeText((Context) ctx, "Track Suggested to friends", Toast.LENGTH_SHORT).show();
     }

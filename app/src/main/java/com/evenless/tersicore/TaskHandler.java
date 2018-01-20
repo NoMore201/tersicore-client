@@ -10,10 +10,12 @@ import com.evenless.tersicore.interfaces.CoverDownloadTaskListener;
 import com.evenless.tersicore.interfaces.CoverRetrieveTaskListener;
 import com.evenless.tersicore.interfaces.FileDownloadTaskListener;
 import com.evenless.tersicore.interfaces.ImageRequestTaskListener;
+import com.evenless.tersicore.interfaces.LoginTaskListener;
 import com.evenless.tersicore.interfaces.ServerStatusTaskListener;
 import com.evenless.tersicore.model.Playlist;
 import com.evenless.tersicore.model.Track;
 import com.evenless.tersicore.model.TrackSuggestion;
+import com.evenless.tersicore.model.User;
 import com.evenless.tersicore.tasks.ApiGetTask;
 import com.evenless.tersicore.tasks.CoverDownloadTask;
 import com.evenless.tersicore.tasks.CoverRetrieveTask;
@@ -40,8 +42,6 @@ public class TaskHandler {
     private static final String API_BASE_URL = "https://ws.audioscrobbler.com/2.0/";
     private static final String API_KEY = "b6570587abc105bc286cf227cabbba50";
     private static final String API_SHARED_SECRET = "ca91306bbff831733d675dfc6e556b77";
-    private static final String TERSICORE_TOKEN =
-            "0651863bf5d902262b17c4621ec340544ff016752543d99a92d7d22872d8a455";
     public static final int ALL_TRACKS = 0;
     public static final int TRACKS_LATEST = 1;
     public static final int PLAYLISTS = 2;
@@ -58,7 +58,7 @@ public class TaskHandler {
                                  String server) throws MalformedURLException
     {
         URL url = new URL(server + "/tracks");
-        ApiGetTask task = new ApiGetTask(listener, url, TERSICORE_TOKEN, ALL_TRACKS);
+        ApiGetTask task = new ApiGetTask(listener, url, DataBackend.getToken(server), ALL_TRACKS);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
@@ -66,7 +66,7 @@ public class TaskHandler {
                                  String server) throws MalformedURLException
     {
         URL url = new URL(server + "/tracks/latest");
-        ApiGetTask task = new ApiGetTask(listener, url, TERSICORE_TOKEN, TRACKS_LATEST);
+        ApiGetTask task = new ApiGetTask(listener, url, DataBackend.getToken(server), TRACKS_LATEST);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
@@ -74,7 +74,7 @@ public class TaskHandler {
                                  String server) throws MalformedURLException
     {
         URL url = new URL(server + "/playlists");
-        ApiGetTask task = new ApiGetTask(listener, url, TERSICORE_TOKEN, PLAYLISTS);
+        ApiGetTask task = new ApiGetTask(listener, url, DataBackend.getToken(server), PLAYLISTS);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
@@ -82,7 +82,7 @@ public class TaskHandler {
                                     String server) throws MalformedURLException
     {
         URL url = new URL(server + "/messages");
-        ApiGetTask task = new ApiGetTask(listener, url, TERSICORE_TOKEN, MESSAGES);
+        ApiGetTask task = new ApiGetTask(listener, url, DataBackend.getToken(server), MESSAGES);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
@@ -90,7 +90,7 @@ public class TaskHandler {
                                    String server) throws MalformedURLException
     {
         URL url = new URL(server + "/users");
-        ApiGetTask task = new ApiGetTask(listener, url, TERSICORE_TOKEN, USERS);
+        ApiGetTask task = new ApiGetTask(listener, url, DataBackend.getToken(server), USERS);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
@@ -98,7 +98,7 @@ public class TaskHandler {
                                     String server, String id) throws MalformedURLException
     {
         URL url = new URL(server + "/playlists/" + id);
-        ApiGetTask task = new ApiGetTask(listener, url, TERSICORE_TOKEN, PLAYLIST_SINGLE);
+        ApiGetTask task = new ApiGetTask(listener, url, DataBackend.getToken(server), PLAYLIST_SINGLE);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
@@ -106,7 +106,7 @@ public class TaskHandler {
                                     String server) throws MalformedURLException
     {
         URL url = new URL(server + "/suggestions");
-        ApiGetTask task = new ApiGetTask(listener, url, TERSICORE_TOKEN, SUGGESTIONS);
+        ApiGetTask task = new ApiGetTask(listener, url, DataBackend.getToken(server), SUGGESTIONS);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
@@ -117,7 +117,7 @@ public class TaskHandler {
             UnsupportedEncodingException
     {
         URL url = new URL(buildArtistUrl(query));
-        ImageGetTask task = new ImageGetTask(listener, id, query, TERSICORE_TOKEN, url);
+        ImageGetTask task = new ImageGetTask(listener, id, query, "", url);
         task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
@@ -132,7 +132,7 @@ public class TaskHandler {
         ImageGetTask task = new ImageGetTask(listener,
                 id,
                 artist+"<!!"+album,
-                TERSICORE_TOKEN,
+                null,
                 url);
         task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
@@ -141,14 +141,14 @@ public class TaskHandler {
                                 Track track, String server, int id)
     {
         String url = server + "/stream/" + track.resources.get(0).uuid;
-        CoverRetrieveTask task = new CoverRetrieveTask(listener, track, url, TERSICORE_TOKEN, id);
+        CoverRetrieveTask task = new CoverRetrieveTask(listener, track, url, DataBackend.getToken(server), id);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
     public static void isServerRunning(ServerStatusTaskListener listener,
                                        URL serverUrl)
     {
-        ServerStatusTask task = new ServerStatusTask(listener, serverUrl, TERSICORE_TOKEN);
+        ServerStatusTask task = new ServerStatusTask(listener, serverUrl, "");
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
@@ -157,14 +157,14 @@ public class TaskHandler {
      */
 
     public static void setSuggestion(String server,
-                                     ApiPostTaskListener listener,
+                                     ApiPostTaskListener listener, 
                                      TrackSuggestion suggestion) throws MalformedURLException {
         URL serverUrl = new URL(server + "/suggestions");
         Gson gson = new Gson();
         String data = gson.toJson(suggestion, TrackSuggestion.class);
         GenericPostTask task = new GenericPostTask(serverUrl,
                 GenericPostTask.POST_SUGGESTION,
-                TERSICORE_TOKEN,
+                DataBackend.getToken(server),
                 data,
                 listener);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
@@ -178,7 +178,7 @@ public class TaskHandler {
         String data = gson.toJson(playlist, Playlist.class);
         GenericPostTask task = new GenericPostTask(serverUrl,
                 GenericPostTask.POST_PLAYLIST,
-                TERSICORE_TOKEN,
+                DataBackend.getToken(server),
                 data,
                 listener);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
@@ -222,5 +222,17 @@ public class TaskHandler {
     public static void removeAllFiles() {
         FileRemoveTask task = new FileRemoveTask("ALL", null);
         task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    public static void Login(User temp, String server, ApiPostTaskListener tt) throws MalformedURLException {
+        URL serverUrl = new URL(server + "/login");
+        Gson gson = new Gson();
+        String data = gson.toJson(temp, User.class);
+        GenericPostTask task = new GenericPostTask(serverUrl,
+                GenericPostTask.POST_LOGIN,
+                DataBackend.getToken(server),
+                data,
+                tt);
+        task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 }

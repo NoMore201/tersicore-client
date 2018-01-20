@@ -7,6 +7,7 @@ public class User {
     public boolean online;
     public String lastTrack;
     public String avatar;
+    public String password;
 
     @Override
     public String toString() {

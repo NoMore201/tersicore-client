@@ -45,6 +45,7 @@ import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by McPhi on 10/12/2017.
@@ -146,7 +147,9 @@ implements FileDownloadTaskListener{
     private void updatePlaylistOnServer() {
         try {
             Playlist temp = DataBackend.getPlaylist(pid.id);
-            TaskHandler.setPlaylist(PreferencesHandler.getServer(ctx), null, temp);
+            Set<String> servers = PreferencesHandler.getServer(ctx);
+            for(String ss : servers)
+            TaskHandler.setPlaylist(ss, null, temp);
         } catch (MalformedURLException e) {
             Toast.makeText(ctx, "There can be errors in synchronizing with server", Toast.LENGTH_LONG).show();
         } catch (Exception e){

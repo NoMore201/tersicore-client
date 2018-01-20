@@ -29,7 +29,7 @@ public class ApiGetTask extends GenericGetTask {
     protected void notifyResult(String result, Exception e) {
         super.notifyResult(result, e);
         switch (mState){
-            case TaskHandler.ALL_TRACKS: mListener.onRequestComplete(result, e); break;
+            case TaskHandler.ALL_TRACKS: mListener.onRequestComplete(result, e, mToken); break;
             case TaskHandler.TRACKS_LATEST: mListener.onLatestRequestComplete(result,e); break;
             case TaskHandler.PLAYLIST_SINGLE: mListener.onPlaylistSingleRequestComplete(result,e); break;
             case TaskHandler.PLAYLISTS: mListener.onPlaylistsRequestComplete(result,e); break;

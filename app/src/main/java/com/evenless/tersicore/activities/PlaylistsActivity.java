@@ -38,6 +38,7 @@ import com.google.gson.Gson;
 
 import java.net.MalformedURLException;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by McPhi on 10/12/2017.
@@ -78,7 +79,9 @@ public class PlaylistsActivity extends AppCompatActivity
             if(navigationView!=null)
                 navigationView.setCheckedItem(R.id.nav_playlists);
             try {
-                TaskHandler.getPlaylists((ApiRequestTaskListener) ctx, PreferencesHandler.getServer(ctx));
+                Set<String> servers = PreferencesHandler.getServer(ctx);
+                for(String ss : servers)
+                    TaskHandler.getPlaylists((ApiRequestTaskListener) ctx, ss);
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             }
@@ -256,7 +259,7 @@ public class PlaylistsActivity extends AppCompatActivity
     }
 
     @Override
-    public void onRequestComplete(String response, Exception e) {
+    public void onRequestComplete(String response, Exception e, String asd) {
 
     }
 

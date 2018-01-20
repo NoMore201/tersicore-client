@@ -597,13 +597,13 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     public void fetchCover(Track track, int id) {
-        if (track.hasResources()) {
-            if (track.resources.get(0).cover_data == null) {
-                TaskHandler.getCover(this, track, PreferencesHandler.getServer(this), id);
-            } else {
-                mListener.onCoverFetched(track, id);
-            }
+        TrackResources tr = track.resources.get(id);
+        if (tr.cover_data == null) {
+            TaskHandler.getCover(this, track, tr.server, id);
+        } else {
+            mListener.onCoverFetched(track, id);
         }
+
     }
 
     private void sortPlaylist() {

@@ -2,38 +2,39 @@ package com.evenless.tersicore.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 
+import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.PreferencesHandler;
+import com.evenless.tersicore.interfaces.ApiPostTaskListener;
 import com.evenless.tersicore.interfaces.ServerStatusTaskListener;
 import com.evenless.tersicore.TaskHandler;
+import com.evenless.tersicore.model.User;
 
+import java.lang.annotation.Target;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Set;
 
-public class LoginActivity extends AppCompatActivity implements ServerStatusTaskListener {
+import io.realm.annotations.PrimaryKey;
+
+public class LoginActivity extends AppCompatActivity implements ServerStatusTaskListener, ApiPostTaskListener {
     private final static String TAG = "LoginActivity";
 
     private boolean mContentSet = false;
+    private String server="";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        String server = PreferencesHandler.getServer(this);
+        Set<String> server = PreferencesHandler.getServer(this);
         if (server != null) {
-            /*
-            Logica sbagliata: Tersicore deve funzionare anche offline
-            try {
-                URL url = new URL(server);
-                TaskHandler.isServerRunning(this, url);
-
-            } catch (MalformedURLException e) {
-                Log.e(TAG, "onCreate: server url is invalid, resetting...", e);
-            }*/
             goToNextActivity();
         } else {
             setContentView(R.layout.activity_login);
@@ -61,8 +62,18 @@ public class LoginActivity extends AppCompatActivity implements ServerStatusTask
     @Override
     public void onServerStatusCheck(URL originalUrl, boolean running) {
         if (running) {
-            PreferencesHandler.setServer(this, originalUrl.toExternalForm());
-            goToNextActivity();
+            User temp = new User();
+            TextView tt = findViewById(R.id.loginUsername);
+            TextView pp = findViewById(R.id.loginPassword);
+            temp.id = tt.getText().toString();
+            temp.password = pp.getText().toString();
+            try {
+                TaskHandler.Login(temp, originalUrl.toExternalForm(), this);
+                server=originalUrl.toExternalForm();
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+                onServerStatusCheck(originalUrl, false);
+            }
         } else {
             if (!mContentSet) {
                 setContentView(R.layout.activity_login);
@@ -82,4 +93,10 @@ public class LoginActivity extends AppCompatActivity implements ServerStatusTask
         finish();
     }
 
+    @Override
+    public void onRequestComplete(int requestType, Exception e, String result) {
+        PreferencesHandler.setServer(this, server);
+        DataBackend.setToken(server, result);
+        goToNextActivity();
+    }
 }

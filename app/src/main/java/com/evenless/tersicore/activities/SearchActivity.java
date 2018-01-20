@@ -60,6 +60,7 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import com.evenless.tersicore.model.TrackResources;
 import com.evenless.tersicore.model.TrackSuggestion;
@@ -81,9 +82,9 @@ public class SearchActivity extends AppCompatActivity
     private ArrayList<Track> listTracksFiltered = new ArrayList<>();
     private ArrayList<Album> listAlbums = new ArrayList<>();
     private ArrayList<Album> listRecentAlbums = new ArrayList<>();
-    private ArrayList<Album> listRecentSuggestions = new ArrayList<>();
     private ArrayList<Album> listRecentUpAlbums = new ArrayList<>();
     private ArrayList<String> listArtists = new ArrayList<>();
+    private ArrayList<TrackSuggestion> listSugg = new ArrayList<>();
     private ArrayList<User> users = new ArrayList<>();
     private int newMessages = 0;
     private Context ctx = this;
@@ -130,25 +131,32 @@ public class SearchActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         try {
+            Set<String> servers = PreferencesHandler.getServer(ctx);
             if (DataBackend.getTracks().size() != 0) {
                 listTracks = new Track[DataBackend.getTracks().size()];
                 DataBackend.getTracks().toArray(listTracks);
                 listRecentAlbums=DataBackend.getLastTracks();
                 if(!PreferencesHandler.getOffline(this))
                     try {
-                        TaskHandler.getLatestTracks(this, PreferencesHandler.getServer(this));
-                        TaskHandler.getSuggestions(this, PreferencesHandler.getServer(this));
-                        TaskHandler.getPlaylists(this, PreferencesHandler.getServer(this));
-                        TaskHandler.getMessages(this, PreferencesHandler.getServer(this));
-                        TaskHandler.getUsers(this, PreferencesHandler.getServer(this));
+                        for(String ss : servers) {
+                            listSugg = new ArrayList<>();
+                            users=new ArrayList<>();
+                            newMessages=0;
+                            TaskHandler.getLatestTracks(this, ss);
+                            TaskHandler.getSuggestions(this, ss);
+                            TaskHandler.getPlaylists(this, ss);
+                            TaskHandler.getMessages(this, ss);
+                            TaskHandler.getUsers(this, ss);
+                        }
                     } catch (Exception e) {
                         Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
                     }
             } else
                 try {
-                    TaskHandler.getTracks(this, PreferencesHandler.getServer(this));
+                    for(String ss : servers)
+                        TaskHandler.getTracks(this, ss);
                 } catch (Exception e) {
-                    listTracks = new Track[0];
+                    e.printStackTrace();
                 }
         } catch (Exception e){
             Log.e(TAG, e.getMessage());
@@ -332,8 +340,12 @@ public class SearchActivity extends AppCompatActivity
                         myimg.setImageBitmap(BitmapFactory.decodeByteArray(avatar, 0, avatar.length));
                 }
                 try {
-                    TaskHandler.getMessages(this, PreferencesHandler.getServer(this));
-                    TaskHandler.getUsers(this, PreferencesHandler.getServer(this));
+                    for(String ss : PreferencesHandler.getServer(ctx)) {
+                        users = new ArrayList<>();
+                        newMessages=0;
+                        TaskHandler.getMessages(this, ss);
+                        TaskHandler.getUsers(this, ss);
+                    }
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
                 }
@@ -349,12 +361,12 @@ public class SearchActivity extends AppCompatActivity
 
     private void getMyUser(User[] users) {
         String user = PreferencesHandler.getUsername(this);
-        this.users = new ArrayList<>();
         for(int i=0; i<users.length; i++)
             if(users[i].id.equals(user))
                 me=users[i];
             else {
-                this.users.add(users[i]);
+                if(!this.users.contains(users[i]))
+                    this.users.add(users[i]);
             }
     }
 
@@ -523,15 +535,16 @@ public class SearchActivity extends AppCompatActivity
     }
 
     @Override
-    public void onRequestComplete(String response, Exception e) {
+    public void onRequestComplete(String response, Exception e, String token) {
         if(e!=null){
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         } else if (response != null) {
+            String s = DataBackend.getServer(token);
             listTracks = gson.fromJson(response, Track[].class);
-            DataBackend.insertTracks(new ArrayList<>(Arrays.asList(listTracks)), PreferencesHandler.getServer(ctx));
+            DataBackend.insertTracks(new ArrayList<>(Arrays.asList(listTracks)), s);
             try {
-                TaskHandler.getLatestTracks(this, PreferencesHandler.getServer(this));
-                TaskHandler.getSuggestions(this, PreferencesHandler.getServer(this));
+                TaskHandler.getLatestTracks(this, s);
+                TaskHandler.getSuggestions(this, s);
             } catch (Exception ex) {
                 Toast.makeText(this, ex.getMessage(), Toast.LENGTH_LONG).show();
             }
@@ -545,12 +558,15 @@ public class SearchActivity extends AppCompatActivity
         } else if (response != null) {
             Track[] temporary = gson.fromJson(response, Track[].class);
             if (temporary.length>0) {
-                for (Track t : temporary)
+                for (Track t : temporary){
+                    Album temp;
                     if (t.album_artist != null)
-                        listRecentUpAlbums.add(new Album(t.album, t.album_artist));
+                        temp = new Album(t.album, t.album_artist);
                     else
-                        listRecentUpAlbums.add(new Album(t.album, t.artist));
-
+                        temp = new Album(t.album, t.artist);
+                    if(!listRecentUpAlbums.contains(temp))
+                        listRecentUpAlbums.add(temp);
+                }
                 RecyclerView.LayoutManager mLayoutM = new LinearLayoutManager(ctx,
                         LinearLayoutManager.HORIZONTAL,
                         false);
@@ -579,6 +595,9 @@ public class SearchActivity extends AppCompatActivity
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         } else if (result != null){
             TrackSuggestion[] temporary = gson.fromJson(result, TrackSuggestion[].class);
+            for(TrackSuggestion t : temporary)
+                if(!listSugg.contains(t))
+                    listSugg.add(t);
             if (temporary.length>0) {
                 RecyclerView.LayoutManager mLayoutM = new LinearLayoutManager(ctx,
                         LinearLayoutManager.HORIZONTAL,
@@ -586,7 +605,7 @@ public class SearchActivity extends AppCompatActivity
                 RecyclerView mRecyclerV = findViewById(R.id.suggestionsview);
                 mRecyclerV.setLayoutManager(mLayoutM);
                 findViewById(R.id.textView1).setVisibility(View.VISIBLE);
-                mRecyclerV.setAdapter(new MyListAdapter(new ArrayList<>(Arrays.asList(temporary)), MyListAdapter.SUGGESTIONS_STATE));
+                mRecyclerV.setAdapter(new MyListAdapter(listSugg, MyListAdapter.SUGGESTIONS_STATE));
             }
         }
     }
@@ -633,7 +652,6 @@ public class SearchActivity extends AppCompatActivity
         if(e!=null)
             e.printStackTrace();
         else{
-            newMessages = 0;
             EmailType[] allMessages = gson.fromJson(response, EmailType[].class);
             for(EmailType m : allMessages){
                 EmailType duo = DataBackend.getMessage(m.id);

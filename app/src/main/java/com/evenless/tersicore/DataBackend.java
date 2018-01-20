@@ -10,6 +10,7 @@ import com.evenless.tersicore.model.Cover;
 import com.evenless.tersicore.model.EmailType;
 import com.evenless.tersicore.model.Favorites;
 import com.evenless.tersicore.model.Playlist;
+import com.evenless.tersicore.model.Tokens;
 import com.evenless.tersicore.model.Track;
 import com.evenless.tersicore.model.TrackResources;
 import com.evenless.tersicore.model.TrackSuggestion;
@@ -39,6 +40,18 @@ public class DataBackend {
     public static void insertTracks(List<Track> tracks, String server) {
         Realm realm = getInstance();
         realm.beginTransaction();
+        for(Track t : tracks){
+            Track old = getTrack(t.uuid);
+            for(TrackResources r : t.resources)
+                r.server=server;
+            if(old!=null){
+                for(TrackResources r : t.resources)
+                    if(!old.resources.contains(r))
+                        old.resources.add(r);
+                realm.copyToRealmOrUpdate(old);
+                tracks.remove(t);
+            }
+        }
         realm.copyToRealmOrUpdate(tracks);
         realm.commitTransaction();
     }
@@ -520,6 +533,32 @@ public class DataBackend {
         Realm realm = getInstance();
         realm.beginTransaction();
         realm.copyToRealmOrUpdate(m);
+        realm.commitTransaction();
+    }
+
+    public static String getToken(String server) {
+        Tokens t = getInstance().where(Tokens.class).equalTo("server", server).findFirst();
+        if(t!=null)
+            return t.token;
+        else
+            return null;
+    }
+
+    public static String getServer(String token) {
+        Tokens t = getInstance().where(Tokens.class).equalTo("token", token).findFirst();
+        if(t!=null)
+            return t.token;
+        else
+            return null;
+    }
+
+    public static void setToken(String server, String result) {
+        Tokens t = new Tokens();
+        t.token=result;
+        t.server=server;
+        Realm realm = getInstance();
+        realm.beginTransaction();
+        realm.copyToRealmOrUpdate(t);
         realm.commitTransaction();
     }
 }

@@ -4,8 +4,13 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
+import android.util.ArraySet;
 
 import com.evenless.tersicore.model.User;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 public class PreferencesHandler {
     private static final String PREF_SERVER_KEY = "TersicoreServer";
@@ -23,8 +28,8 @@ public class PreferencesHandler {
         return Integer.parseInt(getSharedPreferences(ctx).getString(PREF_CACHE_SIZE_KEY, "512"));
     }
 
-    public static String getServer(Context ctx) {
-        return getSharedPreferences(ctx).getString(PREF_SERVER_KEY, null);
+    public static Set<String> getServer(Context ctx) {
+        return getSharedPreferences(ctx).getStringSet(PREF_SERVER_KEY, new HashSet<String>());
     }
 
     public static boolean getOffline(Context ctx) {
@@ -32,12 +37,14 @@ public class PreferencesHandler {
     }
 
     public static String getToken(Context ctx) {
-        return getSharedPreferences(ctx).getString(PREF_TOKEN_KEY, "");
+        return getSharedPreferences(ctx).getString(PREF_TOKEN_KEY, "0651863bf5d902262b17c4621ec340544ff016752543d99a92d7d22872d8a455");
     }
 
     public static void setServer(Context ctx, String str){
+        Set<String> users = getServer(ctx);
         SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
-        editor.putString(PREF_SERVER_KEY, str);
+        users.add(str);
+        editor.putStringSet(PREF_SERVER_KEY, users);
         editor.apply();
     }
 
@@ -67,6 +74,6 @@ public class PreferencesHandler {
     }
 
     public static String getUsername(Context ctx){
-        return getSharedPreferences(ctx).getString(PREF_TOKEN_KEY, "Pepsi");
+        return getSharedPreferences(ctx).getString(PREF_USER, "guest");
     }
 }
