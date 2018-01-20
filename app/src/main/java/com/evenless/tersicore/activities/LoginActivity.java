@@ -45,6 +45,8 @@ public class LoginActivity extends AppCompatActivity implements ServerStatusTask
     public void onClick(View view) {
         findViewById(R.id.buttonBegin).setEnabled(false);
         findViewById(R.id.loginInputText).setEnabled(false);
+        findViewById(R.id.loginPassword).setEnabled(false);
+        findViewById(R.id.loginUsername).setEnabled(false);
         EditText mEdit = findViewById(R.id.loginInputText);
         String address = mEdit.getText().toString();
         if (!address.contentEquals("")) {
@@ -54,6 +56,8 @@ public class LoginActivity extends AppCompatActivity implements ServerStatusTask
             } catch (MalformedURLException e) {
                 findViewById(R.id.buttonBegin).setEnabled(true);
                 findViewById(R.id.loginInputText).setEnabled(true);
+                findViewById(R.id.loginPassword).setEnabled(true);
+                findViewById(R.id.loginUsername).setEnabled(true);
                 mEdit.setError("URL should have the form protoc://host:port");
             }
         }
@@ -81,6 +85,8 @@ public class LoginActivity extends AppCompatActivity implements ServerStatusTask
             } else {
                 findViewById(R.id.buttonBegin).setEnabled(true);
                 findViewById(R.id.loginInputText).setEnabled(true);
+                findViewById(R.id.loginPassword).setEnabled(true);
+                findViewById(R.id.loginUsername).setEnabled(true);
             }
             ((EditText)findViewById(R.id.loginInputText))
                     .setError("no server running at " + originalUrl.toExternalForm());
@@ -95,8 +101,22 @@ public class LoginActivity extends AppCompatActivity implements ServerStatusTask
 
     @Override
     public void onRequestComplete(int requestType, Exception e, String result) {
-        PreferencesHandler.setServer(this, server);
-        DataBackend.setToken(server, result);
-        goToNextActivity();
+        if(e==null) {
+            PreferencesHandler.setServer(this, server);
+            DataBackend.setToken(server, result);
+            goToNextActivity();
+        } else {
+            if (!mContentSet) {
+                setContentView(R.layout.activity_login);
+                mContentSet = true;
+            } else {
+                findViewById(R.id.buttonBegin).setEnabled(true);
+                findViewById(R.id.loginInputText).setEnabled(true);
+                findViewById(R.id.loginPassword).setEnabled(true);
+                findViewById(R.id.loginUsername).setEnabled(true);
+            }
+            ((EditText)findViewById(R.id.loginUsername))
+                    .setError("Login Failed!");
+        }
     }
 }
