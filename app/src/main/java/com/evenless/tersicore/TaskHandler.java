@@ -40,7 +40,8 @@ public class TaskHandler {
     private static final String API_BASE_URL = "https://ws.audioscrobbler.com/2.0/";
     private static final String API_KEY = "b6570587abc105bc286cf227cabbba50";
     private static final String API_SHARED_SECRET = "ca91306bbff831733d675dfc6e556b77";
-    private static final String TERSICORE_TOKEN = "0651863bf5d902262b17c4621ec340544ff016752543d99a92d7d22872d8a455";
+    private static final String TERSICORE_TOKEN =
+            "0651863bf5d902262b17c4621ec340544ff016752543d99a92d7d22872d8a455";
     public static final int ALL_TRACKS = 0;
     public static final int TRACKS_LATEST = 1;
     public static final int PLAYLISTS = 2;

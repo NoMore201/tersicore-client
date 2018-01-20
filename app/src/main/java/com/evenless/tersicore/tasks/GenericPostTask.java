@@ -39,6 +39,64 @@ public class GenericPostTask extends AsyncTask<Void, Integer, Void> {
         mListener = listener;
     }
 
+    private void normalRequest() {
+        HttpURLConnection httpConnection = null;
+        try {
+            httpConnection = (HttpURLConnection) mUrl.openConnection();
+            httpConnection.setRequestMethod("POST");
+            httpConnection.setDoInput(true);
+            httpConnection.setDoOutput(true);
+            httpConnection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+            if (mToken != null) {
+                httpConnection.setRequestProperty("AUTH", mToken);
+            }
+            BufferedOutputStream bs = new BufferedOutputStream(httpConnection.getOutputStream());
+            bs.write(mData.getBytes("UTF-8"));
+            bs.flush();
+            httpConnection.connect();
+            int responseCode = httpConnection.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                throw new IOException(responseCode + ": " + httpConnection.getResponseMessage());
+            }
+        } catch (Exception e) {
+            mThrownException = e;
+        } finally {
+            if (httpConnection != null) {
+                httpConnection.disconnect();
+            }
+        }
+    }
+
+    private void secureRequest() {
+        HttpsURLConnection httpsConnection = null;
+        try {
+            httpsConnection = (HttpsURLConnection) mUrl.openConnection();
+            httpsConnection.setRequestMethod("POST");
+            httpsConnection.setDoInput(true);
+            httpsConnection.setDoOutput(true);
+            httpsConnection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+            if (mToken != null) {
+                httpsConnection.setRequestProperty("AUTH", mToken);
+            }
+            BufferedOutputStream bs = new BufferedOutputStream(httpsConnection.getOutputStream());
+            bs.write(mData.getBytes("UTF-8"));
+            bs.flush();
+            httpsConnection.connect();
+            int responseCode = httpsConnection.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_OK && responseCode!=HttpURLConnection.HTTP_ACCEPTED
+                    && responseCode!=HttpURLConnection.HTTP_CREATED) {
+                throw new IOException(responseCode + ": " + httpsConnection.getResponseMessage());
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "doInBackground: unknown host", e);
+            mThrownException = e;
+        } finally {
+            if (httpsConnection != null) {
+                httpsConnection.disconnect();
+            }
+        }
+    }
+
     @Override
     protected void onProgressUpdate(Integer... values) {
         super.onProgressUpdate(values);
@@ -55,60 +113,10 @@ public class GenericPostTask extends AsyncTask<Void, Integer, Void> {
 
     @Override
     protected Void doInBackground(Void... params) {
-        HttpURLConnection httpConnection = null;
-        HttpsURLConnection httpsConnection = null;
         if (mUrl.getProtocol().equals("http")) {
-            try {
-                httpConnection = (HttpURLConnection) mUrl.openConnection();
-                httpConnection.setRequestMethod("POST");
-                httpConnection.setDoInput(true);
-                httpConnection.setDoOutput(true);
-                httpConnection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-                if (mToken != null) {
-                    httpConnection.setRequestProperty("AUTH", mToken);
-                }
-                BufferedOutputStream bs = new BufferedOutputStream(httpConnection.getOutputStream());
-                bs.write(mData.getBytes("UTF-8"));
-                bs.flush();
-                httpConnection.connect();
-                int responseCode = httpConnection.getResponseCode();
-                if (responseCode != HttpURLConnection.HTTP_OK) {
-                    throw new IOException(responseCode + ": " + httpConnection.getResponseMessage());
-                }
-            } catch (Exception e) {
-                mThrownException = e;
-            } finally {
-                if (httpConnection != null) {
-                    httpConnection.disconnect();
-                }
-            }
+            normalRequest();
         } else {
-            try {
-                httpsConnection = (HttpsURLConnection) mUrl.openConnection();
-                httpsConnection.setRequestMethod("POST");
-                httpsConnection.setDoInput(true);
-                httpsConnection.setDoOutput(true);
-                httpsConnection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-                if (mToken != null) {
-                    httpsConnection.setRequestProperty("AUTH", mToken);
-                }
-                BufferedOutputStream bs = new BufferedOutputStream(httpsConnection.getOutputStream());
-                bs.write(mData.getBytes("UTF-8"));
-                bs.flush();
-                httpsConnection.connect();
-                int responseCode = httpsConnection.getResponseCode();
-                if (responseCode != HttpURLConnection.HTTP_OK && responseCode!=HttpURLConnection.HTTP_ACCEPTED
-                        && responseCode!=HttpURLConnection.HTTP_CREATED) {
-                    throw new IOException(responseCode + ": " + httpsConnection.getResponseMessage());
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "doInBackground: unknown host", e);
-                mThrownException = e;
-            } finally {
-                if (httpsConnection != null) {
-                    httpsConnection.disconnect();
-                }
-            }
+            secureRequest();
         }
         return null;
     }

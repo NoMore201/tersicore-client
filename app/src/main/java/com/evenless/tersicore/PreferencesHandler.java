@@ -28,17 +28,22 @@ public class PreferencesHandler {
     }
 
     public static boolean getOffline(Context ctx) {
-        offline=getSharedPreferences(ctx).getBoolean(PREF_OFFLINE, false);
         return getSharedPreferences(ctx).getBoolean(PREF_OFFLINE, false);
     }
 
     public static String getToken(Context ctx) {
-        return getSharedPreferences(ctx).getString(PREF_TOKEN_KEY, null);
+        return getSharedPreferences(ctx).getString(PREF_TOKEN_KEY, "");
     }
 
     public static void setServer(Context ctx, String str){
         SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
         editor.putString(PREF_SERVER_KEY, str);
+        editor.apply();
+    }
+
+    public static void setToken(Context ctx, String str){
+        SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
+        editor.putString(PREF_TOKEN_KEY, str);
         editor.apply();
     }
 
