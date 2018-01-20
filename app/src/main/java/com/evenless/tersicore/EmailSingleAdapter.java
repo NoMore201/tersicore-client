@@ -41,9 +41,9 @@ public class EmailSingleAdapter extends ArrayAdapter<EmailType> {
             TextView text2 = view.findViewById(R.id.singasong);
             ImageView img = view.findViewById(R.id.accountimg);
             if(send)
-                text1.setText(data.get(position).to);
+                text1.setText(data.get(position).recipient);
             else
-                text1.setText(data.get(position).from);
+                text1.setText(data.get(position).sender);
             text2.setText(data.get(position).object);
             return view;
         }

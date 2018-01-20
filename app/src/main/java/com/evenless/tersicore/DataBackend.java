@@ -7,6 +7,7 @@ import android.util.Log;
 
 import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.Cover;
+import com.evenless.tersicore.model.EmailType;
 import com.evenless.tersicore.model.Favorites;
 import com.evenless.tersicore.model.Playlist;
 import com.evenless.tersicore.model.Track;
@@ -508,5 +509,17 @@ public class DataBackend {
         return getInstance().where(Playlist.class)
                 .equalTo("uploader", username)
                 .findAllSorted("favorite", Sort.DESCENDING);
+    }
+
+    public static EmailType getMessage(String id) {
+        return getInstance().where(EmailType.class)
+                .equalTo("id", id).findFirst();
+    }
+
+    public static void insertMessage(EmailType m) {
+        Realm realm = getInstance();
+        realm.beginTransaction();
+        realm.copyToRealmOrUpdate(m);
+        realm.commitTransaction();
     }
 }

@@ -4,9 +4,12 @@ import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.PeriodicSync;
 import android.content.ServiceConnection;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.NavigationView;
@@ -30,12 +33,16 @@ import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.evenless.tersicore.AlertDialogTrack;
+import com.evenless.tersicore.MyUsersListAdapter;
+import com.evenless.tersicore.interfaces.ApiRequestExtraTaskListener;
 import com.evenless.tersicore.interfaces.ApiRequestTaskListener;
 import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.MediaPlayerService;
@@ -46,19 +53,23 @@ import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.TaskHandler;
 import com.evenless.tersicore.model.Album;
+import com.evenless.tersicore.model.EmailType;
 import com.evenless.tersicore.model.Track;
 
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import com.evenless.tersicore.model.TrackResources;
 import com.evenless.tersicore.model.TrackSuggestion;
+import com.evenless.tersicore.model.User;
 import com.evenless.tersicore.view.NonScrollableListView;
 import com.google.gson.Gson;
 
 public class SearchActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
-        ApiRequestTaskListener,
+        ApiRequestExtraTaskListener,
         SearchView.OnQueryTextListener,
         MediaPlayerServiceListener,
         AdapterView.OnItemLongClickListener,
@@ -73,11 +84,15 @@ public class SearchActivity extends AppCompatActivity
     private ArrayList<Album> listRecentSuggestions = new ArrayList<>();
     private ArrayList<Album> listRecentUpAlbums = new ArrayList<>();
     private ArrayList<String> listArtists = new ArrayList<>();
+    private ArrayList<User> users = new ArrayList<>();
+    private int newMessages = 0;
     private Context ctx = this;
     private boolean mBound=false;
     private RecyclerView mRecyclerView;
+    private User me;
     private RecyclerView mRecyclerViewAlbums;
     private RecyclerView mRecyclerViewAlbumsRecent;
+    private Gson gson = new Gson();
     private int page = 0;
     private MediaPlayerService mService;
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -123,6 +138,9 @@ public class SearchActivity extends AppCompatActivity
                     try {
                         TaskHandler.getLatestTracks(this, PreferencesHandler.getServer(this));
                         TaskHandler.getSuggestions(this, PreferencesHandler.getServer(this));
+                        TaskHandler.getPlaylists(this, PreferencesHandler.getServer(this));
+                        TaskHandler.getMessages(this, PreferencesHandler.getServer(this));
+                        TaskHandler.getUsers(this, PreferencesHandler.getServer(this));
                     } catch (Exception e) {
                         Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
                     }
@@ -297,7 +315,28 @@ public class SearchActivity extends AppCompatActivity
                         startActivity(sdsd);
                     }
                 });
+                if(newMessages>0) {
+                    drawer.findViewById(R.id.roundcircle).setVisibility(View.VISIBLE);
+                    TextView ssss = drawer.findViewById(R.id.counter);
+                    ssss.setText(newMessages + "");
+                } else
+                    drawer.findViewById(R.id.roundcircle).setVisibility(View.GONE);
+                ListView mListView = findViewById(R.id.friendslist);
+                mListView.setAdapter(new MyUsersListAdapter(ctx, R.layout.frienditem, users));
+
                 drawer.openDrawer(GravityCompat.END);
+                ImageView myimg = drawer.findViewById(R.id.myimg);
+                if(me!=null) {
+                    byte[] avatar = me.getAvatar();
+                    if (avatar != null && avatar.length != 0)
+                        myimg.setImageBitmap(BitmapFactory.decodeByteArray(avatar, 0, avatar.length));
+                }
+                try {
+                    TaskHandler.getMessages(this, PreferencesHandler.getServer(this));
+                    TaskHandler.getUsers(this, PreferencesHandler.getServer(this));
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
                 return true;
 
             default:
@@ -306,6 +345,17 @@ public class SearchActivity extends AppCompatActivity
                 return super.onOptionsItemSelected(item);
 
         }
+    }
+
+    private void getMyUser(User[] users) {
+        String user = PreferencesHandler.getUsername(this);
+        this.users = new ArrayList<>();
+        for(int i=0; i<users.length; i++)
+            if(users[i].id.equals(user))
+                me=users[i];
+            else {
+                this.users.add(users[i]);
+            }
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -477,7 +527,7 @@ public class SearchActivity extends AppCompatActivity
         if(e!=null){
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         } else if (response != null) {
-            listTracks = new Gson().fromJson(response, Track[].class);
+            listTracks = gson.fromJson(response, Track[].class);
             DataBackend.insertTracks(new ArrayList<>(Arrays.asList(listTracks)), PreferencesHandler.getServer(ctx));
             try {
                 TaskHandler.getLatestTracks(this, PreferencesHandler.getServer(this));
@@ -493,7 +543,7 @@ public class SearchActivity extends AppCompatActivity
         if(e!=null){
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         } else if (response != null) {
-            Track[] temporary = new Gson().fromJson(response, Track[].class);
+            Track[] temporary = gson.fromJson(response, Track[].class);
             if (temporary.length>0) {
                 for (Track t : temporary)
                     if (t.album_artist != null)
@@ -528,7 +578,7 @@ public class SearchActivity extends AppCompatActivity
         if(e!=null){
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         } else if (result != null){
-            TrackSuggestion[] temporary = new Gson().fromJson(result, TrackSuggestion[].class);
+            TrackSuggestion[] temporary = gson.fromJson(result, TrackSuggestion[].class);
             if (temporary.length>0) {
                 RecyclerView.LayoutManager mLayoutM = new LinearLayoutManager(ctx,
                         LinearLayoutManager.HORIZONTAL,
@@ -576,5 +626,44 @@ public class SearchActivity extends AppCompatActivity
     @Override
     public void onPreparedPlayback() {
         PlayerInterface.setPlay(findViewById(R.id.asd2));
+    }
+
+    @Override
+    public void onMessagesRequestComplete(String response, Exception e) {
+        if(e!=null)
+            e.printStackTrace();
+        else{
+            newMessages = 0;
+            EmailType[] allMessages = gson.fromJson(response, EmailType[].class);
+            for(EmailType m : allMessages){
+                EmailType duo = DataBackend.getMessage(m.id);
+                if(duo==null || !duo.isRead){
+                    if(duo==null)
+                        DataBackend.insertMessage(m);
+
+                    if(m.recipient.equals(PreferencesHandler.getUsername(ctx)))
+                        newMessages++;
+                }
+            }
+        }
+        View onlinround = findViewById(R.id.roundcircle);
+        if(onlinround!=null && newMessages>0) {
+            onlinround.setVisibility(View.VISIBLE);
+            TextView ssss = findViewById(R.id.counter);
+            ssss.setText(newMessages + "");
+        } else if(onlinround!=null)
+            onlinround.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void onUsersRequestComplete(String response, Exception e) {
+        if(e==null) {
+            getMyUser(gson.fromJson(response, User[].class));
+            ListView flist = findViewById(R.id.friendslist);
+            if (flist != null)
+                flist.setAdapter(new MyUsersListAdapter(ctx, R.id.singasong, users));
+        } else {
+            e.printStackTrace();
+        }
     }
 }

@@ -77,7 +77,7 @@ public class SendMail extends AppCompatActivity {
             public void onClick(View v) {
                 EmailType email = new EmailType();
                 EditText username = findViewById(R.id.username);
-                email.to = username.getText().toString();
+                email.recipient = username.getText().toString();
                 if(usernameExists()) {
                     EditText subj = findViewById(R.id.subject);
                     email.object = subj.getText().toString();

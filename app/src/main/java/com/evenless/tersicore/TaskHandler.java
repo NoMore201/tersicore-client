@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.evenless.tersicore.interfaces.ApiPostTaskListener;
 import com.evenless.tersicore.interfaces.ApiRequestTaskListener;
+import com.evenless.tersicore.interfaces.ApiRequestExtraTaskListener;
 import com.evenless.tersicore.interfaces.CoverDownloadTaskListener;
 import com.evenless.tersicore.interfaces.CoverRetrieveTaskListener;
 import com.evenless.tersicore.interfaces.FileDownloadTaskListener;
@@ -45,6 +46,8 @@ public class TaskHandler {
     public static final int PLAYLISTS = 2;
     public static final int PLAYLIST_SINGLE = 3;
     public static final int SUGGESTIONS = 4;
+    public static final int USERS = 5;
+    public static final int MESSAGES = 6;
 
     /*
       GET REQUESTS
@@ -71,6 +74,22 @@ public class TaskHandler {
     {
         URL url = new URL(server + "/playlists");
         ApiGetTask task = new ApiGetTask(listener, url, TERSICORE_TOKEN, PLAYLISTS);
+        task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+    }
+
+    public static void getMessages(ApiRequestExtraTaskListener listener,
+                                    String server) throws MalformedURLException
+    {
+        URL url = new URL(server + "/messages");
+        ApiGetTask task = new ApiGetTask(listener, url, TERSICORE_TOKEN, MESSAGES);
+        task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+    }
+
+    public static void getUsers(ApiRequestExtraTaskListener listener,
+                                   String server) throws MalformedURLException
+    {
+        URL url = new URL(server + "/users");
+        ApiGetTask task = new ApiGetTask(listener, url, TERSICORE_TOKEN, USERS);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 

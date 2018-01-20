@@ -8,8 +8,8 @@ public class EmailType extends RealmObject {
 
     @PrimaryKey
     public String id;
-    public String to;
-    public String from;
+    public String recipient;
+    public String sender;
     public String date;
     public String object;
     public String msg;
@@ -17,5 +17,6 @@ public class EmailType extends RealmObject {
     public String album;
     public String artist;
     public String server;
+    public boolean isRead;
 
 }

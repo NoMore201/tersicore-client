@@ -14,6 +14,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.graphics.Palette;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,6 +25,8 @@ import android.widget.Switch;
 
 import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.MediaPlayerService;
+import com.evenless.tersicore.TaskHandler;
+import com.evenless.tersicore.interfaces.ApiRequestTaskListener;
 import com.evenless.tersicore.interfaces.MediaPlayerServiceListener;
 import com.evenless.tersicore.PlayerInterface;
 import com.evenless.tersicore.PlaylistSingleAdapter;
@@ -31,7 +34,9 @@ import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.model.Playlist;
 import com.evenless.tersicore.model.Track;
+import com.google.gson.Gson;
 
+import java.net.MalformedURLException;
 import java.util.List;
 
 /**
@@ -40,7 +45,7 @@ import java.util.List;
 
 public class PlaylistsActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
-        MediaPlayerServiceListener {
+        MediaPlayerServiceListener, ApiRequestTaskListener {
 
     private static final String TAG = "PlaylistsActivity";
     private List<Playlist> listPlaylists;
@@ -72,6 +77,11 @@ public class PlaylistsActivity extends AppCompatActivity
             NavigationView navigationView = findViewById(R.id.nav_view);
             if(navigationView!=null)
                 navigationView.setCheckedItem(R.id.nav_playlists);
+            try {
+                TaskHandler.getPlaylists((ApiRequestTaskListener) ctx, PreferencesHandler.getServer(ctx));
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
         }
 
         @Override
@@ -243,5 +253,33 @@ public class PlaylistsActivity extends AppCompatActivity
     @Override
     public void onPreparedPlayback() {
         PlayerInterface.setPlay(findViewById(R.id.asd2));
+    }
+
+    @Override
+    public void onRequestComplete(String response, Exception e) {
+
+    }
+
+    @Override
+    public void onLatestRequestComplete(String response, Exception e) {
+
+    }
+
+    @Override
+    public void onPlaylistSingleRequestComplete(String result, Exception e) {
+
+    }
+
+    @Override
+    public void onPlaylistsRequestComplete(String result, Exception e) {
+        Playlist[] allp = new Gson().fromJson(result, Playlist[].class);
+        for (Playlist p : allp)
+            DataBackend.insertPlaylist(p);
+        listPlaylists=DataBackend.getPlaylists(PreferencesHandler.getUsername(ctx));
+    }
+
+    @Override
+    public void onSuggestionsRequestComplete(String result, Exception e) {
+
     }
 }

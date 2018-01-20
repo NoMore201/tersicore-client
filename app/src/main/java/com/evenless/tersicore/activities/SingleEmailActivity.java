@@ -34,7 +34,7 @@ public class SingleEmailActivity extends AppCompatActivity {
         TextView text1 = findViewById(R.id.myname);
         TextView text2 = findViewById(R.id.subject);
         TextView text3 = findViewById(R.id.msg);
-        text1.setText(mail.from);
+        text1.setText(mail.sender);
         text2.setText(mail.object);
         text3.setText(mail.msg);
         ImageButton rep = findViewById(R.id.reply);
@@ -44,7 +44,7 @@ public class SingleEmailActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent asd = new Intent(v.getContext(), SendMail.class);
-                asd.putExtra("EXTRA_CONTACT_NAME", mail.from);
+                asd.putExtra("EXTRA_CONTACT_NAME", mail.recipient);
                 startActivity(asd);
             }
         });
