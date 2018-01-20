@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -23,6 +22,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -43,7 +43,8 @@ import java.util.List;
 
 public class AlbumsActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
-                    MediaPlayerServiceListener{
+        MediaPlayerServiceListener
+{
 
     private List<Album> listAlbums;
     private MediaPlayerService mService;
@@ -57,23 +58,21 @@ public class AlbumsActivity extends AppCompatActivity
             mService = binder.getService();
             mService.setMediaPlayerServiceListener((MediaPlayerServiceListener) ctx);
             if (mService.getCurrentPlaylist().size() == 0) {
-                FloatingActionButton asd = findViewById(R.id.floatingActionButton);
-                CoordinatorLayout.LayoutParams temp = (CoordinatorLayout.LayoutParams) asd.getLayoutParams();
-                temp.bottomMargin = 112;
-                asd.setLayoutParams(temp);
-                findViewById(R.id.asd2).setVisibility(View.GONE);
+                findViewById(R.id.miniplayer).setVisibility(View.GONE);
             } else {
-                FloatingActionButton fab = findViewById(R.id.floatingActionButton);
-                CoordinatorLayout.LayoutParams temp = (CoordinatorLayout.LayoutParams) fab.getLayoutParams();
-                temp.bottomMargin = 260;
-                fab.setLayoutParams(temp);
-                View v = findViewById(R.id.asd2);
-                v.setVisibility(View.VISIBLE);
-                ListView asd = findViewById(R.id.listart);
-                ConstraintLayout.LayoutParams x = (ConstraintLayout.LayoutParams) asd.getLayoutParams();
-                x.bottomMargin=160;
-                asd.setLayoutParams(x);
-                PlayerInterface.UpdateTrack(findViewById(R.id.asd2), mService);
+                FloatingActionButton floating = findViewById(R.id.floatingActionButton);
+                View miniplayer = findViewById(R.id.miniplayer);
+                RelativeLayout.LayoutParams params =
+                        (RelativeLayout.LayoutParams) floating.getLayoutParams();
+                params.bottomMargin = params.bottomMargin + miniplayer.getHeight();
+                floating.setLayoutParams(params);
+                miniplayer.setVisibility(View.VISIBLE);
+                ListView list = findViewById(R.id.listart);
+                ConstraintLayout.LayoutParams x =
+                        (ConstraintLayout.LayoutParams) list.getLayoutParams();
+                x.bottomMargin += miniplayer.getHeight();
+                list.setLayoutParams(x);
+                PlayerInterface.UpdateTrack(findViewById(R.id.miniplayer), mService);
             }
             NavigationView navigationView = findViewById(R.id.nav_view);
             if(navigationView!=null)
@@ -105,20 +104,20 @@ public class AlbumsActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main4);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         navigationView.setCheckedItem(R.id.nav_albums);
-        listAlbums= DataBackend.getAlbums();
-        if(listAlbums!=null)
+        listAlbums = DataBackend.getAlbums();
+        if (listAlbums != null)
             createList();
         findViewById(R.id.floatingActionButton).setOnClickListener(
                 new View.OnClickListener() {
@@ -130,7 +129,10 @@ public class AlbumsActivity extends AppCompatActivity
                     }
                 }
         );
-        Switch asd = navigationView.getMenu().findItem(R.id.app_bar_switch).getActionView().findViewById(R.id.switcharr);
+        Switch asd = navigationView.getMenu()
+                .findItem(R.id.app_bar_switch)
+                .getActionView()
+                .findViewById(R.id.switcharr);
         asd.setChecked(PreferencesHandler.getOffline(this));
         asd.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -179,28 +181,30 @@ public class AlbumsActivity extends AppCompatActivity
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
-        int id = item.getItemId();
-
-        if (id == R.id.nav_albums) {
-
-        } else if (id == R.id.nav_artists) {
-            Intent asd = new Intent(this, ArtistsActivity.class);
-            startActivity(asd);
-        } else if (id == R.id.nav_dj) {
-
-        } else if (id == R.id.nav_home) {
-            Intent asd = new Intent(this, SearchActivity.class);
-            startActivity(asd);
-        } else if (id == R.id.nav_playlists) {
-            Intent asd = new Intent(this, PlaylistsActivity.class);
-            startActivity(asd);
-        } else if (id == R.id.nav_settings) {
-            startActivity(new Intent(this, SettingsActivity.class));
-        } else if (id == R.id.nav_songs) {
-            Intent asd = new Intent(this, TracksActivity.class);
-            startActivity(asd);
-        } else if (id == R.id.nav_view) {
-
+        switch (item.getItemId()) {
+            case R.id.nav_albums:
+                break;
+            case R.id.nav_artists:
+                startActivity(new Intent(this, ArtistsActivity.class));
+                break;
+            case R.id.nav_dj:
+                break;
+            case R.id.nav_home:
+                startActivity(new Intent(this, SearchActivity.class));
+                break;
+            case R.id.nav_playlists:
+                startActivity(new Intent(this, PlaylistsActivity.class));
+                break;
+            case R.id.nav_settings:
+                startActivity(new Intent(this, SettingsActivity.class));
+                break;
+            case R.id.nav_songs:
+                startActivity(new Intent(this, TracksActivity.class));
+                break;
+            case R.id.nav_view:
+                break;
+            default:
+                break;
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -220,12 +224,12 @@ public class AlbumsActivity extends AppCompatActivity
 
     @Override
     public void onNewTrackPlaying(Track newTrack) {
-        PlayerInterface.UpdateTrack(findViewById(R.id.asd2), mService);
+        PlayerInterface.UpdateTrack(findViewById(R.id.miniplayer), mService);
     }
 
     @Override
     public void onPlaylistComplete() {
-        PlayerInterface.setStop(findViewById(R.id.asd2));
+        PlayerInterface.setStop(findViewById(R.id.miniplayer));
     }
 
     @Override
@@ -235,7 +239,7 @@ public class AlbumsActivity extends AppCompatActivity
 
     @Override
     public void onPlaybackError(Exception exception) {
-        PlayerInterface.setStop(findViewById(R.id.asd2));
+        PlayerInterface.setStop(findViewById(R.id.miniplayer));
     }
 
     @Override
@@ -245,7 +249,7 @@ public class AlbumsActivity extends AppCompatActivity
 
     @Override
     public void onPreparedPlayback() {
-        PlayerInterface.setPlay(findViewById(R.id.asd2));
+        PlayerInterface.setPlay(findViewById(R.id.miniplayer));
     }
 
     public void onClickPlay(View v) {
