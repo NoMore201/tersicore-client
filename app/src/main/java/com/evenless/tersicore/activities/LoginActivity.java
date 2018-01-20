@@ -34,7 +34,7 @@ public class LoginActivity extends AppCompatActivity implements ServerStatusTask
         super.onCreate(savedInstanceState);
 
         Set<String> server = PreferencesHandler.getServer(this);
-        if (server != null) {
+        if (server.size() != 0) {
             goToNextActivity();
         } else {
             setContentView(R.layout.activity_login);

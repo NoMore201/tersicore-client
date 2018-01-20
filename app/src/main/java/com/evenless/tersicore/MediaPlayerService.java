@@ -646,16 +646,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             if(trr.isDownloaded)
                 url= Environment.getExternalStorageDirectory() + "/Music/" + trr.uuid + "." + trr.codec;
             else
-                url = proxy.getProxyUrl(PreferencesHandler.getServer(this) +
-                            "/stream/" + trr.uuid);
+                url = proxy.getProxyUrl(trr.server + "/stream/" + trr.uuid);
             try {
                 mMediaPlayer.setDataSource(getApplicationContext(), Uri.parse(url));
             } catch (IOException e){
                 if(trr.isDownloaded)
                     try{
                         setDownloaded(DataBackend.removeOfflineTrack(current, trr.uuid));
-                        url = proxy.getProxyUrl(PreferencesHandler.getServer(this) +
-                                "/stream/" + trr.uuid);
+                        url = proxy.getProxyUrl(trr.server + "/stream/" + trr.uuid);
                         mMediaPlayer.setDataSource(getApplicationContext(), Uri.parse(url));
                     } catch (Exception ex){
                         ex.printStackTrace();

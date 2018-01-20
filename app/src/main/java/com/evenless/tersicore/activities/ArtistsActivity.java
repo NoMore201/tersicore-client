@@ -103,10 +103,10 @@ public class ArtistsActivity  extends AppCompatActivity
         super.onCreate(savedInstanceState);
         listArtists= DataBackend.getArtists();
         setContentView(R.layout.activity_main4);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
@@ -114,20 +114,20 @@ public class ArtistsActivity  extends AppCompatActivity
 
         findViewById(R.id.floatingActionButton).setVisibility(View.GONE);
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         navigationView.setCheckedItem(R.id.nav_artists);
 
-        ListView lsv = findViewById(R.id.listart);
+        ListView listView = findViewById(R.id.listart);
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
                 this,
                 android.R.layout.simple_list_item_1,
                 android.R.id.text1,
                 listArtists );
-        lsv.setAdapter(arrayAdapter);
+        listView.setAdapter(arrayAdapter);
 
         // register onClickListener to handle click events on each item
-        lsv.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener()
         {
             // argument position gives the index of item which is clicked
             public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3)

@@ -547,7 +547,7 @@ public class DataBackend {
     public static String getServer(String token) {
         Tokens t = getInstance().where(Tokens.class).equalTo("token", token).findFirst();
         if(t!=null)
-            return t.token;
+            return t.server;
         else
             return null;
     }
