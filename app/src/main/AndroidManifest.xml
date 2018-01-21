@@ -18,9 +18,8 @@
             android:name=".MediaPlayerService"
             android:exported="false" />
 
-        <activity
-            android:name=".activities.MainActivity" />
-            <!-- android:screenOrientation="nosensor" -->
+        <activity android:name=".activities.MainActivity" />
+        <!-- android:screenOrientation="nosensor" -->
 
         <activity
             android:name=".activities.LoginActivity"
@@ -29,6 +28,7 @@
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -64,7 +64,11 @@
         <activity android:name=".activities.EmailsActivity" />
         <activity
             android:name=".activities.SettingsActivity"
-            android:label="@string/title_activity_settings"></activity>
+            android:label="@string/title_activity_settings" />
+
+        <service
+            android:name=".MyReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>

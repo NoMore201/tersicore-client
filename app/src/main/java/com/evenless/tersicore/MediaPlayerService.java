@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
@@ -17,6 +18,7 @@ import android.media.session.MediaSessionManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -34,6 +36,7 @@ import com.evenless.tersicore.exceptions.MediaPlayerException;
 import com.evenless.tersicore.interfaces.CoverRetrieveTaskListener;
 import com.evenless.tersicore.interfaces.FileDownloadTaskListener;
 import com.evenless.tersicore.interfaces.MediaPlayerServiceListener;
+import com.evenless.tersicore.model.Cover;
 import com.evenless.tersicore.model.Track;
 import com.evenless.tersicore.model.TrackResources;
 import com.evenless.tersicore.model.User;
@@ -156,6 +159,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     private int currentprogress;
     private String url;
     private MediaSession mSes;
+    private PendingIntent mPlay;
 
     public int getCurrentprogress(){return currentprogress;}
 
@@ -187,11 +191,20 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
         mSes = new MediaSession(this, "TAG1");
         mSes.setCallback(getMediaSessionCallback());
+        mSes.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS | MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
         mCurrentPlaylist = new ArrayList<>();
         mCurrentPlaylistSorted = new ArrayList<>();
         changeProxyCacheSize(PreferencesHandler.getCacheSize(this));
         resNumb = new HashMap<>();
         mCurrentIndex=-1;
+        Intent iAction1 = new Intent(this, MyReceiver.class);
+        iAction1.setAction("Pause");
+        mPlay = PendingIntent.getService(
+                this,
+                0,
+                iAction1,
+                PendingIntent.FLAG_UPDATE_CURRENT
+        );
 
         AudioAttributes attributes = new AudioAttributes.Builder()
                 .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
@@ -678,7 +691,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                         e.printStackTrace();
             }
             mMediaPlayer.prepareAsync();
-            byte[] cov = current.getCover();
             Notification.Builder xd = new Notification.Builder(this)
                     .setSmallIcon(R.drawable.ic_play_button)
                     .setContentTitle(current.title)
@@ -694,13 +706,17 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                             new Intent(this, CloseService.class),
                             PendingIntent.FLAG_CANCEL_CURRENT
                     ))
-                    .setContentText(current.artist + " - " + current.album)
-                    .setStyle(new Notification.MediaStyle()
-                    .setMediaSession(mSes.getSessionToken()));
-            if(cov!=null && cov.length!=0)
-                xd.setLargeIcon(BitmapFactory.decodeByteArray(cov,0,cov.length));
-            else
-                xd.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.nocover));
+                    .setContentText(current.artist + " - " + current.album);
+            xd.addAction(new Notification.Action(R.drawable.ic_forward,
+                    "Skip Backward", mPlay));
+            xd.addAction(new Notification.Action(R.drawable.ic_play_button,
+                    "Play", mPlay));
+            xd.addAction(new Notification.Action(R.drawable.ic_forward,
+                    "Skip Forward", mPlay));
+            xd.setStyle(new Notification.MediaStyle()
+                    .setMediaSession(mSes.getSessionToken()).setShowActionsInCompactView(1));
+            xd.setVisibility(Notification.VISIBILITY_PUBLIC);
+            xd.setLargeIcon(getCover(current));
             Notification noti = xd.build();
             NotificationManager notificationManager = (NotificationManager) getSystemService( Context.NOTIFICATION_SERVICE );
             notificationManager.notify(9876, noti);
@@ -835,5 +851,25 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                 super.onCustomAction(action, extras);
             }
         };
+    }
+
+    private Bitmap getCover(Track tr){
+        byte[] cov = tr.getCover();
+
+        // convert the byte array to a bitmap
+        if(cov!= null && cov.length!=0)
+            return BitmapFactory.decodeByteArray(cov, 0, cov.length);
+        else {
+            String art;
+            if(tr.album_artist!=null)
+                art=tr.album_artist;
+            else
+                art=tr.artist;
+            Cover asd = DataBackend.getCover(art, tr.album);
+            if(asd!=null)
+                return BitmapFactory.decodeByteArray(asd.cover,0,asd.cover.length);
+            else
+                return BitmapFactory.decodeResource(this.getResources(), R.drawable.nocover);
+        }
     }
 }

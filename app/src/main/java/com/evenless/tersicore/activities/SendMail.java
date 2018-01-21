@@ -99,6 +99,7 @@ public class SendMail extends AppCompatActivity
                 email.object = subj.getText().toString();
                 EditText body = findViewById(R.id.msg);
                 email.msg = body.getText().toString();
+                email.sender = PreferencesHandler.getUsername((Context) ctx);
                 if(suggestion!=null) {
                     email.album = suggestion.name;
                     email.artist = suggestion.artist;
