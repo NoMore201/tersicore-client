@@ -1,6 +1,7 @@
 package com.evenless.tersicore;
 
 import android.app.IntentService;
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -11,6 +12,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 public class MyReceiver extends IntentService {
+    private String action;
     private ServiceConnection mConnection = new ServiceConnection() {
 
         @Override
@@ -18,7 +20,20 @@ public class MyReceiver extends IntentService {
             // We've bound to LocalService, cast the IBinder and get LocalService instance
             MediaPlayerService.LocalBinder binder = (MediaPlayerService.LocalBinder) service;
             MediaPlayerService mService = binder.getService();
-            mService.pause();
+            if(action.equals("play")) {
+                mService.play();
+                NotificationManager notificationManager = (NotificationManager) getSystemService( Context.NOTIFICATION_SERVICE );
+                notificationManager.notify(9876, mService.createNotification(true, mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex())));
+            }
+            else if (action.equals("pause")) {
+                mService.pause();
+                NotificationManager notificationManager = (NotificationManager) getSystemService( Context.NOTIFICATION_SERVICE );
+                notificationManager.notify(9876, mService.createNotification(false, mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex())));
+            }
+            else if (action.equals("forward"))
+                mService.skip(MediaPlayerService.SkipDirection.SKIP_FORWARD);
+            else if (action.equals("backward"))
+                mService.skip(MediaPlayerService.SkipDirection.SKIP_BACKWARD);
             unbindService(mConnection);
         }
 
@@ -46,6 +61,10 @@ public class MyReceiver extends IntentService {
 
     @Override
     protected void onHandleIntent(@Nullable Intent ii) {
+        if(ii.getAction()!=null)
+            action=ii.getAction();
+        else
+            action="";
         Intent intent = new Intent(this, MediaPlayerService.class);
         startService(intent);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);

@@ -160,6 +160,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     private String url;
     private MediaSession mSes;
     private PendingIntent mPlay;
+    private PendingIntent mPause;
+    private PendingIntent mBack;
+    private PendingIntent mForw;
 
     public int getCurrentprogress(){return currentprogress;}
 
@@ -190,7 +193,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         mMediaPlayer.setOnCompletionListener(this);
         mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
         mSes = new MediaSession(this, "TAG1");
-        mSes.setCallback(getMediaSessionCallback());
         mSes.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS | MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
         mCurrentPlaylist = new ArrayList<>();
         mCurrentPlaylistSorted = new ArrayList<>();
@@ -198,8 +200,29 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         resNumb = new HashMap<>();
         mCurrentIndex=-1;
         Intent iAction1 = new Intent(this, MyReceiver.class);
-        iAction1.setAction("Pause");
+        iAction1.setAction("pause");
+        mPause = PendingIntent.getService(
+                this,
+                0,
+                iAction1,
+                PendingIntent.FLAG_UPDATE_CURRENT
+        );
+        iAction1.setAction("play");
         mPlay = PendingIntent.getService(
+                this,
+                0,
+                iAction1,
+                PendingIntent.FLAG_UPDATE_CURRENT
+        );
+        iAction1.setAction("forward");
+        mForw = PendingIntent.getService(
+                this,
+                0,
+                iAction1,
+                PendingIntent.FLAG_UPDATE_CURRENT
+        );
+        iAction1.setAction("backward");
+        mBack = PendingIntent.getService(
                 this,
                 0,
                 iAction1,
@@ -691,33 +714,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                         e.printStackTrace();
             }
             mMediaPlayer.prepareAsync();
-            Notification.Builder xd = new Notification.Builder(this)
-                    .setSmallIcon(R.drawable.ic_play_button)
-                    .setContentTitle(current.title)
-                    .setContentIntent(PendingIntent.getActivity(
-                            this,
-                            0,
-                            new Intent(this, MainActivity.class),
-                            PendingIntent.FLAG_UPDATE_CURRENT
-                    ))
-                    .setDeleteIntent(PendingIntent.getActivity(
-                            this,
-                            0,
-                            new Intent(this, CloseService.class),
-                            PendingIntent.FLAG_CANCEL_CURRENT
-                    ))
-                    .setContentText(current.artist + " - " + current.album);
-            xd.addAction(new Notification.Action(R.drawable.ic_forward,
-                    "Skip Backward", mPlay));
-            xd.addAction(new Notification.Action(R.drawable.ic_play_button,
-                    "Play", mPlay));
-            xd.addAction(new Notification.Action(R.drawable.ic_forward,
-                    "Skip Forward", mPlay));
-            xd.setStyle(new Notification.MediaStyle()
-                    .setMediaSession(mSes.getSessionToken()).setShowActionsInCompactView(1));
-            xd.setVisibility(Notification.VISIBILITY_PUBLIC);
-            xd.setLargeIcon(getCover(current));
-            Notification noti = xd.build();
+
+            Notification noti = createNotification(true, current);
             NotificationManager notificationManager = (NotificationManager) getSystemService( Context.NOTIFICATION_SERVICE );
             notificationManager.notify(9876, noti);
             DataBackend.setDate(current);
@@ -743,116 +741,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         return proxy.isCached(t.server + "/stream/" + t.uuid);
     }
 
-    private MediaSession.Callback getMediaSessionCallback() {
-        return new MediaSession.Callback() {
-            @Override
-            public void onCommand(@NonNull String command, @Nullable Bundle args, @Nullable ResultReceiver cb) {
-                super.onCommand(command, args, cb);
-            }
-
-            @Override
-            public boolean onMediaButtonEvent(@NonNull Intent mediaButtonIntent) {
-                return super.onMediaButtonEvent(mediaButtonIntent);
-            }
-
-            @Override
-            public void onPrepare() {
-                super.onPrepare();
-            }
-
-            @Override
-            public void onPrepareFromMediaId(String mediaId, Bundle extras) {
-                super.onPrepareFromMediaId(mediaId, extras);
-            }
-
-            @Override
-            public void onPrepareFromSearch(String query, Bundle extras) {
-                super.onPrepareFromSearch(query, extras);
-            }
-
-            @Override
-            public void onPrepareFromUri(Uri uri, Bundle extras) {
-                super.onPrepareFromUri(uri, extras);
-            }
-
-            @Override
-            public void onPlay() {
-                super.onPlay();
-                play();
-            }
-
-            @Override
-            public void onPlayFromSearch(String query, Bundle extras) {
-                super.onPlayFromSearch(query, extras);
-            }
-
-            @Override
-            public void onPlayFromMediaId(String mediaId, Bundle extras) {
-                super.onPlayFromMediaId(mediaId, extras);
-            }
-
-            @Override
-            public void onPlayFromUri(Uri uri, Bundle extras) {
-                super.onPlayFromUri(uri, extras);
-            }
-
-            @Override
-            public void onSkipToQueueItem(long id) {
-                super.onSkipToQueueItem(id);
-            }
-
-            @Override
-            public void onPause() {
-                super.onPause();
-                pause();
-            }
-
-            @Override
-            public void onSkipToNext() {
-                super.onSkipToNext();
-                skip(SkipDirection.SKIP_FORWARD);
-            }
-
-            @Override
-            public void onSkipToPrevious() {
-                super.onSkipToPrevious();
-                skip(SkipDirection.SKIP_BACKWARD);
-            }
-
-            @Override
-            public void onFastForward() {
-                super.onFastForward();
-            }
-
-            @Override
-            public void onRewind() {
-                super.onRewind();
-            }
-
-            @Override
-            public void onStop() {
-                super.onStop();
-                this.onPause();
-            }
-
-            @Override
-            public void onSeekTo(long pos) {
-                super.onSeekTo(pos);
-                seekTo((int) pos);
-            }
-
-            @Override
-            public void onSetRating(@NonNull Rating rating) {
-                super.onSetRating(rating);
-            }
-
-            @Override
-            public void onCustomAction(@NonNull String action, @Nullable Bundle extras) {
-                super.onCustomAction(action, extras);
-            }
-        };
-    }
-
     private Bitmap getCover(Track tr){
         byte[] cov = tr.getCover();
 
@@ -871,5 +759,39 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             else
                 return BitmapFactory.decodeResource(this.getResources(), R.drawable.nocover);
         }
+    }
+
+    public Notification createNotification(boolean isPlayed, Track current){
+        Notification.Builder xd = new Notification.Builder(this)
+                .setSmallIcon(R.drawable.ic_play_button)
+                .setContentTitle(current.title)
+                .setContentIntent(PendingIntent.getActivity(
+                        this,
+                        0,
+                        new Intent(this, MainActivity.class),
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                ))
+                .setDeleteIntent(PendingIntent.getActivity(
+                        this,
+                        0,
+                        new Intent(this, CloseService.class),
+                        PendingIntent.FLAG_CANCEL_CURRENT
+                ))
+                .setContentText(current.artist + " - " + current.album);
+        xd.addAction(new Notification.Action(R.drawable.ic_backward,
+                "Skip Backward", mBack));
+        if(!isPlayed)
+            xd.addAction(new Notification.Action(R.drawable.ic_play_button,
+                    "Play", mPlay));
+        else
+            xd.addAction(new Notification.Action(R.drawable.ic_pause,
+                    "Play", mPause));
+        xd.addAction(new Notification.Action(R.drawable.ic_forward,
+                "Skip Forward", mForw));
+        xd.setStyle(new Notification.MediaStyle()
+                .setMediaSession(mSes.getSessionToken()).setShowActionsInCompactView(1));
+        xd.setVisibility(Notification.VISIBILITY_PUBLIC);
+        xd.setLargeIcon(getCover(current));
+        return xd.build();
     }
 }
