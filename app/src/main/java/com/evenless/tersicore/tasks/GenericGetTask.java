@@ -36,8 +36,10 @@ public class GenericGetTask extends AsyncTask<Void, Integer, String> {
             }
             httpConnection.connect();
             int responseCode = httpConnection.getResponseCode();
-            if (responseCode != HttpURLConnection.HTTP_OK) {
-                throw new IOException("HTTP error code: " + responseCode);
+            if (responseCode != HttpURLConnection.HTTP_OK &&
+                    responseCode != HttpURLConnection.HTTP_ACCEPTED &&
+                    responseCode != HttpURLConnection.HTTP_CREATED) {
+                throw new IOException("HTTP GET response code: " + responseCode);
             }
             BufferedReader br =
                     new BufferedReader(new InputStreamReader(httpConnection.getInputStream()));
@@ -50,7 +52,7 @@ public class GenericGetTask extends AsyncTask<Void, Integer, String> {
             result = sb.toString();
             br.close();
         } catch (Exception e) {
-            Log.e(TAG, "doInBackground: unknown host", e);
+            Log.e(TAG, e.getMessage(), e);
             mThrownException = e;
         } finally {
             if (httpConnection != null) {
@@ -72,8 +74,11 @@ public class GenericGetTask extends AsyncTask<Void, Integer, String> {
             }
             httpsConnection.connect();
             int responseCode = httpsConnection.getResponseCode();
-            if (responseCode != HttpURLConnection.HTTP_OK) {
-                throw new IOException("HTTP error code: " + responseCode);
+            if (responseCode != HttpURLConnection.HTTP_OK &&
+                    responseCode != HttpsURLConnection.HTTP_ACCEPTED &&
+                    responseCode != HttpsURLConnection.HTTP_CREATED)
+            {
+                throw new IOException("HTTP GET response code: " + responseCode);
             }
             BufferedReader br =
                     new BufferedReader(new InputStreamReader(httpsConnection.getInputStream()));
@@ -86,7 +91,7 @@ public class GenericGetTask extends AsyncTask<Void, Integer, String> {
             result = sb.toString();
             br.close();
         } catch (Exception e) {
-            Log.e(TAG, "doInBackground: unknown host", e);
+            Log.e(TAG, e.getMessage(), e);
             mThrownException = e;
         } finally {
             if (httpsConnection != null) {
