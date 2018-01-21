@@ -44,7 +44,10 @@
             android:layout_marginTop="8dp"
             android:fadeScrollbars="false"
             android:orientation="vertical"
-            android:padding="50dp"
+            android:paddingLeft="50dp"
+            android:paddingRight="50dp"
+            android:paddingTop="30dp"
+            android:paddingBottom="30dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -59,15 +62,18 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/loginInputText"
-                android:layout_marginTop="20dp"
                 android:ems="10"
+                android:layout_marginBottom="8dp"
                 android:hint="@string/prompt_ip"
                 android:backgroundTint="@color/colorPink"
                 android:inputType="text"
-                android:singleLine="false"/>
+                android:singleLine="true"/>
 
         </android.support.design.widget.TextInputLayout>
-
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Username"/>
         <android.support.design.widget.TextInputLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
@@ -77,12 +83,17 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/loginUsername"
                 android:ems="10"
-                android:hint="Username"
                 android:backgroundTint="@color/colorPink"
                 android:inputType="text"
-                android:singleLine="false"/>
+                android:singleLine="true"
+                android:layout_marginBottom="8dp"/>
 
         </android.support.design.widget.TextInputLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:text="Password"/>
         <android.support.design.widget.TextInputLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
@@ -93,10 +104,9 @@
                 android:id="@+id/loginPassword"
                 android:layout_marginBottom="20dp"
                 android:ems="10"
-                android:hint="Password"
                 android:backgroundTint="@color/colorPink"
-                android:inputType="text"
-                android:singleLine="false"/>
+                android:inputType="textPassword"
+                android:singleLine="true"/>
 
         </android.support.design.widget.TextInputLayout>
 
@@ -104,7 +114,6 @@
             android:id="@+id/buttonBegin"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
             android:layout_marginTop="30dp"
             android:text="@string/action_sign_in"
             android:textAppearance="@android:style/TextAppearance.Material.Widget.Button"

@@ -19,4 +19,13 @@ public class EmailType extends RealmObject {
     public String server;
     public boolean isRead;
 
+    @Override
+    public boolean equals(Object obj) {
+        try {
+            EmailType t = (EmailType) obj;
+            return this.id.equals(t.id);
+        } catch (Exception e){
+            return false;
+        }
+    }
 }

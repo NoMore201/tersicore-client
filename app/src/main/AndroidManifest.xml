@@ -55,7 +55,10 @@
             android:label="@string/title_activity_playlist" />
         <activity
             android:name=".activities.PlaylistsActivity"
-            android:label="@string/title_activity_playlists" />
+            android:label="PlaylistList" />
+        <activity
+            android:name=".CloseService"
+            android:label="StopService" />
         <activity android:name=".activities.SingleEmailActivity" />
         <activity android:name=".activities.SendMail" />
         <activity android:name=".activities.EmailsActivity" />

@@ -1,6 +1,7 @@
 package com.evenless.tersicore;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
@@ -9,9 +10,12 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.evenless.tersicore.activities.SendMail;
+import com.evenless.tersicore.activities.SingleEmailActivity;
 import com.evenless.tersicore.model.EmailType;
 import com.evenless.tersicore.model.User;
 
@@ -33,6 +37,7 @@ public class MyUsersListAdapter extends ArrayAdapter<User> {
         TextView txtSong;
         ImageView info;
         ImageView avatar;
+        ImageButton mailto;
     }
 
     public MyUsersListAdapter(@NonNull Context context, int resource, @NonNull ArrayList<User> objects) {
@@ -57,12 +62,13 @@ public class MyUsersListAdapter extends ArrayAdapter<User> {
                 viewHolder.txtSong = convertView.findViewById(R.id.singasong);
                 viewHolder.info = convertView.findViewById(R.id.onlineimg);
                 viewHolder.avatar = convertView.findViewById(R.id.accountimg);
+                viewHolder.mailto = convertView.findViewById(R.id.mailto);
                 convertView.setTag(viewHolder);
             } else {
                 viewHolder = (ViewHolder) convertView.getTag();
             }
 
-            User a = data.get(position);
+            final User a = data.get(position);
 
             viewHolder.txtName.setText(a.id);
             if(a.lastTrack!=null)
@@ -73,10 +79,19 @@ public class MyUsersListAdapter extends ArrayAdapter<User> {
             if(a.online)
                 viewHolder.info.setVisibility(View.VISIBLE);
             else
-                viewHolder.info.setVisibility(View.INVISIBLE);
+                viewHolder.info.setVisibility(View.GONE);
+
             byte[] avatars = a.getAvatar();
             if(avatars!=null && avatars.length!=0)
                 viewHolder.avatar.setImageBitmap(BitmapFactory.decodeByteArray(avatars, 0, avatars.length));
+            viewHolder.mailto.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent asd = new Intent(v.getContext(), SendMail.class);
+                    asd.putExtra("EXTRA_CONTACT_NAME", a.id);
+                    v.getContext().startActivity(asd);
+                }
+            });
             return convertView;
         }
 

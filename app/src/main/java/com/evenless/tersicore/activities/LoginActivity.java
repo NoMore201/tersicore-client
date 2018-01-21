@@ -101,8 +101,10 @@ public class LoginActivity extends AppCompatActivity implements ServerStatusTask
 
     @Override
     public void onRequestComplete(int requestType, Exception e, String result) {
+        TextView us = findViewById(R.id.loginUsername);
         if(e==null) {
             PreferencesHandler.setServer(this, server);
+            PreferencesHandler.setUser(this, us.getText().toString());
             DataBackend.setToken(server, result);
             goToNextActivity();
         } else {
@@ -113,7 +115,7 @@ public class LoginActivity extends AppCompatActivity implements ServerStatusTask
                 findViewById(R.id.buttonBegin).setEnabled(true);
                 findViewById(R.id.loginInputText).setEnabled(true);
                 findViewById(R.id.loginPassword).setEnabled(true);
-                findViewById(R.id.loginUsername).setEnabled(true);
+                us.setEnabled(true);
             }
             ((EditText)findViewById(R.id.loginUsername))
                     .setError("Login Failed!");

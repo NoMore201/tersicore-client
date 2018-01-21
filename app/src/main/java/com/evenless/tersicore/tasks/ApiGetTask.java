@@ -34,7 +34,7 @@ public class ApiGetTask extends GenericGetTask {
             case TaskHandler.PLAYLIST_SINGLE: mListener.onPlaylistSingleRequestComplete(result,e); break;
             case TaskHandler.PLAYLISTS: mListener.onPlaylistsRequestComplete(result,e); break;
             case TaskHandler.SUGGESTIONS: mListener.onSuggestionsRequestComplete(result,e); break;
-            case TaskHandler.USERS: mListenertwo.onUsersRequestComplete(result,e); break;
+            case TaskHandler.USERS: mListenertwo.onUsersRequestComplete(result,e, mToken); break;
             case TaskHandler.MESSAGES: mListenertwo.onMessagesRequestComplete(result,e); break;
             default: break;
         }

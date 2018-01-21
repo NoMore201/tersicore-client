@@ -24,17 +24,20 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 
 import com.evenless.tersicore.AlertDialogTrack;
 import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.MediaPlayerService;
+import com.evenless.tersicore.TaskHandler;
 import com.evenless.tersicore.interfaces.MediaPlayerServiceListener;
 import com.evenless.tersicore.PlayerInterface;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.model.Track;
+import com.evenless.tersicore.model.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,16 +67,17 @@ public class TracksActivity extends AppCompatActivity
             mBound = true;
             if (mService.getCurrentPlaylist().size() == 0) {
                 FloatingActionButton asd = findViewById(R.id.floatingActionButton);
-                CoordinatorLayout.LayoutParams temp = (CoordinatorLayout.LayoutParams) asd.getLayoutParams();
+                RelativeLayout.LayoutParams temp = (RelativeLayout.LayoutParams) asd.getLayoutParams();
                 temp.bottomMargin = 112;
                 asd.setLayoutParams(temp);
-                findViewById(R.id.asd2).setVisibility(View.GONE);
+                findViewById(R.id.miniplayer).setVisibility(View.INVISIBLE);
             } else {
+                View v = findViewById(R.id.miniplayer);
                 FloatingActionButton fab = findViewById(R.id.floatingActionButton);
-                CoordinatorLayout.LayoutParams temp = (CoordinatorLayout.LayoutParams) fab.getLayoutParams();
-                temp.bottomMargin = 260;
-                fab.setLayoutParams(temp);
-                View v = findViewById(R.id.asd2);
+                RelativeLayout.LayoutParams params =
+                        (RelativeLayout.LayoutParams) fab.getLayoutParams();
+                params.bottomMargin = params.bottomMargin + v.getHeight();
+                fab.setLayoutParams(params);
                 v.setVisibility(View.VISIBLE);
                 ListView asd = findViewById(R.id.listart);
                 ConstraintLayout.LayoutParams x = (ConstraintLayout.LayoutParams) asd.getLayoutParams();
@@ -146,6 +150,13 @@ public class TracksActivity extends AppCompatActivity
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 PreferencesHandler.setOffline(ctx, isChecked);
+                for(String ss : PreferencesHandler.getServer(ctx))
+                    try {
+                        TaskHandler.setUser(ss, null,
+                                new User(PreferencesHandler.getUsername(ctx), isChecked));
+                    } catch (Exception e){
+                        e.printStackTrace();
+                    }
                 finish();
                 startActivity(getIntent());
             }
@@ -259,12 +270,12 @@ public class TracksActivity extends AppCompatActivity
 
     @Override
     public void onNewTrackPlaying(Track newTrack) {
-        PlayerInterface.UpdateTrack(findViewById(R.id.asd2), mService);
+        PlayerInterface.UpdateTrack(findViewById(R.id.miniplayer), mService);
     }
 
     @Override
     public void onPlaylistComplete() {
-        PlayerInterface.setStop(findViewById(R.id.asd2));
+        PlayerInterface.setStop(findViewById(R.id.miniplayer));
     }
 
     @Override
@@ -274,7 +285,7 @@ public class TracksActivity extends AppCompatActivity
 
     @Override
     public void onPlaybackError(Exception exception) {
-        PlayerInterface.setStop(findViewById(R.id.asd2));
+        PlayerInterface.setStop(findViewById(R.id.miniplayer));
     }
 
     @Override
@@ -301,6 +312,6 @@ public class TracksActivity extends AppCompatActivity
 
     @Override
     public void onPreparedPlayback() {
-        PlayerInterface.setPlay(findViewById(R.id.asd2));
+        PlayerInterface.setPlay(findViewById(R.id.miniplayer));
     }
 }

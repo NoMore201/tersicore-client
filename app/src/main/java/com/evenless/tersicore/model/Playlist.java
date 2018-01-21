@@ -39,4 +39,14 @@ public class Playlist extends RealmObject {
         }
         return out;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        try {
+            Playlist t = (Playlist) obj;
+            return this.id.equals(t.id);
+        } catch (Exception e){
+            return false;
+        }
+    }
 }

@@ -102,7 +102,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
             mService.setMediaPlayerServiceListener((MediaPlayerServiceListener) ctx);
             mBound=true;
             if (mService.getCurrentPlaylist().size() == 0) {
-                findViewById(R.id.asd2).setVisibility(View.GONE);
+                findViewById(R.id.asd2).setVisibility(View.INVISIBLE);
             } else {
                 View v = findViewById(R.id.asd2);
                 v.setVisibility(View.VISIBLE);

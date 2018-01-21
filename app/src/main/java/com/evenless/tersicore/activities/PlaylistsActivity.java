@@ -16,6 +16,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.graphics.Palette;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -34,6 +35,7 @@ import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.model.Playlist;
 import com.evenless.tersicore.model.Track;
+import com.evenless.tersicore.model.User;
 import com.google.gson.Gson;
 
 import java.net.MalformedURLException;
@@ -65,9 +67,9 @@ public class PlaylistsActivity extends AppCompatActivity
             FloatingActionButton fab = findViewById(R.id.floatingActionButton);
             fab.setVisibility(View.GONE);
             if (mService.getCurrentPlaylist().size() == 0) {
-                findViewById(R.id.asd2).setVisibility(View.GONE);
+                findViewById(R.id.miniplayer).setVisibility(View.INVISIBLE);
             } else {
-                View v = findViewById(R.id.asd2);
+                View v = findViewById(R.id.miniplayer);
                 v.setVisibility(View.VISIBLE);
                 ListView asd = findViewById(R.id.listart);
                 ConstraintLayout.LayoutParams x = (ConstraintLayout.LayoutParams) asd.getLayoutParams();
@@ -136,6 +138,13 @@ public class PlaylistsActivity extends AppCompatActivity
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 PreferencesHandler.setOffline(ctx, isChecked);
+                for(String ss : PreferencesHandler.getServer(ctx))
+                    try {
+                        TaskHandler.setUser(ss, null,
+                                new User(PreferencesHandler.getUsername(ctx), isChecked));
+                    } catch (Exception e){
+                        e.printStackTrace();
+                    }
                 finish();
                 startActivity(getIntent());
             }
@@ -213,12 +222,12 @@ public class PlaylistsActivity extends AppCompatActivity
 
     @Override
     public void onNewTrackPlaying(Track newTrack) {
-        PlayerInterface.UpdateTrack(findViewById(R.id.asd2), mService);
+        PlayerInterface.UpdateTrack(findViewById(R.id.miniplayer), mService);
     }
 
     @Override
     public void onPlaylistComplete() {
-        PlayerInterface.setStop(findViewById(R.id.asd2));
+        PlayerInterface.setStop(findViewById(R.id.miniplayer));
     }
 
     @Override
@@ -228,7 +237,7 @@ public class PlaylistsActivity extends AppCompatActivity
 
     @Override
     public void onPlaybackError(Exception exception) {
-        PlayerInterface.setStop(findViewById(R.id.asd2));
+        PlayerInterface.setStop(findViewById(R.id.miniplayer));
     }
 
     @Override
@@ -255,7 +264,7 @@ public class PlaylistsActivity extends AppCompatActivity
 
     @Override
     public void onPreparedPlayback() {
-        PlayerInterface.setPlay(findViewById(R.id.asd2));
+        PlayerInterface.setPlay(findViewById(R.id.miniplayer));
     }
 
     @Override

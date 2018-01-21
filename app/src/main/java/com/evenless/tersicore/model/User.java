@@ -2,12 +2,29 @@ package com.evenless.tersicore.model;
 
 import android.util.Base64;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class User {
     public String id;
     public boolean online;
     public String lastTrack;
     public String avatar;
     public String password;
+    public ArrayList<String> servers;
+
+    public User (){}
+
+    public User(String id, boolean online){
+        this.id=id;
+        this.online=online;
+    }
+
+    public User(String id, String playing){
+        this.id=id;
+        this.lastTrack=playing;
+    }
+
 
     @Override
     public String toString() {
@@ -23,6 +40,16 @@ public class User {
                     + Character.digit(s.charAt(i+1), 16));
         }
         return Base64.decode(data, Base64.DEFAULT);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        try {
+            User t = (User) obj;
+            return this.id.equals(t.id);
+        } catch (Exception e){
+            return false;
+        }
     }
 
 }

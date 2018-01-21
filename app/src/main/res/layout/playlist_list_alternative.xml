@@ -21,6 +21,12 @@
         android:orientation="horizontal"
         android:weightSum="4"
         app:layout_constraintBottom_toTopOf="@+id/dragPlaylist">
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            android:id="@+id/deletePlaylist"
+            android:src="@android:drawable/ic_delete"/>
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -48,7 +54,7 @@
             android:id="@+id/likeButt"
             android:layout_width="40dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_gravity="center"
             android:background="@null"
             android:elevation="2dp"
             android:padding="10dp"
@@ -59,8 +65,8 @@
         <ImageButton
             android:id="@+id/downloadButt"
             android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_marginTop="8dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
             android:background="@null"
             android:elevation="2dp"
             android:padding="10dp"
@@ -72,7 +78,7 @@
             android:indeterminate="true"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:layout_marginTop="8dp"
+            android:layout_gravity="center"
             android:visibility="gone"
             android:background="@null"
             android:elevation="2dp"
@@ -83,7 +89,7 @@
             android:id="@+id/removeButt"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:layout_marginTop="8dp"
+            android:layout_gravity="center"
             android:background="@null"
             android:elevation="2dp"
             android:padding="10dp"
@@ -96,6 +102,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@null"
+            android:layout_gravity="center"
             android:clickable="true"
             android:focusable="true"
             android:focusableInTouchMode="true"

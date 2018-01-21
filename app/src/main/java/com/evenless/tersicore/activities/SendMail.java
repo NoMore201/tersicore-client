@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.provider.ContactsContract;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -18,23 +19,33 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.AutoCompleteTextView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
+import com.evenless.tersicore.TaskHandler;
+import com.evenless.tersicore.interfaces.ApiPostTaskListener;
 import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.EmailType;
 import com.evenless.tersicore.model.Track;
 import com.evenless.tersicore.model.TrackSuggestion;
+import com.evenless.tersicore.model.User;
 
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class SendMail extends AppCompatActivity {
+public class SendMail extends AppCompatActivity
+    implements ApiPostTaskListener{
 
     Album suggestion;
     TrackSuggestion suggestionTrack;
+    int counter=0;
+    int succedeed=0;
+    private User u;
+    private ApiPostTaskListener ctx = this;
     private final String[] selectOption = {
             "Album",
             "Track"
@@ -60,7 +71,14 @@ public class SendMail extends AppCompatActivity {
             findViewById(R.id.addsong).setVisibility(View.GONE);
             findViewById(R.id.removesong).setVisibility(View.VISIBLE);
         }
-        //Get Mail
+        u = SearchActivity.getUser(mailid);
+        TextView username = findViewById(R.id.username);
+        username.setText(u.id);
+        ImageView imgv = findViewById(R.id.myimg);
+        if(u.avatar!=null && u.avatar.length()!=0) {
+            byte[] av = u.getAvatar();
+            imgv.setImageBitmap(BitmapFactory.decodeByteArray(av, 0, av.length));
+        }
         Toolbar toolbar = findViewById(R.id.toolbar2);
         toolbar.setTitle("Send Email");
         ImageButton add = findViewById(R.id.addsong);
@@ -76,20 +94,26 @@ public class SendMail extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 EmailType email = new EmailType();
-                EditText username = findViewById(R.id.username);
-                email.recipient = username.getText().toString();
-                if(usernameExists()) {
-                    EditText subj = findViewById(R.id.subject);
-                    email.object = subj.getText().toString();
-                    EditText body = findViewById(R.id.msg);
-                    email.msg = body.getText().toString();
-                    if(suggestion!=null) {
-                        email.album = suggestion.name;
-                        email.artist = suggestion.artist;
-                    } else if(suggestionTrack!=null)
-                        email.songuuid = suggestionTrack.uuid;
-                    email.date = new Date().toString();
-                    //Send Email
+                email.recipient = u.id;
+                EditText subj = findViewById(R.id.subject);
+                email.object = subj.getText().toString();
+                EditText body = findViewById(R.id.msg);
+                email.msg = body.getText().toString();
+                if(suggestion!=null) {
+                    email.album = suggestion.name;
+                    email.artist = suggestion.artist;
+                } else if(suggestionTrack!=null)
+                    email.songuuid = suggestionTrack.uuid;
+
+                email.date = new Date().toString();
+                counter=u.servers.size();
+                for(String s : u.servers){
+                    try {
+                        TaskHandler.sendMessage(s, ctx, email);
+                    } catch (MalformedURLException e) {
+                        counter--;
+                        e.printStackTrace();
+                    }
                 }
             }
         });
@@ -186,8 +210,29 @@ public class SendMail extends AppCompatActivity {
         });
     }
 
-    private boolean usernameExists() {
-        //is in list
-        return true;
+    @Override
+    public void onRequestComplete(int requestType, Exception e, String result) {
+        if(e!=null) {
+            counter--;
+            e.printStackTrace();
+        }
+        else
+            succedeed++;
+
+        if(counter==0)
+            Toast.makeText((Context)ctx,
+                    "There were errors sending message to your friend in all servers",
+                    Toast.LENGTH_LONG).show();
+        else if((counter-succedeed)==0){
+            AlertDialog.Builder builder = new AlertDialog.Builder((Context) ctx);
+            builder.setMessage("Message Sent!")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            finish();
+                        }
+                    });
+            builder.show();
+        }
+
     }
 }

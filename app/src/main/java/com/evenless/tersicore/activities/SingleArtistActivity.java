@@ -27,6 +27,7 @@ import android.widget.Switch;
 
 import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.MediaPlayerService;
+import com.evenless.tersicore.TaskHandler;
 import com.evenless.tersicore.interfaces.MediaPlayerServiceListener;
 import com.evenless.tersicore.MyListAdapter;
 import com.evenless.tersicore.PlayerInterface;
@@ -34,6 +35,7 @@ import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.Track;
+import com.evenless.tersicore.model.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,7 +67,7 @@ public class SingleArtistActivity extends AppCompatActivity
                 CoordinatorLayout.LayoutParams temp = (CoordinatorLayout.LayoutParams) asd.getLayoutParams();
                 temp.bottomMargin = 112;
                 asd.setLayoutParams(temp);
-                findViewById(R.id.asd2).setVisibility(View.GONE);
+                findViewById(R.id.asd2).setVisibility(View.INVISIBLE);
             } else {
                 FloatingActionButton fab = findViewById(R.id.floatingShuffle);
                 CoordinatorLayout.LayoutParams temp = (CoordinatorLayout.LayoutParams) fab.getLayoutParams();
@@ -121,6 +123,13 @@ public class SingleArtistActivity extends AppCompatActivity
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 PreferencesHandler.setOffline(ctx, isChecked);
+                for(String ss : PreferencesHandler.getServer(ctx))
+                    try {
+                        TaskHandler.setUser(ss, null,
+                                new User(PreferencesHandler.getUsername(ctx), isChecked));
+                    } catch (Exception e){
+                        e.printStackTrace();
+                    }
                 finish();
                 startActivity(getIntent());
             }

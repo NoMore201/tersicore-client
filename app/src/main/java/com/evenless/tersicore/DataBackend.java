@@ -123,6 +123,7 @@ public class DataBackend {
         realm.commitTransaction();
     }
 
+
     /**
      * Get a list of all Artists contained in the collection
      * @return List of strings representing artists found
@@ -529,6 +530,14 @@ public class DataBackend {
                 .equalTo("id", id).findFirst();
     }
 
+    public static void setMessageAsRead(EmailType mail) {
+        Realm realm = getInstance();
+        realm.beginTransaction();
+        mail.isRead=true;
+        realm.copyToRealmOrUpdate(mail);
+        realm.commitTransaction();
+    }
+
     public static void insertMessage(EmailType m) {
         Realm realm = getInstance();
         realm.beginTransaction();
@@ -559,6 +568,13 @@ public class DataBackend {
         Realm realm = getInstance();
         realm.beginTransaction();
         realm.copyToRealmOrUpdate(t);
+        realm.commitTransaction();
+    }
+
+    public static void deletePlaylist(Playlist pid) {
+        Realm realm = getInstance();
+        realm.beginTransaction();
+        pid.deleteFromRealm();
         realm.commitTransaction();
     }
 }

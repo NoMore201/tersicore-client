@@ -12,7 +12,9 @@ import com.evenless.tersicore.interfaces.FileDownloadTaskListener;
 import com.evenless.tersicore.interfaces.ImageRequestTaskListener;
 import com.evenless.tersicore.interfaces.LoginTaskListener;
 import com.evenless.tersicore.interfaces.ServerStatusTaskListener;
+import com.evenless.tersicore.model.EmailType;
 import com.evenless.tersicore.model.Playlist;
+import com.evenless.tersicore.model.PlaylistFake;
 import com.evenless.tersicore.model.Track;
 import com.evenless.tersicore.model.TrackSuggestion;
 import com.evenless.tersicore.model.User;
@@ -29,6 +31,7 @@ import com.google.gson.Gson;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONStringer;
 
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -36,6 +39,8 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+
+import io.realm.RealmList;
 
 public class TaskHandler {
     private static final String TAG = "TaskHandler";
@@ -175,7 +180,7 @@ public class TaskHandler {
                                    Playlist playlist) throws MalformedURLException {
         URL serverUrl = new URL(server + "/playlists");
         Gson gson = new Gson();
-        String data = gson.toJson(playlist, Playlist.class);
+        String data = gson.toJson(new PlaylistFake(playlist.id, playlist.name, playlist.uploader, playlist.tracks), PlaylistFake.class);
         GenericPostTask task = new GenericPostTask(serverUrl,
                 GenericPostTask.POST_PLAYLIST,
                 DataBackend.getToken(server),
@@ -183,6 +188,36 @@ public class TaskHandler {
                 listener);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
+
+    public static void setUser(String server,
+                                   ApiPostTaskListener listener,
+                                   User u) throws MalformedURLException {
+        /*
+        URL serverUrl = new URL(server + "/users");
+        Gson gson = new Gson();
+        String data = gson.toJson(u, User.class);
+        GenericPostTask task = new GenericPostTask(serverUrl,
+                GenericPostTask.POST_USERS,
+                DataBackend.getToken(server),
+                data,
+                listener);
+        task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);*/
+    }
+
+    public static void sendMessage(String server,
+                                   ApiPostTaskListener listener,
+                                   EmailType mail) throws MalformedURLException {
+        URL serverUrl = new URL(server + "/playlists");
+        Gson gson = new Gson();
+        String data = gson.toJson(mail, EmailType.class);
+        GenericPostTask task = new GenericPostTask(serverUrl,
+                GenericPostTask.POST_MESSAGE,
+                DataBackend.getToken(server),
+                data,
+                listener);
+        task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+    }
+
 
     private static String buildArtistUrl(String artist) throws UnsupportedEncodingException {
         return API_BASE_URL +
@@ -233,6 +268,18 @@ public class TaskHandler {
                 DataBackend.getToken(server),
                 data,
                 tt);
+        task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+    }
+
+    public static void deletePlaylist(String server, Playlist playlist) throws MalformedURLException {
+        URL serverUrl = new URL(server + "/playlists");
+        Gson gson = new Gson();
+        String data = gson.toJson(new PlaylistFake(playlist.id, playlist.name, playlist.uploader, null), PlaylistFake.class);
+        GenericPostTask task = new GenericPostTask(serverUrl,
+                GenericPostTask.POST_PLAYLIST,
+                DataBackend.getToken(server),
+                data,
+                null);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 }

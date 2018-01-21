@@ -33,7 +33,7 @@
             android:layout_height="40dp"
             android:src="@drawable/ic_account_circle_black_36dp" />
 
-        <AutoCompleteTextView
+        <TextView
             android:id="@+id/username"
             android:layout_width="0dp"
             android:layout_height="wrap_content"

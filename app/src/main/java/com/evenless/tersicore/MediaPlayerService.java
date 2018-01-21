@@ -1,29 +1,42 @@
 package com.evenless.tersicore;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.Rating;
+import android.media.session.MediaController;
+import android.media.session.MediaSession;
+import android.media.session.MediaSessionManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
+import android.os.ResultReceiver;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.danikula.videocache.HttpProxyCacheServer;
+import com.evenless.tersicore.activities.MainActivity;
 import com.evenless.tersicore.exceptions.MediaPlayerException;
 import com.evenless.tersicore.interfaces.CoverRetrieveTaskListener;
 import com.evenless.tersicore.interfaces.FileDownloadTaskListener;
 import com.evenless.tersicore.interfaces.MediaPlayerServiceListener;
 import com.evenless.tersicore.model.Track;
 import com.evenless.tersicore.model.TrackResources;
+import com.evenless.tersicore.model.User;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -142,6 +155,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     private Integer res;
     private int currentprogress;
     private String url;
+    private MediaSession mSes;
 
     public int getCurrentprogress(){return currentprogress;}
 
@@ -171,6 +185,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         mMediaPlayer.setOnErrorListener(this);
         mMediaPlayer.setOnCompletionListener(this);
         mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+        mSes = new MediaSession(this, "TAG1");
+        mSes.setCallback(getMediaSessionCallback());
         mCurrentPlaylist = new ArrayList<>();
         mCurrentPlaylistSorted = new ArrayList<>();
         changeProxyCacheSize(PreferencesHandler.getCacheSize(this));
@@ -662,7 +678,41 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                         e.printStackTrace();
             }
             mMediaPlayer.prepareAsync();
+            byte[] cov = current.getCover();
+            Notification.Builder xd = new Notification.Builder(this)
+                    .setSmallIcon(R.drawable.ic_play_button)
+                    .setContentTitle(current.title)
+                    .setContentIntent(PendingIntent.getActivity(
+                            this,
+                            0,
+                            new Intent(this, MainActivity.class),
+                            PendingIntent.FLAG_UPDATE_CURRENT
+                    ))
+                    .setDeleteIntent(PendingIntent.getActivity(
+                            this,
+                            0,
+                            new Intent(this, CloseService.class),
+                            PendingIntent.FLAG_CANCEL_CURRENT
+                    ))
+                    .setContentText(current.artist + " - " + current.album)
+                    .setStyle(new Notification.MediaStyle()
+                    .setMediaSession(mSes.getSessionToken()));
+            if(cov!=null && cov.length!=0)
+                xd.setLargeIcon(BitmapFactory.decodeByteArray(cov,0,cov.length));
+            else
+                xd.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.nocover));
+            Notification noti = xd.build();
+            NotificationManager notificationManager = (NotificationManager) getSystemService( Context.NOTIFICATION_SERVICE );
+            notificationManager.notify(9876, noti);
             DataBackend.setDate(current);
+            if(!PreferencesHandler.getOffline(this))
+                for(String ss : PreferencesHandler.getServer(this))
+                    try {
+                        TaskHandler.setUser(ss, null,
+                                new User(PreferencesHandler.getUsername(this), current.toString()));
+                    } catch (MalformedURLException e) {
+                        e.printStackTrace();
+                    }
         }
     }
 
@@ -675,5 +725,115 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     public static boolean checkIsCached(TrackResources t){
         return proxy.isCached(t.server + "/stream/" + t.uuid);
+    }
+
+    private MediaSession.Callback getMediaSessionCallback() {
+        return new MediaSession.Callback() {
+            @Override
+            public void onCommand(@NonNull String command, @Nullable Bundle args, @Nullable ResultReceiver cb) {
+                super.onCommand(command, args, cb);
+            }
+
+            @Override
+            public boolean onMediaButtonEvent(@NonNull Intent mediaButtonIntent) {
+                return super.onMediaButtonEvent(mediaButtonIntent);
+            }
+
+            @Override
+            public void onPrepare() {
+                super.onPrepare();
+            }
+
+            @Override
+            public void onPrepareFromMediaId(String mediaId, Bundle extras) {
+                super.onPrepareFromMediaId(mediaId, extras);
+            }
+
+            @Override
+            public void onPrepareFromSearch(String query, Bundle extras) {
+                super.onPrepareFromSearch(query, extras);
+            }
+
+            @Override
+            public void onPrepareFromUri(Uri uri, Bundle extras) {
+                super.onPrepareFromUri(uri, extras);
+            }
+
+            @Override
+            public void onPlay() {
+                super.onPlay();
+                play();
+            }
+
+            @Override
+            public void onPlayFromSearch(String query, Bundle extras) {
+                super.onPlayFromSearch(query, extras);
+            }
+
+            @Override
+            public void onPlayFromMediaId(String mediaId, Bundle extras) {
+                super.onPlayFromMediaId(mediaId, extras);
+            }
+
+            @Override
+            public void onPlayFromUri(Uri uri, Bundle extras) {
+                super.onPlayFromUri(uri, extras);
+            }
+
+            @Override
+            public void onSkipToQueueItem(long id) {
+                super.onSkipToQueueItem(id);
+            }
+
+            @Override
+            public void onPause() {
+                super.onPause();
+                pause();
+            }
+
+            @Override
+            public void onSkipToNext() {
+                super.onSkipToNext();
+                skip(SkipDirection.SKIP_FORWARD);
+            }
+
+            @Override
+            public void onSkipToPrevious() {
+                super.onSkipToPrevious();
+                skip(SkipDirection.SKIP_BACKWARD);
+            }
+
+            @Override
+            public void onFastForward() {
+                super.onFastForward();
+            }
+
+            @Override
+            public void onRewind() {
+                super.onRewind();
+            }
+
+            @Override
+            public void onStop() {
+                super.onStop();
+                this.onPause();
+            }
+
+            @Override
+            public void onSeekTo(long pos) {
+                super.onSeekTo(pos);
+                seekTo((int) pos);
+            }
+
+            @Override
+            public void onSetRating(@NonNull Rating rating) {
+                super.onSetRating(rating);
+            }
+
+            @Override
+            public void onCustomAction(@NonNull String action, @Nullable Bundle extras) {
+                super.onCustomAction(action, extras);
+            }
+        };
     }
 }

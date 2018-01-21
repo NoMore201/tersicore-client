@@ -16,10 +16,11 @@ import javax.net.ssl.HttpsURLConnection;
 
 
 public class GenericPostTask extends AsyncTask<Void, Integer, String> {
-    public final static int POST_LOGIN = 1;
-    public final static int POST_MESSAGE = 2;
-    public final static int POST_SUGGESTION = 3;
-    public final static int POST_PLAYLIST = 4;
+    public final static int POST_LOGIN = 11;
+    public final static int POST_USERS = 21;
+    public final static int POST_SUGGESTION = 31;
+    public final static int POST_PLAYLIST = 41;
+    public final static int POST_MESSAGE = 51;
 
     private final static String TAG = "GenericGetTask";
 

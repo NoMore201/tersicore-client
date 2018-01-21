@@ -3,6 +3,8 @@
 
     <string name="title_activity_fullscreen">FullscreenActivity</string>
     <string name="ipb">IP Background</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">Ok</string>
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="title_activity_first_ip">Insert IP</string>

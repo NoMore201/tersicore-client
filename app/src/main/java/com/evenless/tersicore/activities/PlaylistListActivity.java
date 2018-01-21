@@ -22,6 +22,7 @@ import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -185,6 +186,32 @@ implements FileDownloadTaskListener{
             toolbar.setTitle(pid.name);
             TextView tt = findViewById(R.id.playupload);
             tt.setText("Uploaded By " + pid.uploader);
+            findViewById(R.id.deletePlaylist).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+                    builder.setTitle("Cancel Playlist");
+                    builder.setMessage("Are you sure you want to cancel the playlist?");
+                    builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            try {
+                                for(String ss : PreferencesHandler.getServer(ctx))
+                                    TaskHandler.deletePlaylist(ss, pid);
+                                DataBackend.deletePlaylist(pid);
+                                finish();
+                            } catch (MalformedURLException e) {
+                                Toast.makeText(ctx, "There can be errors in synchronizing with server", Toast.LENGTH_LONG);
+                            }
+                        }
+                    });
+                    builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            // User cancelled the dialog
+                        }
+                    });
+                    builder.show();
+                }
+            });
             ImageButton aa = findViewById(R.id.playbutt);
             aa.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override

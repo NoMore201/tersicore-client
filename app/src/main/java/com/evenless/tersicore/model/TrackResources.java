@@ -14,4 +14,14 @@ public class TrackResources extends RealmObject {
     public String date_added;
     public String server;
     public boolean isDownloaded;
+
+    @Override
+    public boolean equals(Object obj) {
+        try {
+            TrackResources t = (TrackResources) obj;
+            return this.uuid.equals(t.uuid);
+        } catch (Exception e){
+            return false;
+        }
+    }
 }

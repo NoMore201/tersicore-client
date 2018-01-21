@@ -41,16 +41,18 @@ public class PlaylistSingleAdapter extends ArrayAdapter<Playlist> {
             String feature = "Featuring ";
             ArrayList<String> artists = new ArrayList<>();
             for (Track t : data.get(position).getTrackObjects()) {
-                if(!artists.contains(t.artist)) {
+                if(artists.size()>3){
+                    feature = feature + "...";
+                    break;
+                } else if(!artists.contains(t.artist)) {
                     artists.add(t.artist);
                     feature = feature + t.artist + ", ";
                 }
-                if(artists.size()>2){
-                    feature = "...";
-                    break;
-                }
             }
-            text2.setText(feature);
+            if(feature.endsWith(", "))
+                text2.setText(feature.substring(0, feature.lastIndexOf(", ")));
+            else
+                text2.setText(feature);
             text3.setText("Uploaded by: " + data.get(position).uploader);
             ToggleButton tb = view.findViewById(R.id.likeButt);
             tb.setChecked(data.get(position).favorite);

@@ -17,4 +17,14 @@ public class Cover extends RealmObject {
 
     @Required
     public byte[] cover;
+
+    @Override
+    public boolean equals(Object obj) {
+        try{
+            Cover t = (Cover) obj;
+            return this.hash.equals(t.hash);
+        } catch (Exception e){
+            return false;
+        }
+    }
 }

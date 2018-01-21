@@ -17,7 +17,11 @@ public class Album {
 
     @Override
     public boolean equals(Object a){
-        Album temp = (Album) a;
-        return name.equals(temp.name) && artist.equals(temp.artist);
+        try {
+            Album temp = (Album) a;
+            return name.equals(temp.name) && artist.equals(temp.artist);
+        } catch (Exception e){
+            return false;
+        }
     }
 }

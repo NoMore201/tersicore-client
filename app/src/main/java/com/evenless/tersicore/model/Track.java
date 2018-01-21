@@ -63,4 +63,14 @@ public class Track extends RealmObject {
         return false;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        try {
+            Track t = (Track) obj;
+            return this.uuid.equals(t.uuid);
+        } catch (Exception e){
+            return false;
+        }
+    }
+
 }

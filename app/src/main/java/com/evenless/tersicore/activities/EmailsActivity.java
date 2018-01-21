@@ -12,9 +12,11 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -22,15 +24,20 @@ import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.Switch;
 
+import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.EmailSingleAdapter;
 import com.evenless.tersicore.MediaPlayerService;
+import com.evenless.tersicore.TaskHandler;
+import com.evenless.tersicore.interfaces.ApiRequestExtraTaskListener;
 import com.evenless.tersicore.interfaces.MediaPlayerServiceListener;
 import com.evenless.tersicore.PlayerInterface;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.model.EmailType;
 import com.evenless.tersicore.model.Track;
+import com.google.gson.Gson;
 
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,88 +46,52 @@ import java.util.List;
  */
 
 public class EmailsActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener,
-        MediaPlayerServiceListener {
+        implements ApiRequestExtraTaskListener {
 
     private static final String TAG = "EmailsActivity";
-    private List<EmailType> listEmails;
-    private boolean mBound = false;
-    private MediaPlayerService mService;
+    private List<EmailType> listEmails = new ArrayList<>();
     private Context ctx = this;
-    private ServiceConnection mConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            // We've bound to LocalService, cast the IBinder and get LocalService instance
-            MediaPlayerService.LocalBinder binder = (MediaPlayerService.LocalBinder) service;
-            mService = binder.getService();
-            mService.setMediaPlayerServiceListener((MediaPlayerServiceListener) ctx);
-            mBound = true;
-            FloatingActionButton fab = findViewById(R.id.floatingActionButton);
-            fab.setVisibility(View.GONE);
-            if (mService.getCurrentPlaylist().size() == 0) {
-                findViewById(R.id.asd2).setVisibility(View.GONE);
-            } else {
-                View v = findViewById(R.id.asd2);
-                v.setVisibility(View.VISIBLE);
-                ListView asd = findViewById(R.id.listart);
-                ConstraintLayout.LayoutParams x = (ConstraintLayout.LayoutParams) asd.getLayoutParams();
-                x.bottomMargin=200;
-                asd.setLayoutParams(x);
-                PlayerInterface.UpdateTrack(v, mService);
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            mBound = false;
-        }
-
-    };
+    private int counter = 0;
 
     @Override
     protected void onStart() {
         super.onStart();
-        Intent intent = new Intent(this, MediaPlayerService.class);
-        startService(intent);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        unbindService(mConnection);
-        mBound = false;
+        for(String ss : PreferencesHandler.getServer(ctx))
+            try {
+                TaskHandler.getMessages(this, ss);
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_main4);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setContentView(R.layout.activity_mails);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar2);
         toolbar.setTitle("Emails");
         setSupportActionBar(toolbar);
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-
-        listEmails = new ArrayList<>();
-        updateList();
-        Switch asd = navigationView.getMenu().findItem(R.id.app_bar_switch).getActionView().findViewById(R.id.switcharr);
-        asd.setChecked(PreferencesHandler.getOffline(this));
-        asd.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                PreferencesHandler.setOffline(ctx, isChecked);
-                finish();
-                startActivity(getIntent());
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
+
+        final SwipeRefreshLayout swip = findViewById(R.id.swiperefresh);
+        swip.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                counter=0;
+                for(String ss : PreferencesHandler.getServer(ctx))
+                    try {
+                        counter++;
+                        TaskHandler.getMessages((ApiRequestExtraTaskListener) ctx, ss);
+                    } catch (MalformedURLException e) {
+                        e.printStackTrace();
+                        counter--;
+                    }
             }
         });
     }
@@ -131,54 +102,11 @@ public class EmailsActivity extends AppCompatActivity
         updateList();
     }
 
-    @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
-
-        if (id == R.id.nav_albums) {
-            Intent asd = new Intent(this, AlbumsActivity.class);
-            startActivity(asd);
-        } else if (id == R.id.nav_artists) {
-            Intent asd = new Intent(this, ArtistsActivity.class);
-            startActivity(asd);
-        } else if (id == R.id.nav_dj) {
-
-        } else if (id == R.id.nav_home) {
-            Intent asd = new Intent(this, SearchActivity.class);
-            startActivity(asd);
-        } else if (id == R.id.nav_playlists) {
-            Intent asd = new Intent(this, PlaylistsActivity.class);
-            startActivity(asd);
-        } else if (id == R.id.nav_settings) {
-            startActivity(new Intent(this, SettingsActivity.class));
-        } else if (id == R.id.nav_songs) {
-            Intent asd = new Intent(this, TracksActivity.class);
-            startActivity(asd);
-        } else if (id == R.id.nav_view) {
-
-        }
-
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
-    }
-
-    @Override
-    public void onBackPressed() {
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
-    }
-
     private void updateList() {
-        ListView lsv = findViewById(R.id.listart);
+        ListView lsv = findViewById(R.id.mails);
         EmailSingleAdapter arrayAdapter = new EmailSingleAdapter(
                 this,
-                R.layout.email_list,
+                R.id.user,
                 listEmails, false);
 
         lsv.setAdapter(arrayAdapter);
@@ -195,49 +123,67 @@ public class EmailsActivity extends AppCompatActivity
     }
 
     @Override
-    public void onNewTrackPlaying(Track newTrack) {
-        PlayerInterface.UpdateTrack(findViewById(R.id.asd2), mService);
-    }
-
-    @Override
-    public void onPlaylistComplete() {
-        PlayerInterface.setStop(findViewById(R.id.asd2));
-    }
-
-    @Override
-    public void onCoverFetched(Track track, int id) {
+    public void onRequestComplete(String response, Exception e, String token) {
 
     }
 
     @Override
-    public void onPlaybackError(Exception exception) {
-        PlayerInterface.setStop(findViewById(R.id.asd2));
+    public void onLatestRequestComplete(String response, Exception e) {
+
     }
 
     @Override
-    public void onPlaybackProgressUpdate(int currentMilliseconds) {
+    public void onPlaylistSingleRequestComplete(String result, Exception e) {
 
-    }
-
-    public void onClickPlay(View v) {
-        PlayerInterface.onClickPlay(v, mService);
-    }
-
-    public void onClickForward(View v) {
-        PlayerInterface.onClickForward(v, mService);
-    }
-
-    public void onClickBackward(View v) {
-        PlayerInterface.onClickBackward(v, mService);
-    }
-
-    public void onClickPlayer(View v) {
-        Intent dd = new Intent(this, MainActivity.class);
-        startActivity(dd);
     }
 
     @Override
-    public void onPreparedPlayback() {
-        PlayerInterface.setPlay(findViewById(R.id.asd2));
+    public void onPlaylistsRequestComplete(String result, Exception e) {
+
+    }
+
+    @Override
+    public void onSuggestionsRequestComplete(String result, Exception e) {
+
+    }
+
+    @Override
+    public void onMessagesRequestComplete(String response, Exception e) {
+        boolean aaa = false;
+        counter--;
+        if(e!=null)
+            e.printStackTrace();
+        else{
+            EmailType[] allMessages = new Gson().fromJson(response, EmailType[].class);
+            for(EmailType m : allMessages)
+                if(m.recipient.equals(PreferencesHandler.getUsername(ctx))) {
+                    EmailType duo = DataBackend.getMessage(m.id);
+                    if(duo==null) {
+                        DataBackend.insertMessage(m);
+                        listEmails.add(m);
+                        aaa=true;
+                    }
+                    else if(!listEmails.contains(duo)) {
+                        aaa = true;
+                        if (!duo.isRead)
+                            listEmails.add(0, duo);
+                        else
+                            listEmails.add(duo);
+                    }
+                }
+        }
+
+        if(aaa)
+            updateList();
+
+        if(counter==0){
+            SwipeRefreshLayout swip = findViewById(R.id.swiperefresh);
+            swip.setRefreshing(false);
+        }
+    }
+
+    @Override
+    public void onUsersRequestComplete(String response, Exception e, String token) {
+
     }
 }

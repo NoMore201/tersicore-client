@@ -35,6 +35,7 @@
                     android:id="@+id/onlineimg"
                     android:layout_marginLeft="8dp"
                     android:src="@drawable/roundonline"
+                    android:adjustViewBounds="true"
                     android:layout_gravity="center_vertical"/>
 
             </LinearLayout>

@@ -85,7 +85,7 @@ public class SearchActivity extends AppCompatActivity
     private ArrayList<Album> listRecentUpAlbums = new ArrayList<>();
     private ArrayList<String> listArtists = new ArrayList<>();
     private ArrayList<TrackSuggestion> listSugg = new ArrayList<>();
-    private ArrayList<User> users = new ArrayList<>();
+    public static ArrayList<User> users = new ArrayList<>();
     private int newMessages = 0;
     private Context ctx = this;
     private boolean mBound=false;
@@ -106,7 +106,7 @@ public class SearchActivity extends AppCompatActivity
             mBound = true;
             mService.setMediaPlayerServiceListener((MediaPlayerServiceListener) ctx);
             if (mService.getCurrentPlaylist().size() == 0) {
-                findViewById(R.id.asd2).setVisibility(View.GONE);
+                findViewById(R.id.asd2).setVisibility(View.INVISIBLE);
             } else {
                 View v = findViewById(R.id.asd2);
                 v.setVisibility(View.VISIBLE);
@@ -147,6 +147,8 @@ public class SearchActivity extends AppCompatActivity
                             TaskHandler.getPlaylists(this, ss);
                             TaskHandler.getMessages(this, ss);
                             TaskHandler.getUsers(this, ss);
+                            TaskHandler.setUser(ss, null,
+                                    new User(PreferencesHandler.getUsername(this), true));
                         }
                     } catch (Exception e) {
                         Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
@@ -257,6 +259,13 @@ public class SearchActivity extends AppCompatActivity
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 PreferencesHandler.setOffline(ctx, isChecked);
+                for(String ss : PreferencesHandler.getServer(ctx))
+                    try {
+                        TaskHandler.setUser(ss, null,
+                                new User(PreferencesHandler.getUsername(ctx), isChecked));
+                    } catch (Exception e){
+                        e.printStackTrace();
+                    }
                 finish();
                 startActivity(getIntent());
             }
@@ -331,13 +340,18 @@ public class SearchActivity extends AppCompatActivity
                     drawer.findViewById(R.id.roundcircle).setVisibility(View.GONE);
                 ListView mListView = findViewById(R.id.friendslist);
                 mListView.setAdapter(new MyUsersListAdapter(ctx, R.layout.frienditem, users));
-
+                if(PreferencesHandler.getOffline(this))
+                    drawer.findViewById(R.id.onlineimgmy).setVisibility(View.GONE);
+                else
+                    drawer.findViewById(R.id.onlineimgmy).setVisibility(View.VISIBLE);
                 drawer.openDrawer(GravityCompat.END);
                 ImageView myimg = drawer.findViewById(R.id.myimg);
                 if(me!=null) {
                     byte[] avatar = me.getAvatar();
                     if (avatar != null && avatar.length != 0)
                         myimg.setImageBitmap(BitmapFactory.decodeByteArray(avatar, 0, avatar.length));
+                    TextView meme = drawer.findViewById(R.id.myname);
+                    meme.setText(me.id);
                 }
                 try {
                     for(String ss : PreferencesHandler.getServer(ctx)) {
@@ -359,15 +373,29 @@ public class SearchActivity extends AppCompatActivity
         }
     }
 
-    private void getMyUser(User[] users) {
+    private void getMyUser(User[] usersS, String server) {
         String user = PreferencesHandler.getUsername(this);
-        for(int i=0; i<users.length; i++)
-            if(users[i].id.equals(user))
-                me=users[i];
+        Log.i(TAG, user);
+        for(int i=0; i<usersS.length; i++) {
+            User temp = usersS[i];
+            if (temp.id.equals(user))
+                me = temp;
             else {
-                if(!this.users.contains(users[i]))
-                    this.users.add(users[i]);
+                if (!users.contains(temp)) {
+                    temp.servers=new ArrayList<>();
+                    temp.servers.add(server);
+                    users.add(temp);
+                } else {
+                    int ind = users.indexOf(temp);
+                    temp = users.get(ind);
+                    if(!temp.servers.contains(server)){
+                        users.remove(ind);
+                        temp.servers.add(server);
+                        users.add(temp);
+                    }
+                }
             }
+        }
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -674,14 +702,21 @@ public class SearchActivity extends AppCompatActivity
     }
 
     @Override
-    public void onUsersRequestComplete(String response, Exception e) {
+    public void onUsersRequestComplete(String response, Exception e, String token) {
         if(e==null) {
-            getMyUser(gson.fromJson(response, User[].class));
+            getMyUser(gson.fromJson(response, User[].class), DataBackend.getServer(token));
             ListView flist = findViewById(R.id.friendslist);
             if (flist != null)
                 flist.setAdapter(new MyUsersListAdapter(ctx, R.id.singasong, users));
         } else {
             e.printStackTrace();
         }
+    }
+
+    public static User getUser(String sender) {
+        for (User u : users)
+            if(u.id.equals(sender))
+                return u;
+        return null;
     }
 }

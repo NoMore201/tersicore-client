@@ -55,7 +55,7 @@ public class ArtistsActivity  extends AppCompatActivity
             mService = binder.getService();
             mService.setMediaPlayerServiceListener((MediaPlayerServiceListener) ctx);
             if (mService.getCurrentPlaylist().size() == 0) {
-                findViewById(R.id.miniplayer).setVisibility(View.GONE);
+                findViewById(R.id.miniplayer).setVisibility(View.INVISIBLE);
             } else {
                 FloatingActionButton floating = findViewById(R.id.floatingActionButton);
                 View miniplayer = findViewById(R.id.miniplayer);

@@ -53,6 +53,16 @@ public class TrackSuggestion {
             return artist + " - " + album;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        try {
+            TrackSuggestion t = (TrackSuggestion) obj;
+            return this.id.equals(t.id);
+        } catch (Exception e){
+            return false;
+        }
+    }
+
     public boolean isTrack() {
         return uuid != null;
     }
