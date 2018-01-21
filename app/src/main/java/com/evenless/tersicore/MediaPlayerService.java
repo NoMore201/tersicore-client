@@ -258,6 +258,23 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         if (mMediaPlayer != null) {
             mMediaPlayer.release();
         }
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService( Context.NOTIFICATION_SERVICE );
+        notificationManager.cancel(9876);
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        super.onTaskRemoved(rootIntent);
+        if (mWifiLock != null && mWifiLock.isHeld()) {
+            mWifiLock.release();
+        }
+        if (mMediaPlayer != null) {
+            mMediaPlayer.release();
+        }
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService( Context.NOTIFICATION_SERVICE );
+        notificationManager.cancel(9876);
     }
 
     @Override
@@ -582,11 +599,15 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     public void play() {
         mMediaPlayer.start();
+        NotificationManager notificationManager = (NotificationManager) getSystemService( Context.NOTIFICATION_SERVICE );
+        notificationManager.notify(9876, createNotification(true, getCurrentPlaylist().get(getCurrentTrackIndex())));
     }
 
     public void pause() {
         if (mMediaPlayer.isPlaying()) {
             mMediaPlayer.pause();
+            NotificationManager notificationManager = (NotificationManager) getSystemService( Context.NOTIFICATION_SERVICE );
+            notificationManager.notify(9876, createNotification(false, getCurrentPlaylist().get(getCurrentTrackIndex())));
         }
     }
 
@@ -794,4 +815,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         xd.setLargeIcon(getCover(current));
         return xd.build();
     }
+
+
 }

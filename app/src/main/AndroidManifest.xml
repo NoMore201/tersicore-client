@@ -18,8 +18,8 @@
             android:name=".MediaPlayerService"
             android:exported="false" />
 
-        <activity android:name=".activities.MainActivity" />
-        <!-- android:screenOrientation="nosensor" -->
+        <activity android:name=".activities.MainActivity"
+        android:screenOrientation="nosensor" />
 
         <activity
             android:name=".activities.LoginActivity"

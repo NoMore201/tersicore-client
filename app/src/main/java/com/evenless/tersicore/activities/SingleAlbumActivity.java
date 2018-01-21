@@ -162,6 +162,16 @@ public class SingleAlbumActivity  extends AppCompatActivity
         listTracks=DataBackend.getTracks(artist, albumName);
         if(listTracks!=null)
             updateList();
+        else{
+            AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+            builder.setMessage("You don't have this album in the database")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            finish();
+                        }
+                    });
+            builder.show();
+        }
 
         ToggleButton lik = findViewById(R.id.likeButt);
         lik.setChecked(DataBackend.checkFavorite(new Album(albumName, artist)));

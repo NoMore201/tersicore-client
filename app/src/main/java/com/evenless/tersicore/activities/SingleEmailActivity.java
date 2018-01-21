@@ -12,12 +12,17 @@ import android.widget.TextView;
 
 import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.R;
+import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.EmailType;
+import com.evenless.tersicore.model.Track;
+import com.evenless.tersicore.model.TrackSuggestion;
 import com.evenless.tersicore.model.User;
 
 public class SingleEmailActivity extends AppCompatActivity {
 
     EmailType mail;
+    Album suggestion;
+    Track suggestionTrack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +64,37 @@ public class SingleEmailActivity extends AppCompatActivity {
                     startActivity(asd);
                 }
             });
+            if(mail.songuuid!=null){
+                suggestionTrack = DataBackend.getTrack(mail.songuuid);
+                if(suggestionTrack!=null){
+                    TextView sg = findViewById(R.id.songsend);
+                    sg.setText("Track Suggested: " + suggestionTrack.toString());
+                    play.setVisibility(View.VISIBLE);
+                    play.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent pp = new Intent(v.getContext(), MainActivity.class);
+                            pp.putExtra("EXTRA_UUID", suggestionTrack.uuid);
+                            startActivity(pp);
+                        }
+                    });
+                } else {
+                    TextView sg = findViewById(R.id.songsend);
+                    sg.setText("Suggested Track isn't in your database");
+                }
+            } else if (mail.album!=null){
+                suggestion=new Album(mail.album, mail.artist);
+                play.setVisibility(View.VISIBLE);
+                play.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent asd = new Intent(v.getContext(), SingleAlbumActivity.class);
+                        asd.putExtra("EXTRA_ARTIST", mail.artist);
+                        asd.putExtra("EXTRA_ALBUM", mail.album);
+                        v.getContext().startActivity(asd);
+                    }
+                });
+            }
         }
     }
 }

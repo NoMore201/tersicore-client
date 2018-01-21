@@ -1,15 +1,12 @@
 package com.evenless.tersicore;
 
 import android.app.IntentService;
-import android.app.NotificationManager;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 public class MyReceiver extends IntentService {
     private String action;
@@ -20,16 +17,10 @@ public class MyReceiver extends IntentService {
             // We've bound to LocalService, cast the IBinder and get LocalService instance
             MediaPlayerService.LocalBinder binder = (MediaPlayerService.LocalBinder) service;
             MediaPlayerService mService = binder.getService();
-            if(action.equals("play")) {
+            if(action.equals("play"))
                 mService.play();
-                NotificationManager notificationManager = (NotificationManager) getSystemService( Context.NOTIFICATION_SERVICE );
-                notificationManager.notify(9876, mService.createNotification(true, mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex())));
-            }
-            else if (action.equals("pause")) {
+            else if (action.equals("pause"))
                 mService.pause();
-                NotificationManager notificationManager = (NotificationManager) getSystemService( Context.NOTIFICATION_SERVICE );
-                notificationManager.notify(9876, mService.createNotification(false, mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex())));
-            }
             else if (action.equals("forward"))
                 mService.skip(MediaPlayerService.SkipDirection.SKIP_FORWARD);
             else if (action.equals("backward"))
