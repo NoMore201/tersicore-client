@@ -2,7 +2,6 @@ package com.evenless.tersicore.model;
 
 import java.util.UUID;
 
-import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 
@@ -20,6 +19,10 @@ public class EmailType extends RealmObject {
     public String artist;
     public String server;
     public boolean isRead;
+
+    public EmailType() {
+        id = UUID.randomUUID().toString();
+    }
 
     @Override
     public boolean equals(Object obj) {

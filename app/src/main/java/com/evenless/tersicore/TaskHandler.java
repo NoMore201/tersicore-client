@@ -207,7 +207,7 @@ public class TaskHandler {
     public static void sendMessage(String server,
                                    ApiPostTaskListener listener,
                                    EmailType mail) throws MalformedURLException {
-        URL serverUrl = new URL(server + "/playlists");
+        URL serverUrl = new URL(server + "/messages");
         Gson gson = new Gson();
         String data = gson.toJson(mail, EmailType.class);
         GenericPostTask task = new GenericPostTask(serverUrl,
