@@ -52,6 +52,7 @@ import com.evenless.tersicore.model.Cover;
 import com.evenless.tersicore.model.Track;
 import com.evenless.tersicore.model.TrackResources;
 import com.evenless.tersicore.model.TrackSuggestion;
+import com.evenless.tersicore.model.User;
 import com.evenless.tersicore.view.SquareImageView;
 
 import java.net.MalformedURLException;
@@ -257,12 +258,23 @@ public class MainActivity extends AppCompatActivity
                         builder.setTitle("Share your song")
                                 .setItems(shareOptions, new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int which) {
-                                        Track temp = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex());
+                                        final Track temp = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex());
                                         switch (which) {
                                             case 0:
-                                                Intent sendMail = new Intent((Context) ctx, SendMail.class);
-                                                sendMail.putExtra("EXTRA_UUID", temp.uuid);
-                                                startActivity(sendMail);
+                                                AlertDialog.Builder builder = new AlertDialog.Builder((Context) ctx);
+                                                final String[] usersName = new String[SearchActivity.users.size()];
+                                                for (int i=0;i<SearchActivity.users.size();i++)
+                                                    usersName[i]=SearchActivity.users.get(i).id;
+                                                builder.setTitle("Select User")
+                                                        .setItems(usersName, new DialogInterface.OnClickListener() {
+                                                            public void onClick(DialogInterface dialog, int sel) {
+                                                                Intent sendMail = new Intent((Context) ctx, SendMail.class);
+                                                                sendMail.putExtra("EXTRA_UUID", temp.uuid);
+                                                                sendMail.putExtra("EXTRA_CONTACT_NAME", usersName[sel]);
+                                                                startActivity(sendMail);
+                                                            }
+                                                        });
+                                                builder.show();
                                                 break;
                                             case 1:
                                                 Intent sendIntent = new Intent();

@@ -324,6 +324,69 @@ implements FileDownloadTaskListener{
                 findViewById(R.id.removeButt).setVisibility(View.VISIBLE);
                 findViewById(R.id.downloadButt).setVisibility(View.GONE);
             }
+            findViewById(R.id.removeButt).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (ContextCompat.checkSelfPermission(v.getContext(),
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                            != PackageManager.PERMISSION_GRANTED) {
+
+                        ActivityCompat.requestPermissions(PlaylistListActivity.this,
+                                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                                356);
+
+                    } else {
+                        for(Track tt : listTracks)
+                            for (TrackResources tr : tt.resources)
+                                if(tr.isDownloaded) {
+                                    Track trt = DataBackend.removeOfflineTrack(tt, tr.uuid);
+                                    if(mService.getCurrentPlaylist().contains(tt))
+                                        mService.setDownloaded(trt);
+                                }
+                        listTracks=pid.getTrackObjects();
+                        v.setVisibility(View.GONE);
+                        findViewById(R.id.downloadButt).setVisibility(View.VISIBLE);
+                    }
+                }
+            });
+            findViewById(R.id.downloadButt).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (ContextCompat.checkSelfPermission(v.getContext(),
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                            != PackageManager.PERMISSION_GRANTED) {
+
+                        ActivityCompat.requestPermissions(PlaylistListActivity.this,
+                                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                                355);
+
+                    } else {
+                        final ImageButton d = (ImageButton) v;
+                        AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+                        builder.setTitle("Play options")
+                                .setItems(MediaPlayerService.playOptions, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        d.setVisibility(View.GONE);
+                                        findViewById(R.id.progressani3).setVisibility(View.VISIBLE);
+                                        for(Track tt : listTracks) {
+                                            TrackResources res = MediaPlayerService.checkTrackResourceByPreference(tt, which, false);
+                                            if(!res.isDownloaded){
+                                                downloadedCount++;
+                                                try {
+                                                    mService.downloadFile(res, tt.uuid, (FileDownloadTaskListener) ctx);
+                                                } catch (Exception e) {
+                                                    Toast.makeText(ctx, "Some files have not been downloaded correctly", Toast.LENGTH_LONG).show();
+                                                    findViewById(R.id.downloadButt).setVisibility(View.VISIBLE);
+                                                    findViewById(R.id.progressani).setVisibility(View.GONE);
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                        builder.show();
+                    }
+                }
+            });
         } else {
             setContentView(R.layout.playlist_list);
             toolbar = (Toolbar) findViewById(R.id.toolbar2);
@@ -333,69 +396,6 @@ implements FileDownloadTaskListener{
             @Override
             public void onClick(View v) {
                 onBackPressed();
-            }
-        });
-        findViewById(R.id.removeButt).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (ContextCompat.checkSelfPermission(v.getContext(),
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                        != PackageManager.PERMISSION_GRANTED) {
-
-                    ActivityCompat.requestPermissions(PlaylistListActivity.this,
-                            new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                            356);
-
-                } else {
-                    for(Track tt : listTracks)
-                        for (TrackResources tr : tt.resources)
-                            if(tr.isDownloaded) {
-                                Track trt = DataBackend.removeOfflineTrack(tt, tr.uuid);
-                                if(mService.getCurrentPlaylist().contains(tt))
-                                    mService.setDownloaded(trt);
-                            }
-                    listTracks=pid.getTrackObjects();
-                    v.setVisibility(View.GONE);
-                    findViewById(R.id.downloadButt).setVisibility(View.VISIBLE);
-                }
-            }
-        });
-        findViewById(R.id.downloadButt).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (ContextCompat.checkSelfPermission(v.getContext(),
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                        != PackageManager.PERMISSION_GRANTED) {
-
-                    ActivityCompat.requestPermissions(PlaylistListActivity.this,
-                            new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                            355);
-
-                } else {
-                    final ImageButton d = (ImageButton) v;
-                    AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
-                    builder.setTitle("Play options")
-                            .setItems(MediaPlayerService.playOptions, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    d.setVisibility(View.GONE);
-                                    findViewById(R.id.progressani3).setVisibility(View.VISIBLE);
-                                    for(Track tt : listTracks) {
-                                        TrackResources res = MediaPlayerService.checkTrackResourceByPreference(tt, which, false);
-                                        if(!res.isDownloaded){
-                                            downloadedCount++;
-                                            try {
-                                                mService.downloadFile(res, tt.uuid, (FileDownloadTaskListener) ctx);
-                                            } catch (Exception e) {
-                                                Toast.makeText(ctx, "Some files have not been downloaded correctly", Toast.LENGTH_LONG).show();
-                                                findViewById(R.id.downloadButt).setVisibility(View.VISIBLE);
-                                                findViewById(R.id.progressani).setVisibility(View.GONE);
-                                            }
-                                        }
-                                    }
-                                }
-                            });
-                    builder.show();
-                }
             }
         });
     }
