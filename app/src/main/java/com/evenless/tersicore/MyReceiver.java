@@ -52,7 +52,7 @@ public class MyReceiver extends IntentService {
 
     @Override
     protected void onHandleIntent(@Nullable Intent ii) {
-        if(ii.getAction()!=null)
+        if(ii != null && ii.getAction() != null)
             action=ii.getAction();
         else
             action="";
