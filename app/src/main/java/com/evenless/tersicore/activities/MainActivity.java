@@ -28,6 +28,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
@@ -52,21 +53,19 @@ import com.evenless.tersicore.model.Cover;
 import com.evenless.tersicore.model.Track;
 import com.evenless.tersicore.model.TrackResources;
 import com.evenless.tersicore.model.TrackSuggestion;
-import com.evenless.tersicore.model.User;
 import com.evenless.tersicore.view.SquareImageView;
 
 import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import me.crosswall.lib.coverflow.CoverFlow;
 import me.crosswall.lib.coverflow.core.PagerContainer;
 
 public class MainActivity extends AppCompatActivity
     implements MediaPlayerServiceListener,
-        FileDownloadTaskListener, ApiPostTaskListener{
+        FileDownloadTaskListener, ApiPostTaskListener,
+        ViewTreeObserver.OnWindowFocusChangeListener
+{
     private static final String TAG = "MainActivity";
     private final String [] shareOptions = {"Send a mail in Tersicore", "External App"};
     private MediaPlayerService mService;
@@ -360,6 +359,20 @@ public class MainActivity extends AppCompatActivity
             mBound = false;
         }
     };
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if(hasFocus) {
+            if (mService.isPlaying()) {
+                ((ImageButton) findViewById(R.id.playbutton))
+                        .setImageResource(R.drawable.ic_pause);
+            } else {
+                ((ImageButton) findViewById(R.id.playbutton))
+                        .setImageResource(R.drawable.ic_play);
+            }
+        }
+    }
 
     @Override
     protected void onStart() {
