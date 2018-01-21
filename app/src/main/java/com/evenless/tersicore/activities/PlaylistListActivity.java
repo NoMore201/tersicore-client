@@ -148,7 +148,7 @@ implements FileDownloadTaskListener{
     private void updatePlaylistOnServer() {
         try {
             Playlist temp = DataBackend.getPlaylist(pid.id);
-            Set<String> servers = PreferencesHandler.getServer(ctx);
+            List<String> servers = PreferencesHandler.getServer(ctx);
             for(String ss : servers)
             TaskHandler.setPlaylist(ss, null, temp);
         } catch (MalformedURLException e) {
@@ -339,9 +339,8 @@ implements FileDownloadTaskListener{
                         for(Track tt : listTracks)
                             for (TrackResources tr : tt.resources)
                                 if(tr.isDownloaded) {
-                                    Track trt = DataBackend.removeOfflineTrack(tt, tr.uuid);
-                                    if(mService.getCurrentPlaylist().contains(tt))
-                                        mService.setDownloaded(trt);
+                                    DataBackend.removeOfflineTrack(tt, tr.uuid);
+
                                 }
                         listTracks=pid.getTrackObjects();
                         v.setVisibility(View.GONE);

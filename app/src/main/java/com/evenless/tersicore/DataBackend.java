@@ -23,6 +23,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
+import io.realm.Case;
 import io.realm.Realm;
 import io.realm.RealmList;
 import io.realm.RealmResults;
@@ -38,6 +39,7 @@ public class DataBackend {
      * @param tracks list of track informations to save
      */
     public static void insertTracks(List<Track> tracks, String server) {
+        List<Track> second = new ArrayList<>();
         Realm realm = getInstance();
         realm.beginTransaction();
         for(Track t : tracks){
@@ -48,11 +50,11 @@ public class DataBackend {
                 for(TrackResources r : t.resources)
                     if(!old.resources.contains(r))
                         old.resources.add(r);
-                realm.copyToRealmOrUpdate(old);
-                tracks.remove(t);
-            }
+                second.add(old);
+            } else
+                second.add(t);
         }
-        realm.copyToRealmOrUpdate(tracks);
+        realm.copyToRealmOrUpdate(second);
         realm.commitTransaction();
     }
 
@@ -225,11 +227,19 @@ public class DataBackend {
             RealmResults<Track> unique = getInstance().where(Track.class)
                     .distinct("album", "album_artist");
             for (Track t : unique) {
-                if(t.album!=null)
-                    if (t.album_artist!=null && t.album_artist.equalsIgnoreCase(artist)) {
-                        result.add(new Album(t.album, t.album_artist));
-                    } else if (t.artist!=null && t.artist.equalsIgnoreCase(artist))
-                        result.add(new Album(t.album, t.artist));
+                if(t.album!=null) {
+                    Album temp = null;
+                    if (t.album_artist != null && t.album_artist.equalsIgnoreCase(artist)) {
+                        temp = new Album(t.album, t.album_artist);
+                        if(!result.contains(temp))
+                            result.add(temp);
+                    }
+                    else if (t.artist != null && t.artist.equalsIgnoreCase(artist)) {
+                        temp = new Album(t.album, t.artist);
+                        if(!result.contains(temp))
+                            result.add(temp);
+                    }
+                }
             }
         }
         return result;
@@ -252,7 +262,7 @@ public class DataBackend {
      * @return list of Track
      */
     public static ArrayList<Track> getTracks(@NonNull String artist) {
-        RealmResults<Track> result = getInstance().where(Track.class).equalTo("artist", artist).findAll();
+        RealmResults<Track> result = getInstance().where(Track.class).equalTo("artist", artist, Case.INSENSITIVE).findAll();
         if(PreferencesHandler.offline)
             return findAllOffline(result);
         else
@@ -296,8 +306,8 @@ public class DataBackend {
      */
     public static ArrayList<Track> getTracks(@NonNull String artist, @NonNull String album) {
         List<Track> result =  getInstance().where(Track.class).beginGroup()
-                .equalTo("artist", artist).or().equalTo("album_artist", artist)
-                .endGroup().equalTo("album", album)
+                .equalTo("artist", artist, Case.INSENSITIVE).or().equalTo("album_artist", artist, Case.INSENSITIVE)
+                .endGroup().equalTo("album", album, Case.INSENSITIVE)
                 .findAll();
         if(PreferencesHandler.offline)
             result=findAllOffline((RealmResults<Track>) result);
@@ -353,8 +363,8 @@ public class DataBackend {
     public static Cover getCover(String artist, String album) {
         return getInstance()
                 .where(Cover.class)
-                .equalTo("artist", artist)
-                .equalTo("album", album)
+                .equalTo("artist", artist, Case.INSENSITIVE)
+                .equalTo("album", album, Case.INSENSITIVE)
                 .findFirst();
     }
 
@@ -484,6 +494,7 @@ public class DataBackend {
         Realm realm = getInstance();
         realm.beginTransaction();
         TaskHandler.removeAllFiles();
+        realm.delete(TrackResources.class);
         realm.delete(Track.class);
         realm.commitTransaction();
     }
@@ -493,9 +504,10 @@ public class DataBackend {
         realm.beginTransaction();
         Track t = getTrack(id);
         for (TrackResources r : t.resources)
-            if(r.uuid.compareTo(key)==0)
-                r.isDownloaded=true;
-        realm.insertOrUpdate(t);
+            if(r.uuid.equals(key)) {
+                r.isDownloaded = true;
+                realm.insertOrUpdate(r);
+            }
         realm.commitTransaction();
         return t;
     }
@@ -503,20 +515,19 @@ public class DataBackend {
     public static Track removeOfflineTrack(Track trr, String key) {
         Realm realm = getInstance();
         realm.beginTransaction();
-        Track t = getTrack(trr.uuid);
-        for (TrackResources r : t.resources)
+        for (TrackResources r : trr.resources)
             if(r.uuid.compareTo(key)==0) {
                 try {
                     TaskHandler.removeFile(key, r.codec);
                     r.isDownloaded = false;
+                    realm.insertOrUpdate(r);
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
                 }
                 break;
             }
-        realm.insertOrUpdate(t);
         realm.commitTransaction();
-        return t;
+        return trr;
     }
 
     public static List<Playlist> getMyPlaylists(String username) {
@@ -530,12 +541,13 @@ public class DataBackend {
                 .equalTo("id", id).findFirst();
     }
 
-    public static void setMessageAsRead(EmailType mail) {
+    public static EmailType setMessageAsRead(EmailType mail) {
         Realm realm = getInstance();
         realm.beginTransaction();
         mail.isRead=true;
         realm.copyToRealmOrUpdate(mail);
         realm.commitTransaction();
+        return mail;
     }
 
     public static void insertMessage(EmailType m) {
@@ -561,6 +573,13 @@ public class DataBackend {
             return null;
     }
 
+    public static List<String> getServers(){
+        List<String> aa = new ArrayList<>();
+        for(Tokens t : getInstance().where(Tokens.class).findAll())
+            aa.add(t.server);
+        return aa;
+    }
+
     public static void setToken(String server, String result) {
         Tokens t = new Tokens();
         t.token=result;
@@ -571,10 +590,30 @@ public class DataBackend {
         realm.commitTransaction();
     }
 
+    public static void deleteToken(String server) {
+        Realm realm = getInstance();
+        realm.beginTransaction();
+        Tokens toDel = realm.where(Tokens.class).equalTo("server", server).findFirst();
+        if(toDel!=null)
+            toDel.deleteFromRealm();
+        realm.commitTransaction();
+    }
+
     public static void deletePlaylist(Playlist pid) {
         Realm realm = getInstance();
         realm.beginTransaction();
         pid.deleteFromRealm();
+        realm.commitTransaction();
+    }
+
+    public static void removeOfflineTracks() {
+        Realm realm = getInstance();
+        realm.beginTransaction();
+        for(TrackResources t : realm.where(TrackResources.class).findAll())
+            if(t.isDownloaded){
+                t.isDownloaded=false;
+                realm.copyToRealmOrUpdate(t);
+            }
         realm.commitTransaction();
     }
 }

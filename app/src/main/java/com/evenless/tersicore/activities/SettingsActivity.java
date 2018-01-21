@@ -1,6 +1,7 @@
 package com.evenless.tersicore.activities;
 
 import android.annotation.TargetApi;
+import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -13,6 +14,8 @@ import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
+import android.provider.ContactsContract;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.evenless.tersicore.interfaces.ApiRequestTaskListener;
@@ -24,9 +27,12 @@ import com.evenless.tersicore.TaskHandler;
 import com.evenless.tersicore.model.Track;
 import com.google.gson.Gson;
 
+import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import me.crosswall.lib.coverflow.core.Utils;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -143,9 +149,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity
         else {
             if(mBound)
                 mService.reset();
-            DataBackend.removeAll();
             Track[] listTracks = new Gson().fromJson(response, Track[].class);
-            DataBackend.insertTracks(new ArrayList<>(Arrays.asList(listTracks)), DataBackend.getToken(ss));
+            DataBackend.insertTracks(new ArrayList<>(Arrays.asList(listTracks)), DataBackend.getServer(ss));
             Toast.makeText(this, "Rebuild Complete", Toast.LENGTH_LONG).show();
         }
     }
@@ -187,12 +192,45 @@ public class SettingsActivity extends AppCompatPreferenceActivity
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
                     try {
+                        DataBackend.removeAll();
                         for(String ss : PreferencesHandler.getServer(preference.getContext()))
-                        TaskHandler.getTracks((ApiRequestTaskListener) preference.getContext(), ss);
+                            TaskHandler.getTracks((ApiRequestTaskListener) preference.getContext(), ss);
                     } catch (MalformedURLException e) {
                         Toast.makeText(preference.getContext(), "There was an  error with a non valid server", Toast.LENGTH_LONG).show();
                     }
                     //code for what you want it to do
+                    return true;
+                }
+            });
+
+            Preference butt = findPreference("manageservers");
+            butt.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    Intent i = new Intent(preference.getContext(), Servers.class);
+                    startActivity(i);
+                    //code for what you want it to do
+                    return true;
+                }
+            });
+
+            Preference bcache = findPreference("deleteCached");
+            bcache.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    deleteCache(preference.getContext());
+                    Toast.makeText(preference.getContext(), "Cache Deleted", Toast.LENGTH_SHORT).show();
+                    return true;
+                }
+            });
+
+            Preference dcache = findPreference("deletedownloaded");
+            dcache.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    TaskHandler.removeAllFiles();
+                    DataBackend.removeOfflineTracks();
+                    Toast.makeText(preference.getContext(), "All File Deleted", Toast.LENGTH_SHORT).show();
                     return true;
                 }
             });
@@ -203,8 +241,9 @@ public class SettingsActivity extends AppCompatPreferenceActivity
             // to their values. When their values change, their summaries are
             // updated to reflect the new value, per the Android Design
             // guidelines.
-            bindPreferenceSummaryToValue(findPreference("TersicoreServer"));
             bindPreferenceSummaryToValue(cacheSize);
+            bindPreferenceSummaryToValue(findPreference("PreferredQualityWiFi"));
+            bindPreferenceSummaryToValue(findPreference("PreferredQualityData"));
 
             cacheSize.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 @Override
@@ -216,5 +255,29 @@ public class SettingsActivity extends AppCompatPreferenceActivity
                 }
             });
         }
+    }
+
+    public static void deleteCache(Context ctx) {
+        try {
+            File dir = ctx.getExternalCacheDir();
+            if (dir != null && dir.isDirectory()) {
+                deleteDir(dir);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static boolean deleteDir(File dir) {
+        if (dir != null && dir.isDirectory()) {
+            String[] children = dir.list();
+            for (int i = 0; i < children.length; i++) {
+                boolean success = deleteDir(new File(dir, children[i]));
+                if (!success) {
+                    return false;
+                }
+            }
+        }
+        return dir.delete();
     }
 }

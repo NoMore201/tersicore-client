@@ -192,7 +192,6 @@ public class TaskHandler {
     public static void setUser(String server,
                                    ApiPostTaskListener listener,
                                    User u) throws MalformedURLException {
-        /*
         URL serverUrl = new URL(server + "/users");
         Gson gson = new Gson();
         String data = gson.toJson(u, User.class);
@@ -201,7 +200,7 @@ public class TaskHandler {
                 DataBackend.getToken(server),
                 data,
                 listener);
-        task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);*/
+        task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
     public static void sendMessage(String server,

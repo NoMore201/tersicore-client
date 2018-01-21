@@ -11,12 +11,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.evenless.tersicore.DataBackend;
+import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
+import com.evenless.tersicore.TaskHandler;
 import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.EmailType;
 import com.evenless.tersicore.model.Track;
 import com.evenless.tersicore.model.TrackSuggestion;
 import com.evenless.tersicore.model.User;
+
+import java.net.MalformedURLException;
 
 public class SingleEmailActivity extends AppCompatActivity {
 
@@ -30,7 +34,6 @@ public class SingleEmailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_single_email);
         String mailid = getIntent().getStringExtra("EXTRA_EMAIL_ID");
         mail = DataBackend.getMessage(mailid);
-        DataBackend.setMessageAsRead(mail);
         if(mail==null)
             onBackPressed();
         else {
@@ -56,6 +59,15 @@ public class SingleEmailActivity extends AppCompatActivity {
             ImageButton rep = findViewById(R.id.reply);
             ImageButton play = findViewById(R.id.playsong);
             play.setVisibility(View.GONE);
+
+            mail = DataBackend.setMessageAsRead(mail);
+            for (String ss : PreferencesHandler.getServer(this))
+                try {
+                    TaskHandler.sendMessage(ss, null, mail);
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
+
             rep.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -64,10 +76,11 @@ public class SingleEmailActivity extends AppCompatActivity {
                     startActivity(asd);
                 }
             });
+            TextView sg = findViewById(R.id.songsend);
             if(mail.songuuid!=null){
                 suggestionTrack = DataBackend.getTrack(mail.songuuid);
                 if(suggestionTrack!=null){
-                    TextView sg = findViewById(R.id.songsend);
+
                     sg.setText("Track Suggested: " + suggestionTrack.toString());
                     play.setVisibility(View.VISIBLE);
                     play.setOnClickListener(new View.OnClickListener() {
@@ -79,10 +92,10 @@ public class SingleEmailActivity extends AppCompatActivity {
                         }
                     });
                 } else {
-                    TextView sg = findViewById(R.id.songsend);
                     sg.setText("Suggested Track isn't in your database");
                 }
             } else if (mail.album!=null){
+                sg.setText("Album Suggested: " + mail.artist + " - " + mail.album);
                 suggestion=new Album(mail.album, mail.artist);
                 play.setVisibility(View.VISIBLE);
                 play.setOnClickListener(new View.OnClickListener() {

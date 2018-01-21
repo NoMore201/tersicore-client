@@ -5,11 +5,13 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.util.ArraySet;
+import android.util.Log;
 
 import com.evenless.tersicore.model.User;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class PreferencesHandler {
@@ -28,8 +30,8 @@ public class PreferencesHandler {
         return Integer.parseInt(getSharedPreferences(ctx).getString(PREF_CACHE_SIZE_KEY, "512"));
     }
 
-    public static Set<String> getServer(Context ctx) {
-        return getSharedPreferences(ctx).getStringSet(PREF_SERVER_KEY, new HashSet<String>());
+    public static List<String> getServer(Context ctx) {
+        return DataBackend.getServers();
     }
 
     public static boolean getOffline(Context ctx) {
@@ -41,23 +43,27 @@ public class PreferencesHandler {
     }
 
     public static void setServer(Context ctx, String str){
+        /*
         Set<String> users = getServer(ctx);
         SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
         users.add(str);
         editor.putStringSet(PREF_SERVER_KEY, users);
         editor.apply();
+        editor.commit();*/
     }
 
     public static void setToken(Context ctx, String str){
         SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
         editor.putString(PREF_TOKEN_KEY, str);
         editor.apply();
+        editor.commit();
     }
 
     public static void setCacheSize(Context ctx, String cacheSize) {
         SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
         editor.putString(PREF_CACHE_SIZE_KEY, cacheSize);
         editor.apply();
+        editor.commit();
     }
 
     public static void setOffline(Context ctx, boolean is) {
@@ -65,15 +71,28 @@ public class PreferencesHandler {
         SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
         editor.putBoolean(PREF_OFFLINE, is);
         editor.apply();
+        editor.commit();
     }
 
     public static void setUser(Context ctx, String u){
         SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
         editor.putString(PREF_USER, u);
         editor.apply();
+        editor.commit();
     }
 
     public static String getUsername(Context ctx){
         return getSharedPreferences(ctx).getString(PREF_USER, "guest");
+    }
+
+    public static void deleteServer(Context ctx, String s) {
+        /*
+        Set<String> users = getServer(ctx);
+        SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
+        users.remove(s);
+        editor.putStringSet(PREF_SERVER_KEY, users);
+        editor.apply();
+        editor.commit();*/
+        DataBackend.deleteToken(s);
     }
 }

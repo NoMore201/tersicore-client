@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="pref_sync_quality_entries" >
+        <item>Always Ask</item>
+        <item>Very High (Some files can be >100MB!!)</item>
+        <item>High Lossless Quality (FLAC CD quality)</item>
+        <item>Higher Lossy Quality</item>
+        <item>Lower quality (Data traffic save)</item>
+    </string-array>
+    <string-array name="pref_sync_quality_values" >
+        <item>5</item>
+        <item>3</item>
+        <item>2</item>
+        <item>1</item>
+        <item>0</item>
+    </string-array>
+</resources>

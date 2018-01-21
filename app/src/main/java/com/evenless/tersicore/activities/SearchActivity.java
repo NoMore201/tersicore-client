@@ -112,7 +112,8 @@ public class SearchActivity extends AppCompatActivity
                 v.setVisibility(View.VISIBLE);
                 LinearLayout asd = findViewById(R.id.linearLayout4);
                 ConstraintLayout.LayoutParams x = (ConstraintLayout.LayoutParams) asd.getLayoutParams();
-                x.bottomMargin = x.bottomMargin + 200;
+                if(x.bottomMargin<200)
+                    x.bottomMargin = x.bottomMargin + 200;
                 asd.setLayoutParams(x);
                 PlayerInterface.UpdateTrack(v, mService);
             }
@@ -131,7 +132,7 @@ public class SearchActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         try {
-            Set<String> servers = PreferencesHandler.getServer(ctx);
+            List<String> servers = PreferencesHandler.getServer(ctx);
             if (DataBackend.getTracks().size() != 0) {
                 listTracks = new Track[DataBackend.getTracks().size()];
                 DataBackend.getTracks().toArray(listTracks);

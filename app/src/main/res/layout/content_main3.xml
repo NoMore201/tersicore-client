@@ -9,6 +9,8 @@
             xmlns:tools="http://schemas.android.com/tools"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
             tools:context="com.evenless.tersicore.activities.SearchActivity"
             tools:showIn="@layout/app_bar_main3">
@@ -23,7 +25,6 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="60dp"
                     android:paddingBottom="8dp"
-                    android:focusedByDefault="false"
                     android:paddingTop="8dp"
                     android:hint="Search Artists, Albums or Tracks"
                     android:singleLine="true"

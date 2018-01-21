@@ -19,7 +19,7 @@ public class Album {
     public boolean equals(Object a){
         try {
             Album temp = (Album) a;
-            return name.equals(temp.name) && artist.equals(temp.artist);
+            return name.equalsIgnoreCase(temp.name) && artist.equalsIgnoreCase(temp.artist);
         } catch (Exception e){
             return false;
         }

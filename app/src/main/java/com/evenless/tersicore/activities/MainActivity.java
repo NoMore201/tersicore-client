@@ -58,6 +58,7 @@ import com.evenless.tersicore.view.SquareImageView;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import me.crosswall.lib.coverflow.CoverFlow;
@@ -173,7 +174,7 @@ public class MainActivity extends AppCompatActivity
                         DataBackend.updateFavorite(t , isChecked);
                         if(isChecked)
                             try {
-                                Set<String> servers = PreferencesHandler.getServer((Context) ctx);
+                                List<String> servers = PreferencesHandler.getServer((Context) ctx);
                                 for(String ss : servers)
                                     TaskHandler.setSuggestion(ss,
                                             (ApiPostTaskListener) ctx,
@@ -227,7 +228,7 @@ public class MainActivity extends AppCompatActivity
                         lik.setChecked(DataBackend.checkFavorite(tra));
                         findViewById(R.id.progressani2).setVisibility(View.GONE);
                         ImageButton download = findViewById(R.id.downloadButt2);
-                        if(mService.isOffline()) {
+                        if(mService.isOfflineT()) {
                             download.setVisibility(View.GONE);
                             toolbar.setSubtitle("OFFLINE");
                             findViewById(R.id.removeButt2).setVisibility(View.VISIBLE);
@@ -293,7 +294,7 @@ public class MainActivity extends AppCompatActivity
                 ImageButton download = findViewById(R.id.downloadButt2);
                 ImageButton remove = findViewById(R.id.removeButt2);
                 findViewById(R.id.progressani2).setVisibility(View.GONE);
-                if(mService.isOffline()) {
+                if(mService.isOfflineT()) {
                     download.setVisibility(View.GONE);
                     toolbar.setSubtitle("OFFLINE");
                     remove.setVisibility(View.VISIBLE);
@@ -325,6 +326,7 @@ public class MainActivity extends AppCompatActivity
                                 Toast.makeText((Context) ctx,
                                         "Error in downloading file from server",
                                         Toast.LENGTH_LONG).show();
+                                e.printStackTrace();
                             }
                         }
                     }
@@ -342,8 +344,8 @@ public class MainActivity extends AppCompatActivity
 
                         } else {
                             Track temp = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex());
-                            mService.setDownloaded(DataBackend.removeOfflineTrack(temp,
-                                    temp.resources.get(mService.getCurrentResource()).uuid));
+                            DataBackend.removeOfflineTrack(temp,
+                                    temp.resources.get(mService.getCurrentResource()).uuid);
                             toolbar.setSubtitle(temp.resources.get(mService.getCurrentResource()).server);
                             v.setVisibility(View.GONE);
                             findViewById(R.id.downloadButt2).setVisibility(View.VISIBLE);
@@ -473,6 +475,11 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -511,9 +518,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void OnFileDownloaded(String key, String id) {
         if(key!=null) {
-            Track modify = DataBackend.insertOfflineTrack(key, id);
-            if (modify != null)
-                mService.setDownloaded(modify);
+            DataBackend.insertOfflineTrack(key, id);
             if (mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex()).uuid.compareTo(id) == 0) {
                 findViewById(R.id.progressani2).setVisibility(View.GONE);
                 Toolbar toolbar = findViewById(R.id.toolbar2);

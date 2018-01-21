@@ -83,16 +83,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         return res;
     }
 
-    public boolean isOffline() {
-        return getCurrentPlaylist().get(mCurrentIndex)
-                .resources.get(res)
-                .isDownloaded;
+    public boolean isOfflineT() {
+        return getCurrentPlaylist().get(mCurrentIndex).resources.get(res).isDownloaded;
     }
 
     public void downloadCurrentFile(FileDownloadTaskListener ctx) throws MalformedURLException {
         TrackResources tr = getCurrentPlaylist().get(mCurrentIndex).resources.get(res);
         if(tr!=null) {
-            String urlfile = PreferencesHandler.getServer(this) +
+            String urlfile = tr.server +
                     "/stream/" + tr.uuid;
             if(proxy.isCached(urlfile))
                 urlfile=url;
@@ -109,25 +107,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                 urlfile=proxy.getProxyUrl(urlfile);
             TaskHandler.downloadFile(urlfile, tr.uuid, tr.codec, ctx, uuid);
         }
-    }
-
-    public void setDownloaded(Track t) {
-        boolean first=false;
-        boolean second=false;
-        for(int i=0; i<mCurrentPlaylist.size(); i++)
-            if(mCurrentPlaylist.get(i).uuid.equals(t.uuid)) {
-                mCurrentPlaylist.remove(i);
-                mCurrentPlaylist.add(i, t);
-                first=true;
-                if(second)
-                    break;
-            } else if (mCurrentPlaylistSorted.get(i).uuid.equals(t.uuid)){
-                mCurrentPlaylistSorted.remove(i);
-                mCurrentPlaylistSorted.add(i, t);
-                second=true;
-                if(first)
-                    break;
-            }
     }
 
     public static boolean hasBeenCached(Track t) {
@@ -717,7 +696,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             newTrackPlaying(current);
             TrackResources trr = current.resources.get(res);
             if(trr.isDownloaded)
-                url= Environment.getExternalStorageDirectory() + "/Music/" + trr.uuid + "." + trr.codec;
+                url= Environment.getExternalStorageDirectory() + "/TersicoreMusic/" + trr.uuid + "." + trr.codec;
             else
                 url = proxy.getProxyUrl(trr.server + "/stream/" + trr.uuid);
             try {
@@ -725,7 +704,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             } catch (IOException e){
                 if(trr.isDownloaded)
                     try{
-                        setDownloaded(DataBackend.removeOfflineTrack(current, trr.uuid));
+                        DataBackend.removeOfflineTrack(current, trr.uuid);
                         url = proxy.getProxyUrl(trr.server + "/stream/" + trr.uuid);
                         mMediaPlayer.setDataSource(getApplicationContext(), Uri.parse(url));
                     } catch (Exception ex){

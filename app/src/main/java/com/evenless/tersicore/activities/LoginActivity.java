@@ -19,6 +19,7 @@ import com.evenless.tersicore.model.User;
 import java.lang.annotation.Target;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 import java.util.Set;
 
 import io.realm.annotations.PrimaryKey;
@@ -33,7 +34,7 @@ public class LoginActivity extends AppCompatActivity implements ServerStatusTask
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Set<String> server = PreferencesHandler.getServer(this);
+        List<String> server = PreferencesHandler.getServer(this);
         if (server.size() != 0) {
             goToNextActivity();
         } else {

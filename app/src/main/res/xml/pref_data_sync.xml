@@ -1,19 +1,53 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <EditTextPreference
-        android:key="TersicoreServer"
-        android:title="SERVER"
-        />
+    <PreferenceCategory
+        android:title="Server">
+        <Preference
+            android:title="Manage Servers"
+            android:key="manageservers"
+            android:summary="Add or remove servers"/>
+    </PreferenceCategory>
 
+    <PreferenceCategory
+        android:title="Internal Database">
     <Preference android:title="Rebuild internal database"
     android:key="updateservers"
     android:summary="It could take time"/>
-
-    <ListPreference
-        android:key="CacheSize"
-        android:title="Cache Size"
-        android:entries="@array/pref_sync_cache_entries"
-        android:entryValues="@array/pref_sync_cache_values"
-        android:defaultValue="512"
-        />
-
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="Resources Management">
+        <ListPreference
+            android:key="PreferredQualityWiFi"
+            android:title="Preferred Quality on Wi-Fi"
+            android:entries="@array/pref_sync_quality_entries"
+            android:entryValues="@array/pref_sync_quality_values"
+            android:defaultValue="1"
+            />
+        <ListPreference
+            android:key="PreferredQualityData"
+            android:title="Preferred Quality on Cellular Data"
+            android:entries="@array/pref_sync_quality_entries"
+            android:entryValues="@array/pref_sync_quality_values"
+            android:defaultValue="1"
+            />
+        <ListPreference
+            android:key="CacheSize"
+            android:title="Cache Size"
+            android:entries="@array/pref_sync_cache_entries"
+            android:entryValues="@array/pref_sync_cache_values"
+            android:defaultValue="512"
+            />
+        <Preference
+            android:title="Delete All Cached Tracks"
+            android:key="deleteCached"
+            android:summary="Downloaded Tracks not deleted."/>
+        <CheckBoxPreference
+            android:key="PreferOffline"
+            android:title="Prefer Offline Tracks if Available"
+            android:defaultValue="true"
+            />
+        <Preference
+            android:title="Delete All Downloaded Tracks"
+            android:key="deletedownloaded"
+            android:summary="Cached Tracks not deleted. It could take time"/>
+    </PreferenceCategory>
 </PreferenceScreen>

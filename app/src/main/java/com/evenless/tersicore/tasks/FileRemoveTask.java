@@ -20,9 +20,10 @@ public class FileRemoveTask extends AsyncTask<Void, Integer, Boolean> {
         boolean yes = true;
         if(mQuery.equals("ALL")){
             File ass = new File(Environment.getExternalStorageDirectory() + "/TersicoreMusic");
-            for(File f : ass.listFiles())
-                if(!f.delete())
-                    yes=false;
+            if(ass.listFiles()!=null)
+                for(File f : ass.listFiles())
+                    if(!f.delete())
+                        yes=false;
         }
         else{
             File asd = new File(Environment.getExternalStorageDirectory() + "/TersicoreMusic/" + mQuery + "." + mFormat);

@@ -67,7 +67,7 @@ public class ArtistsActivity  extends AppCompatActivity
                 ListView list = findViewById(R.id.listart);
                 ConstraintLayout.LayoutParams x =
                         (ConstraintLayout.LayoutParams) list.getLayoutParams();
-                x.bottomMargin += miniplayer.getHeight();
+                x.bottomMargin = miniplayer.getHeight();
                 list.setLayoutParams(x);
                 PlayerInterface.UpdateTrack(findViewById(R.id.miniplayer), mService);
             }
@@ -93,6 +93,19 @@ public class ArtistsActivity  extends AppCompatActivity
     protected void onStop() {
         super.onStop();
         unbindService(mConnection);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        listArtists= DataBackend.getArtists();
+        ListView listView = findViewById(R.id.listart);
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
+                this,
+                android.R.layout.simple_list_item_1,
+                android.R.id.text1,
+                listArtists );
+        listView.setAdapter(arrayAdapter);
     }
 
     @Override

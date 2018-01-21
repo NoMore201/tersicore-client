@@ -70,7 +70,7 @@ public class AlbumsActivity extends AppCompatActivity
                 ListView list = findViewById(R.id.listart);
                 ConstraintLayout.LayoutParams x =
                         (ConstraintLayout.LayoutParams) list.getLayoutParams();
-                x.bottomMargin += miniplayer.getHeight();
+                x.bottomMargin = miniplayer.getHeight();
                 list.setLayoutParams(x);
                 PlayerInterface.UpdateTrack(findViewById(R.id.miniplayer), mService);
             }
@@ -98,6 +98,13 @@ public class AlbumsActivity extends AppCompatActivity
     protected void onStop() {
         super.onStop();
         unbindService(mConnection);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        listAlbums = DataBackend.getAlbums();
+        createList();
     }
 
     @Override

@@ -81,7 +81,7 @@ public class PlaylistsActivity extends AppCompatActivity
             if(navigationView!=null)
                 navigationView.setCheckedItem(R.id.nav_playlists);
             try {
-                Set<String> servers = PreferencesHandler.getServer(ctx);
+                List<String> servers = PreferencesHandler.getServer(ctx);
                 for(String ss : servers)
                     TaskHandler.getPlaylists((ApiRequestTaskListener) ctx, ss);
             } catch (MalformedURLException e) {

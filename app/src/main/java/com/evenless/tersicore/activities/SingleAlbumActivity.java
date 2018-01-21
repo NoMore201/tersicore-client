@@ -217,9 +217,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
                     for(Track tt : listTracks)
                         for (TrackResources tr : tt.resources)
                             if(tr.isDownloaded) {
-                                Track trt = DataBackend.removeOfflineTrack(tt, tr.uuid);
-                                if(mService.getCurrentPlaylist().contains(tt))
-                                    mService.setDownloaded(trt);
+                                DataBackend.removeOfflineTrack(tt, tr.uuid);
                             }
                     listTracks=DataBackend.getTracks(artist, albumName);
                     v.setVisibility(View.GONE);
