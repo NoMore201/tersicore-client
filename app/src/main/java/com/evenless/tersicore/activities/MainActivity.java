@@ -504,6 +504,9 @@ public class MainActivity extends AppCompatActivity
     public void onPlaylistComplete() {
         ImageButton vie = findViewById(R.id.playbutton);
         vie.setImageResource(R.drawable.ic_play);
+        PagerContainer container = findViewById(R.id.pager_container);
+        ViewPager pager = container.getViewPager();
+        pager.setCurrentItem(mService.getCurrentTrackIndex(), true);
     }
 
     @Override

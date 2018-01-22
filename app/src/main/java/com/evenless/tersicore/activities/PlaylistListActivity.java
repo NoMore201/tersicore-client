@@ -257,7 +257,7 @@ implements FileDownloadTaskListener{
                 public boolean onLongClick(View v) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
                     builder.setTitle("Play options")
-                            .setItems(AlertDialogTrack.playOptions, new DialogInterface.OnClickListener() {
+                            .setItems(AlertDialogTrack.playOptionsPlus, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
                                     choice=which;
                                     findViewById(R.id.playbutt).callOnClick();
@@ -297,47 +297,6 @@ implements FileDownloadTaskListener{
                                         case 2: mService.append(listTracks, resfav); startActivity(dd); break;
                                         // play after
                                         case 3: mService.appendAfterCurrent(listTracks, resfav); startActivity(dd); break;
-                                        // Add to Playlist
-                                        case 4: AlertDialog.Builder bd = new AlertDialog.Builder(ctx);
-                                            bd.setTitle("Playlists");
-                                            final List<Playlist> asd = DataBackend.getMyPlaylists(PreferencesHandler.getUsername(ctx));
-                                            CharSequence[] data = new CharSequence[asd.size()+1];
-                                            data[0]="NEW PLAYLIST";
-                                            int i = 1;
-                                            for(Playlist p : asd) {
-                                                data[i] = p.name;
-                                                i++;
-                                            }
-                                            bd.setItems(data, new DialogInterface.OnClickListener() {
-                                                public void onClick(DialogInterface dialog, int which) {
-                                                    if(which==0){
-                                                        AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
-                                                        builder.setTitle("Name the New Playlist");
-                                                        final EditText input = new EditText(ctx);
-                                                        input.setInputType(InputType.TYPE_CLASS_TEXT);
-                                                        builder.setView(input);
-                                                        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                                            @Override
-                                                            public void onClick(DialogInterface dialog, int which) {
-                                                                AlertDialogTrack.updatePlaylistOnServer(ctx,
-                                                                    DataBackend.createNewPlaylist(input.getText().toString(),
-                                                                            listTracks, PreferencesHandler.getUsername(ctx)));
-                                                            }
-                                                        });
-                                                        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                                                            @Override
-                                                            public void onClick(DialogInterface dialog, int which) {
-                                                                dialog.cancel();
-                                                            }
-                                                        });
-
-                                                        builder.show();
-                                                    }
-                                                    else
-                                                        AlertDialogTrack.updatePlaylistOnServer(ctx,
-                                                                DataBackend.addToPlaylist(asd.get(which-1), listTracks));
-                                                }});
-                                            bd.create().show();
                                         default: break;
                                     }
                                     choice=0;

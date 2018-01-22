@@ -695,15 +695,15 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     public void updateState() {
         currentprogress=0;
         if (mCurrentIndex >= getCurrentPlaylist().size()) {
-            playlistCompleted();
             mMediaPlayer.reset();
+            playlistCompleted();
         } else {
             final Track current = getCurrentPlaylist().get(mCurrentIndex);
             res = getPreferredRes(current, getApplicationContext());
+            newTrackPlaying(current);
             if (res >= 0 ) {
                 mMediaPlayer.reset();
                 Log.i(TAG, "inside " + res + "");
-                newTrackPlaying(current);
                 TrackResources trr = current.resources.get(res);
                 if (trr.isDownloaded)
                     url = Environment.getExternalStorageDirectory() + "/TersicoreMusic/" + trr.uuid + "." + trr.codec;
@@ -737,8 +737,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                         } catch (MalformedURLException e) {
                             e.printStackTrace();
                         }
-            } else
+            } else {
                 skip(SkipDirection.SKIP_FORWARD);
+            }
         }
     }
 

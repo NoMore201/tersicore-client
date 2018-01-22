@@ -33,6 +33,13 @@ public class AlertDialogTrack {
             "Add To Playlist"
     };
 
+    public static final String[] playOptionsPlus = {
+            "Play now (Destroy queue)",
+            "Play now (Maintain queue)",
+            "Add To Current Playling list",
+            "Play After"
+    };
+
     public static void CreateDialogTrack (Context ct, final Track toP, MediaPlayerService srv) {
 
         final Context ctx = ct;
