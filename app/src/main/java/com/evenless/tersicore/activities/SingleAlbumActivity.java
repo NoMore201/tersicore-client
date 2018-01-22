@@ -111,7 +111,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
                 v.setVisibility(View.VISIBLE);
                 if(isPlayer) {
                     RelativeLayout asd = findViewById(R.id.albumListLayout);
-                    asd.setMinimumHeight(asd.getHeight() + findViewById(R.id.miniplayer).getHeight());
+                    asd.setMinimumHeight(asd.getHeight() + v.getHeight());
                     isPlayer=false;
                 } else
                     isPlayer=true;
@@ -707,11 +707,12 @@ public class SingleAlbumActivity  extends AppCompatActivity
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        if(hasFocus) {
+        View aa = findViewById(R.id.asd2);
+        if(aa!=null && aa.getVisibility()==View.VISIBLE && hasFocus) {
             if (mService.isPlaying()) {
-                PlayerInterface.setPlay(findViewById(R.id.miniplayer));
+                PlayerInterface.setPlay(aa);
             } else {
-                PlayerInterface.setStop(findViewById(R.id.miniplayer));
+                PlayerInterface.setStop(aa);
             }
         }
     }

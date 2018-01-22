@@ -598,7 +598,7 @@ public class SearchActivity extends AppCompatActivity
 
     @Override
     public void onPlaybackProgressUpdate(int currentMilliseconds) {
-        //Update future Miniplayer
+
     }
 
     @Override
@@ -762,11 +762,12 @@ public class SearchActivity extends AppCompatActivity
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        if(hasFocus) {
+        View aa = findViewById(R.id.asd2);
+        if(aa!=null && aa.getVisibility()==View.VISIBLE && hasFocus) {
             if (mService.isPlaying()) {
-                PlayerInterface.setPlay(findViewById(R.id.miniplayer));
+                PlayerInterface.setPlay(aa);
             } else {
-                PlayerInterface.setStop(findViewById(R.id.miniplayer));
+                PlayerInterface.setStop(aa);
             }
         }
     }
