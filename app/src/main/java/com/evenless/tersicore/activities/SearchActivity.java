@@ -376,7 +376,6 @@ public class SearchActivity extends AppCompatActivity
                     drawer.findViewById(R.id.onlineimgmy).setVisibility(View.GONE);
                 else
                     drawer.findViewById(R.id.onlineimgmy).setVisibility(View.VISIBLE);
-                drawer.openDrawer(GravityCompat.END);
                 ImageView myimg = drawer.findViewById(R.id.myimg);
                 if(me!=null) {
                     byte[] avatar = me.getAvatar();
@@ -385,6 +384,7 @@ public class SearchActivity extends AppCompatActivity
                     TextView meme = drawer.findViewById(R.id.myname);
                     meme.setText(me.id);
                 }
+                drawer.openDrawer(GravityCompat.END);
                 try {
                     newMessages=0;
                     for(String ss : PreferencesHandler.getServer(ctx)) {

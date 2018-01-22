@@ -287,6 +287,7 @@ public class PlaylistsActivity extends AppCompatActivity
         for (Playlist p : allp)
             DataBackend.insertPlaylist(p);
         listPlaylists=DataBackend.getPlaylists(PreferencesHandler.getUsername(ctx));
+        updateList();
     }
 
     @Override
