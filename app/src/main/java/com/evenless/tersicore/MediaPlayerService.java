@@ -26,6 +26,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.ResultReceiver;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -243,22 +244,23 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
-
         if (mWifiLock != null && mWifiLock.isHeld()) {
             mWifiLock.release();
         }
         if (mMediaPlayer != null) {
             mMediaPlayer.release();
+            if(mCurrentTimer!=null)
+                mCurrentTimer.cancel();
         }
         for (String ss : PreferencesHandler.getServer(this))
             try {
-                TaskHandler.setUser(ss, null, new User(PreferencesHandler.getUsername(this), false));
+                TaskHandler.setUserSync(ss, null, new User(PreferencesHandler.getUsername(this), false));
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             }
         NotificationManager notificationManager = (NotificationManager) getSystemService( Context.NOTIFICATION_SERVICE );
         notificationManager.cancel(9876);
+        super.onDestroy();
     }
 
     @Override
@@ -269,8 +271,15 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         }
         if (mMediaPlayer != null) {
             mMediaPlayer.release();
+            if(mCurrentTimer!=null)
+                mCurrentTimer.cancel();
         }
-
+        for (String ss : PreferencesHandler.getServer(this))
+            try {
+                TaskHandler.setUserSync(ss, null, new User(PreferencesHandler.getUsername(this), false));
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
         NotificationManager notificationManager = (NotificationManager) getSystemService( Context.NOTIFICATION_SERVICE );
         notificationManager.cancel(9876);
     }

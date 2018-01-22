@@ -328,6 +328,7 @@ public class SearchActivity extends AppCompatActivity
         if(!PreferencesHandler.getOffline(this))
             try {
                 newMessages=0;
+                users=new ArrayList<>();
                 for(String ss : PreferencesHandler.getServer(ctx)) {
                     TaskHandler.getTracksFromNow(this, ss, PreferencesHandler.getLastUpdate(this));
                     TaskHandler.getPlaylists(this, ss);
@@ -406,7 +407,6 @@ public class SearchActivity extends AppCompatActivity
 
     private void getMyUser(User[] usersS, String server) {
         String user = PreferencesHandler.getUsername(this);
-        Log.i(TAG, user);
         for(int i=0; i<usersS.length; i++) {
             User temp = usersS[i];
             if (temp.id.equals(user))
@@ -418,11 +418,20 @@ public class SearchActivity extends AppCompatActivity
                     users.add(temp);
                 } else {
                     int ind = users.indexOf(temp);
-                    temp = users.get(ind);
-                    if(!temp.servers.contains(server)){
+                    User temp2 = users.get(ind);
+                    boolean modified = false;
+                    if(temp.online && !temp2.online){
+                        temp2.online=true;
+                        temp2.last_track=temp.last_track;
+                        modified=true;
+                    }
+                    if(!temp2.servers.contains(server)){
+                        temp2.servers.add(server);
+                        modified=true;
+                    }
+                    if(modified){
                         users.remove(ind);
-                        temp.servers.add(server);
-                        users.add(temp);
+                        users.add(ind, temp2);
                     }
                 }
             }

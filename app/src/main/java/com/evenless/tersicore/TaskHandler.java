@@ -2,6 +2,7 @@ package com.evenless.tersicore;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.os.StrictMode;
 import android.util.Log;
 
 import com.evenless.tersicore.interfaces.ApiPostTaskListener;
@@ -221,6 +222,23 @@ public class TaskHandler {
                 data,
                 listener);
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+    }
+
+    public static void setUserSync(String server,
+                               ApiPostTaskListener listener,
+                               User u) throws MalformedURLException {
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+        URL serverUrl = new URL(server + "/users");
+        Gson gson = new Gson();
+        String data = gson.toJson(u, User.class);
+        Log.i(TAG, data);
+        GenericPostTask task = new GenericPostTask(serverUrl,
+                GenericPostTask.POST_USERS,
+                DataBackend.getToken(server),
+                data,
+                listener);
+        task.doInBackground();
     }
 
     public static void sendMessage(String server,

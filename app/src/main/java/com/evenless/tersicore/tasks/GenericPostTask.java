@@ -149,7 +149,7 @@ public class GenericPostTask extends AsyncTask<Void, Integer, String> {
     }
 
     @Override
-    protected String doInBackground(Void... params) {
+    public String doInBackground(Void... params) {
         if (mUrl.getProtocol().equals("http")) {
             return normalRequest();
         } else {

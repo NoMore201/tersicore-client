@@ -17,7 +17,8 @@
         android:theme="@style/AppTheme">
         <service
             android:name=".MediaPlayerService"
-            android:exported="false" />
+            android:exported="false"
+            android:stopWithTask="false"/>
 
         <activity
             android:name=".activities.MainActivity"
