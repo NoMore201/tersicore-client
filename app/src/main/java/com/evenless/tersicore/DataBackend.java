@@ -124,11 +124,13 @@ public class DataBackend {
                 new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
         Playlist pl = getPlaylist(p.id);
         if(pl!=null) {
+            p.favorite=pl.favorite;
             try {
                 Date date = format.parse(p.date_added);
                 Date date2 = format.parse(pl.date_added);
-                if (!date2.after(date))
+                if (!date2.after(date)) {
                     realm.copyToRealmOrUpdate(p);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
                 realm.copyToRealmOrUpdate(p);
