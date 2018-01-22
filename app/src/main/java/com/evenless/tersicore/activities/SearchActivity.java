@@ -30,6 +30,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
@@ -78,7 +79,8 @@ public class SearchActivity extends AppCompatActivity
         SearchView.OnQueryTextListener,
         MediaPlayerServiceListener,
         AdapterView.OnItemLongClickListener,
-        AdapterView.OnItemClickListener {
+        AdapterView.OnItemClickListener,
+        ViewTreeObserver.OnWindowFocusChangeListener {
 
     private static final String TAG = "SearchActivity";
 
@@ -755,5 +757,17 @@ public class SearchActivity extends AppCompatActivity
             if(u.id.equals(sender))
                 return u;
         return null;
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if(hasFocus) {
+            if (mService.isPlaying()) {
+                PlayerInterface.setPlay(findViewById(R.id.miniplayer));
+            } else {
+                PlayerInterface.setStop(findViewById(R.id.miniplayer));
+            }
+        }
     }
 }

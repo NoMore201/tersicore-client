@@ -22,6 +22,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
@@ -53,7 +54,8 @@ import java.util.Map;
 
 public class TracksActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
-        MediaPlayerServiceListener {
+        MediaPlayerServiceListener,
+        ViewTreeObserver.OnWindowFocusChangeListener {
 
     private static final String TAG = "TracksActivity";
     private List<Track> listTracks;
@@ -349,5 +351,17 @@ public class TracksActivity extends AppCompatActivity
     @Override
     public void onPreparedPlayback() {
         PlayerInterface.setPlay(findViewById(R.id.miniplayer));
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if(hasFocus) {
+            if (mService.isPlaying()) {
+                PlayerInterface.setPlay(findViewById(R.id.miniplayer));
+            } else {
+                PlayerInterface.setStop(findViewById(R.id.miniplayer));
+            }
+        }
     }
 }

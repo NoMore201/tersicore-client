@@ -28,6 +28,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
@@ -81,7 +82,8 @@ public class SingleAlbumActivity  extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         MediaPlayerServiceListener, ImageRequestTaskListener, CoverDownloadTaskListener,
         AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener,
-        FileDownloadTaskListener, ApiPostTaskListener{
+        FileDownloadTaskListener, ApiPostTaskListener,
+        ViewTreeObserver.OnWindowFocusChangeListener{
 
     private static final String TAG = "SingleAlbumActivity";
     private List<Track> listTracks;
@@ -700,5 +702,17 @@ public class SingleAlbumActivity  extends AppCompatActivity
     public void onRequestComplete(int requestType, Exception e, String result) {
         if(e==null && requestType==3)
             Toast.makeText(ctx, "Album Suggested to friends", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if(hasFocus) {
+            if (mService.isPlaying()) {
+                PlayerInterface.setPlay(findViewById(R.id.miniplayer));
+            } else {
+                PlayerInterface.setStop(findViewById(R.id.miniplayer));
+            }
+        }
     }
 }

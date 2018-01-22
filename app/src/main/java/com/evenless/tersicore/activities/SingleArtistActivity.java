@@ -23,6 +23,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.Switch;
@@ -48,7 +49,8 @@ import java.util.List;
 
 public class SingleArtistActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
-        MediaPlayerServiceListener{
+        MediaPlayerServiceListener,
+        ViewTreeObserver.OnWindowFocusChangeListener{
 
     private List<Album> listAlbums;
     private String artist;
@@ -274,5 +276,17 @@ public class SingleArtistActivity extends AppCompatActivity
     @Override
     public void onPreparedPlayback() {
         PlayerInterface.setPlay(findViewById(R.id.asd2));
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if(hasFocus) {
+            if (mService.isPlaying()) {
+                PlayerInterface.setPlay(findViewById(R.id.miniplayer));
+            } else {
+                PlayerInterface.setStop(findViewById(R.id.miniplayer));
+            }
+        }
     }
 }

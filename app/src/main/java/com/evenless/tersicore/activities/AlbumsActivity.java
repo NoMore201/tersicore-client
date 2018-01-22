@@ -20,6 +20,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
@@ -45,7 +46,8 @@ import java.util.List;
 
 public class AlbumsActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
-        MediaPlayerServiceListener
+        MediaPlayerServiceListener,
+        ViewTreeObserver.OnWindowFocusChangeListener
 {
 
     private List<Album> listAlbums;
@@ -284,5 +286,17 @@ public class AlbumsActivity extends AppCompatActivity
     public void onClickPlayer(View v) {
         Intent dd = new Intent(this, MainActivity.class);
         startActivity(dd);
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if(hasFocus) {
+            if (mService.isPlaying()) {
+                PlayerInterface.setPlay(findViewById(R.id.miniplayer));
+            } else {
+                PlayerInterface.setStop(findViewById(R.id.miniplayer));
+            }
+        }
     }
 }

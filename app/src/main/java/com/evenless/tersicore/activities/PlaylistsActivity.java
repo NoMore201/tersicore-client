@@ -19,6 +19,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.AdapterView;
 import android.widget.CompoundButton;
 import android.widget.ListView;
@@ -48,7 +49,9 @@ import java.util.Set;
 
 public class PlaylistsActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
-        MediaPlayerServiceListener, ApiRequestTaskListener {
+        MediaPlayerServiceListener, ApiRequestTaskListener,
+        ViewTreeObserver.OnWindowFocusChangeListener
+{
 
     private static final String TAG = "PlaylistsActivity";
     private List<Playlist> listPlaylists;
@@ -293,5 +296,16 @@ public class PlaylistsActivity extends AppCompatActivity
     @Override
     public void onSuggestionsRequestComplete(String result, Exception e) {
 
+    }
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if(hasFocus) {
+            if (mService.isPlaying()) {
+                PlayerInterface.setPlay(findViewById(R.id.miniplayer));
+            } else {
+                PlayerInterface.setStop(findViewById(R.id.miniplayer));
+            }
+        }
     }
 }
