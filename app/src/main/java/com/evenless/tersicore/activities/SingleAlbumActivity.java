@@ -247,8 +247,16 @@ public class SingleAlbumActivity  extends AppCompatActivity
                                     findViewById(R.id.downloadButt).setVisibility(View.GONE);
                                     findViewById(R.id.progressani).setVisibility(View.VISIBLE);
                                     for(Track tt : listTracks) {
-                                        TrackResources res = MediaPlayerService.checkTrackResourceByPreference(tt, which, false);
-                                        if(!res.isDownloaded){
+                                        TrackResources res = MediaPlayerService.checkTrackResourceByPreference(tt, which, false,
+                                                PreferencesHandler.getDataProtection(ctx));
+                                        if(res==null) {
+                                            downloadedCount++;
+                                            if(downloadedCount==1) {
+                                                Toast.makeText(ctx, "Data Protection is Active: Flac not downloaded", Toast.LENGTH_LONG).show();
+                                                findViewById(R.id.downloadButt).setVisibility(View.VISIBLE);
+                                                findViewById(R.id.progressani).setVisibility(View.GONE);
+                                            }
+                                        } else if(!res.isDownloaded){
                                             downloadedCount++;
                                             try {
                                                 mService.downloadFile(res, tt.uuid, (FileDownloadTaskListener) ctx);
@@ -471,7 +479,12 @@ public class SingleAlbumActivity  extends AppCompatActivity
                                     Intent dd = new Intent(ctx, MainActivity.class);
                                     for(int i=0; i<listTracks.size(); i++) {
                                         Track t = listTracks.get(i);
-                                        resfav.put(i, t.resources.indexOf(MediaPlayerService.checkTrackResourceByPreference(t, which, which!=4)));
+                                        TrackResources res = MediaPlayerService.checkTrackResourceByPreference(t, which, which!=4,
+                                                PreferencesHandler.getDataProtection(ctx));
+                                        if(res!=null)
+                                            resfav.put(i, t.resources.indexOf(res));
+                                        else
+                                            resfav.put(i, -1);
                                     }
                                     switch (choice){
                                         case 0: mService.updatePlaylist(listTracks, 0, false, resfav); startActivity(dd); break;

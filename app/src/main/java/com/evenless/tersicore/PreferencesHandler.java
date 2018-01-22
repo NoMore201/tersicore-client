@@ -22,6 +22,7 @@ public class PreferencesHandler {
     private static final String PREF_QUALITY_WIFI_KEY = "PreferredQualityWiFi";
     private static final String PREF_QUALITY_DATA_KEY = "PreferredQualityData";
     private static final String PREF_PRIOR_OFFLINE = "PreferOffline";
+    private static final String PREF_DATA_PROTECTION = "DataProtection";
     private static final String PREF_OFFLINE = "Offline";
     private static final String PREF_USER = "User";
     public static boolean offline;
@@ -89,5 +90,9 @@ public class PreferencesHandler {
 
     public static boolean getPreferOffline(Context ctx) {
         return getSharedPreferences(ctx).getBoolean(PREF_PRIOR_OFFLINE, true);
+    }
+
+    public static boolean getDataProtection(Context ctx) {
+        return getSharedPreferences(ctx).getBoolean(PREF_DATA_PROTECTION, true);
     }
 }

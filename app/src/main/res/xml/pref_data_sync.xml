@@ -45,6 +45,12 @@
             android:title="Prefer Offline Tracks if Available"
             android:defaultValue="true"
             />
+        <CheckBoxPreference
+            android:key="DataProtection"
+            android:title="Enable Data Protection"
+            android:summary="High Bitrate files will be skipped if Low Quality is selected"
+            android:defaultValue="true"
+            />
         <Preference
             android:title="Delete All Downloaded Tracks"
             android:key="deletedownloaded"

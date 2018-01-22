@@ -65,7 +65,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             "Lower Bitrate"
     };
 
-    public static TrackResources checkTrackResourceByPreference(Track tt, int w, boolean preferDownloaded) {
+    public static TrackResources checkTrackResourceByPreference(Track tt, int w, boolean preferDownloaded, boolean isDataProt) {
         TrackResources res = tt.resources.get(0);
         int which;
         if(w==6 && replacementChoice!=-1)
@@ -85,6 +85,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                 }
             }
         }
+        if(which==3 && res.bitrate>350000 && isDataProt && !res.isDownloaded && !checkIsCached(res))
+            res=null;
         return res;
     }
 
@@ -151,7 +153,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     public int getCurrentprogress(){return currentprogress;}
 
-    public int getCurrentResource(){return res;}
+    public int getCurrentResource(){
+        if(res!=-1 && getCurrentTrackIndex()==mCurrentIndex)
+            return res;
+        else
+            return 0;
+    }
 
     // CurrentPlaylist index - Selected Resources. Not Required!
     private Map<Integer, Integer> resNumb;
@@ -341,17 +348,22 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         resNumb.remove(mCurrentPlaylist.indexOf(it));
     }
 
-    public int getPreferredRes(Track tr, Context ctx) {
-        if(tr.resources.size()==1)
-            return 0;
-
+    private int getPreferredRes(Track tr, Context ctx) {
         int ind=mCurrentPlaylist.indexOf(tr);
         Integer aa = resNumb.get(ind);
-        if(aa!=null)
+
+        if(tr.resources.size()==1 && aa!=null && aa!=-1)
+            return 0;
+        else if(aa!=null)
             return aa;
         else {
-            return tr.resources.indexOf(checkTrackResourceByPreference(tr,
-                    PreferencesHandler.getPreferredQuality(ctx), PreferencesHandler.getPreferOffline(ctx)));
+            TrackResources temp = checkTrackResourceByPreference(tr,
+                    PreferencesHandler.getPreferredQuality(ctx), PreferencesHandler.getPreferOffline(ctx),
+                    PreferencesHandler.getDataProtection(ctx));
+            if(temp!=null)
+                return tr.resources.indexOf(temp);
+            else
+                return -1;
         }
     }
 
@@ -428,6 +440,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         // initialize sorted playlist with a copy of the normal one. After calling
         // updatePlaylist or toggleShuffle, it will be correctly processed
         mCurrentPlaylistSorted = new ArrayList<>(tracks);
+        resNumb = new HashMap<>();
         if (random) {
             sortPlaylist();
             isShuffle = true;
@@ -495,42 +508,15 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             mCurrentIndex = mCurrentPlaylist.indexOf(getCurrentPlaylist().get(mCurrentIndex));
         }
         mCurrentPlaylist.addAll(mCurrentIndex + 1, new ArrayList<>(tracks));
+
+        for (Integer i : resNumb.keySet()) {
+            if(i>mCurrentIndex)
+                res.put(i+tracks.size(), resNumb.get(i));
+        }
         for (Integer i : res.keySet()) {
             Track temp = tracks.get(i);
             resNumb.put(mCurrentPlaylist.indexOf(temp), res.get(i));
         }
-        return mCurrentIndex + 1;
-    }
-
-    /**
-     * Append specified list of tracks after the current index
-     * @param track Track to insert
-     * @param res Favorite res for track
-     * @return index of the inserted track
-     */
-    public int appendAfterCurrent(Track track, int res) {
-        //TODO: check behaviour
-        if(isShuffle){
-            isShuffle=false;
-            mCurrentIndex = mCurrentPlaylist.indexOf(getCurrentPlaylist().get(mCurrentIndex));
-        }
-        mCurrentPlaylist.add(mCurrentIndex + 1, track);
-        resNumb.put(mCurrentIndex + 1, res);
-        return mCurrentIndex + 1;
-    }
-
-    /**
-     * Append specified list of tracks after the current index
-     * @param track Track to insert
-     * @return index of the inserted track
-     */
-    public int appendAfterCurrent(Track track) {
-        //TODO: check behaviour
-        if(isShuffle){
-            isShuffle=false;
-            mCurrentIndex = mCurrentPlaylist.indexOf(getCurrentPlaylist().get(mCurrentIndex));
-        }
-        mCurrentPlaylist.add(mCurrentIndex + 1, track);
         return mCurrentIndex + 1;
     }
 
@@ -585,9 +571,13 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     public void play() {
-        mMediaPlayer.start();
-        NotificationManager notificationManager = (NotificationManager) getSystemService( Context.NOTIFICATION_SERVICE );
-        notificationManager.notify(9876, createNotification(true, getCurrentPlaylist().get(getCurrentTrackIndex())));
+        if(getCurrentTrackIndex()==0 && currentprogress==0 && !mMediaPlayer.isPlaying())
+            updateState();
+        else {
+            mMediaPlayer.start();
+            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.notify(9876, createNotification(true, getCurrentPlaylist().get(getCurrentTrackIndex())));
+        }
     }
 
     public void pause() {
@@ -599,17 +589,20 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     public void skip(SkipDirection direction) {
-        if (direction == SkipDirection.SKIP_FORWARD) {
+        if (direction == SkipDirection.SKIP_FORWARD && mCurrentIndex<getCurrentPlaylist().size()-1) {
             mCurrentIndex += 1;
+            updateState();
         }
-        if (direction == SkipDirection.SKIP_BACKWARD) {
+        if (direction == SkipDirection.SKIP_BACKWARD && mCurrentIndex>1) {
             mCurrentIndex -= 1;
-        }
-        updateState();
+            updateState();
+        } else
+            playlistCompleted();
+
     }
 
     public void seekToTrack(int index) {
-        if(index!=mCurrentIndex) {
+        if(index!=mCurrentIndex && index<getCurrentPlaylist().size()) {
             mCurrentIndex = index;
             updateState();
         }
@@ -631,7 +624,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     public int getCurrentTrackIndex() {
-        return mCurrentIndex;
+        if(mCurrentIndex<getCurrentPlaylist().size())
+            return mCurrentIndex;
+        else
+            return 0;
     }
 
     public void callTimer(Handler h){
@@ -673,12 +669,15 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     private void playlistCompleted() {
+        // set index to the beginning of playlist
+        // but don't start playing
+        res=0;
+        mCurrentIndex=0;
+
         if (mListener != null) {
             mListener.onPlaylistComplete();
         }
-        // set index to the beginning of playlist
-        // but don't start playing
-        mCurrentIndex=0;
+
     }
 
     private void newTrackPlaying(Track current) {
@@ -695,46 +694,51 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     public void updateState() {
         currentprogress=0;
-        mMediaPlayer.reset();
         if (mCurrentIndex >= getCurrentPlaylist().size()) {
             playlistCompleted();
+            mMediaPlayer.reset();
         } else {
             final Track current = getCurrentPlaylist().get(mCurrentIndex);
             res = getPreferredRes(current, getApplicationContext());
-            newTrackPlaying(current);
-            TrackResources trr = current.resources.get(res);
-            if(trr.isDownloaded)
-                url= Environment.getExternalStorageDirectory() + "/TersicoreMusic/" + trr.uuid + "." + trr.codec;
-            else
-                url = proxy.getProxyUrl(trr.server + "/stream/" + trr.uuid);
-            try {
-                mMediaPlayer.setDataSource(getApplicationContext(), Uri.parse(url));
-            } catch (IOException e){
-                if(trr.isDownloaded)
-                    try{
-                        DataBackend.removeOfflineTrack(current, trr.uuid);
-                        url = proxy.getProxyUrl(trr.server + "/stream/" + trr.uuid);
-                        mMediaPlayer.setDataSource(getApplicationContext(), Uri.parse(url));
-                    } catch (Exception ex){
-                        ex.printStackTrace();
-                    }
+            if (res >= 0 ) {
+                mMediaPlayer.reset();
+                Log.i(TAG, "inside " + res + "");
+                newTrackPlaying(current);
+                TrackResources trr = current.resources.get(res);
+                if (trr.isDownloaded)
+                    url = Environment.getExternalStorageDirectory() + "/TersicoreMusic/" + trr.uuid + "." + trr.codec;
+                else
+                    url = proxy.getProxyUrl(trr.server + "/stream/" + trr.uuid);
+                try {
+                    mMediaPlayer.setDataSource(getApplicationContext(), Uri.parse(url));
+                } catch (IOException e) {
+                    if (trr.isDownloaded)
+                        try {
+                            DataBackend.removeOfflineTrack(current, trr.uuid);
+                            url = proxy.getProxyUrl(trr.server + "/stream/" + trr.uuid);
+                            mMediaPlayer.setDataSource(getApplicationContext(), Uri.parse(url));
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
                     else
                         e.printStackTrace();
-            }
-            mMediaPlayer.prepareAsync();
+                }
+                mMediaPlayer.prepareAsync();
 
-            Notification noti = createNotification(true, current);
-            NotificationManager notificationManager = (NotificationManager) getSystemService( Context.NOTIFICATION_SERVICE );
-            notificationManager.notify(9876, noti);
-            DataBackend.setDate(current);
-            if(!PreferencesHandler.getOffline(this))
-                for(String ss : PreferencesHandler.getServer(this))
-                    try {
-                        TaskHandler.setUser(ss, null,
-                                new User(PreferencesHandler.getUsername(this), current.toString()));
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                    }
+                Notification noti = createNotification(true, current);
+                NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                notificationManager.notify(9876, noti);
+                DataBackend.setDate(current);
+                if (!PreferencesHandler.getOffline(this))
+                    for (String ss : PreferencesHandler.getServer(this))
+                        try {
+                            TaskHandler.setUser(ss, null,
+                                    new User(PreferencesHandler.getUsername(this), current.toString()));
+                        } catch (MalformedURLException e) {
+                            e.printStackTrace();
+                        }
+            } else
+                skip(SkipDirection.SKIP_FORWARD);
         }
     }
 
