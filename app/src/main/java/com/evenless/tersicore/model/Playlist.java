@@ -17,6 +17,7 @@ public class Playlist extends RealmObject {
     public String name;
     public String uploader;
     public boolean favorite;
+    public String date_added;
     public RealmList<String> tracks;
 
     public Playlist(){
@@ -34,9 +35,16 @@ public class Playlist extends RealmObject {
 
     public List<Track> getTrackObjects() {
         List<Track> out = new ArrayList<>();
+        List<String> toR = new ArrayList<>();
         for (String s: tracks) {
-            out.add(DataBackend.getTrack(s));
+            Track t = DataBackend.getTrack(s);
+            if(t!=null)
+                out.add(t);
+            else
+                toR.add(s);
         }
+        if(toR.size()>0)
+            DataBackend.deleteNullsFromPlaylist(this,toR);
         return out;
     }
 

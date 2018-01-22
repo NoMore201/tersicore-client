@@ -12,7 +12,10 @@ import android.util.Log;
 
 import com.evenless.tersicore.model.User;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,6 +28,7 @@ public class PreferencesHandler {
     private static final String PREF_DATA_PROTECTION = "DataProtection";
     private static final String PREF_OFFLINE = "Offline";
     private static final String PREF_USER = "User";
+    private static final String PREF_LAST_UPDATE = "Lup";
     public static boolean offline;
 
     private static SharedPreferences getSharedPreferences(Context ctx) {
@@ -94,5 +98,16 @@ public class PreferencesHandler {
 
     public static boolean getDataProtection(Context ctx) {
         return getSharedPreferences(ctx).getBoolean(PREF_DATA_PROTECTION, true);
+    }
+
+    public static long getLastUpdate(Context ctx){
+        return getSharedPreferences(ctx).getLong(PREF_LAST_UPDATE, new Date().getTime()/1000);
+    }
+
+    public static void setLastUpdate(Context ctx){
+        SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
+        editor.putLong(PREF_LAST_UPDATE, (new Date().getTime()/1000));
+        editor.apply();
+        editor.commit();
     }
 }

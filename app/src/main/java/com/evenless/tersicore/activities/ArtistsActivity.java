@@ -76,9 +76,6 @@ public class ArtistsActivity  extends AppCompatActivity
                 list.setLayoutParams(x);
                 PlayerInterface.UpdateTrack(findViewById(R.id.miniplayer), mService);
             }
-            NavigationView navigationView = findViewById(R.id.nav_view);
-            if(navigationView != null)
-                navigationView.setCheckedItem(R.id.nav_artists);
         }
 
         @Override
@@ -111,6 +108,8 @@ public class ArtistsActivity  extends AppCompatActivity
                 android.R.id.text1,
                 listArtists );
         listView.setAdapter(arrayAdapter);
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setCheckedItem(R.id.nav_artists);
     }
 
     @Override
@@ -190,8 +189,6 @@ public class ArtistsActivity  extends AppCompatActivity
                 startActivity(new Intent(this, AlbumsActivity.class));
                 break;
             case R.id.nav_artists:
-                break;
-            case R.id.nav_dj:
                 break;
             case R.id.nav_home:
                 startActivity(new Intent(this, SearchActivity.class));
@@ -276,7 +273,7 @@ public class ArtistsActivity  extends AppCompatActivity
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         View aa = findViewById(R.id.miniplayer);
-        if(aa!=null  && aa.getVisibility()==View.VISIBLE && hasFocus) {
+        if(aa!=null && mService!=null && aa.getVisibility()==View.VISIBLE && hasFocus) {
             if (mService.isPlaying()) {
                 PlayerInterface.setPlay(aa);
             } else {

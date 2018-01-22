@@ -123,9 +123,6 @@ public class SearchActivity extends AppCompatActivity
                 asd.setLayoutParams(x);
                 PlayerInterface.UpdateTrack(v, mService);
             }
-            NavigationView navigationView = findViewById(R.id.nav_view);
-            if(navigationView!=null)
-                navigationView.setCheckedItem(R.id.nav_home);
         }
 
         @Override
@@ -143,27 +140,11 @@ public class SearchActivity extends AppCompatActivity
                 listTracks = new Track[DataBackend.getTracks().size()];
                 DataBackend.getTracks().toArray(listTracks);
                 listRecentAlbums=DataBackend.getLastTracks();
-                if(!PreferencesHandler.getOffline(this))
-                    try {
-                        for(String ss : servers) {
-                            listSugg = new ArrayList<>();
-                            users=new ArrayList<>();
-                            newMessages=0;
-                            TaskHandler.getLatestTracks(this, ss);
-                            TaskHandler.getSuggestions(this, ss);
-                            TaskHandler.getPlaylists(this, ss);
-                            TaskHandler.getMessages(this, ss);
-                            TaskHandler.getUsers(this, ss);
-                            TaskHandler.setUser(ss, null,
-                                    new User(PreferencesHandler.getUsername(this), true));
-                        }
-                    } catch (Exception e) {
-                        Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
-                    }
             } else
                 try {
                     for(String ss : servers)
                         TaskHandler.getTracks(this, ss);
+                    PreferencesHandler.setLastUpdate(this);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -347,6 +328,28 @@ public class SearchActivity extends AppCompatActivity
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setCheckedItem(R.id.nav_home);
+        if(!PreferencesHandler.getOffline(this))
+            try {
+                newMessages=0;
+                for(String ss : PreferencesHandler.getServer(ctx)) {
+                    TaskHandler.getTracksFromNow(this, ss, PreferencesHandler.getLastUpdate(this));
+                    TaskHandler.getPlaylists(this, ss);
+                    TaskHandler.getMessages(this, ss);
+                    TaskHandler.getUsers(this, ss);
+                    TaskHandler.setUser(ss, null,
+                            new User(PreferencesHandler.getUsername(this), true));
+                }
+                PreferencesHandler.setLastUpdate(this);
+            } catch (Exception e) {
+                Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.activity_search_menu, menu);
@@ -445,8 +448,6 @@ public class SearchActivity extends AppCompatActivity
         } else if (id == R.id.nav_artists) {
             Intent asd = new Intent(this, ArtistsActivity.class);
             startActivity(asd);
-        } else if (id == R.id.nav_dj) {
-
         } else if (id == R.id.nav_home) {
 
         } else if (id == R.id.nav_playlists) {
@@ -604,7 +605,10 @@ public class SearchActivity extends AppCompatActivity
         } else if (response != null) {
             String s = DataBackend.getServer(token);
             listTracks = gson.fromJson(response, Track[].class);
-            DataBackend.insertTracks(new ArrayList<>(Arrays.asList(listTracks)), s);
+            Log.i(TAG, response);
+            if(listTracks!=null) {
+                DataBackend.insertTracks(new ArrayList<>(Arrays.asList(listTracks)), s);
+            }
             try {
                 TaskHandler.getLatestTracks(this, s);
                 TaskHandler.getSuggestions(this, s);
@@ -759,7 +763,7 @@ public class SearchActivity extends AppCompatActivity
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         View aa = findViewById(R.id.asd2);
-        if(aa!=null && aa.getVisibility()==View.VISIBLE && hasFocus) {
+        if(aa!=null && mService!=null && aa.getVisibility()==View.VISIBLE && hasFocus) {
             if (mService.isPlaying()) {
                 PlayerInterface.setPlay(aa);
             } else {

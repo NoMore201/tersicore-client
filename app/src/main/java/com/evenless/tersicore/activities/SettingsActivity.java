@@ -195,6 +195,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity
                         DataBackend.removeAll();
                         for(String ss : PreferencesHandler.getServer(preference.getContext()))
                             TaskHandler.getTracks((ApiRequestTaskListener) preference.getContext(), ss);
+                        PreferencesHandler.setLastUpdate(preference.getContext());
                     } catch (MalformedURLException e) {
                         Toast.makeText(preference.getContext(), "There was an  error with a non valid server", Toast.LENGTH_LONG).show();
                     }

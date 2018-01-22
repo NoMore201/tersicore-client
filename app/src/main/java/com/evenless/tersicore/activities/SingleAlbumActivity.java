@@ -12,8 +12,10 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.PersistableBundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -90,7 +92,6 @@ public class SingleAlbumActivity  extends AppCompatActivity
     private String albumName;
     private String artist;
     private boolean mBound = false;
-    private boolean isPlayer = false;
     private MediaPlayerService mService;
     private Context ctx = this;
     private static int choice = 0;
@@ -109,12 +110,6 @@ public class SingleAlbumActivity  extends AppCompatActivity
             } else {
                 View v = findViewById(R.id.asd2);
                 v.setVisibility(View.VISIBLE);
-                if(isPlayer) {
-                    RelativeLayout asd = findViewById(R.id.albumListLayout);
-                    asd.setMinimumHeight(asd.getHeight() + v.getHeight());
-                    isPlayer=false;
-                } else
-                    isPlayer=true;
                 PlayerInterface.UpdateTrack(v, mService);
             }
         }
@@ -142,6 +137,18 @@ public class SingleAlbumActivity  extends AppCompatActivity
     }
 
     @Override
+    public void onPostCreate(@Nullable Bundle savedInstanceState, @Nullable PersistableBundle persistentState) {
+        super.onPostCreate(savedInstanceState, persistentState);
+    }
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        RelativeLayout asd = findViewById(R.id.albumListLayout);
+        asd.setMinimumHeight(asd.getHeight() + findViewById(R.id.asd2).getHeight());
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         artist = getIntent().getStringExtra("EXTRA_ARTIST");
@@ -163,7 +170,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         listTracks=DataBackend.getTracks(artist, albumName);
-        if(listTracks!=null)
+        if(listTracks!=null && listTracks.size()!=0)
             updateList();
         else{
             AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
@@ -324,6 +331,13 @@ public class SingleAlbumActivity  extends AppCompatActivity
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setCheckedItem(R.id.nav_view);
+    }
+
     private void updateList() {
         ListView lsv = findViewById(R.id.albumScrollableList);
         TextView aln = findViewById(R.id.albumname);
@@ -391,11 +405,6 @@ public class SingleAlbumActivity  extends AppCompatActivity
                 if(position==listTracks.size()-1) {
                     ScrollView main = (ScrollView) findViewById(R.id.mainScrollAlbumView).getParent();
                     main.scrollTo(0, 0);
-                    if(isPlayer) {
-                        RelativeLayout asd = findViewById(R.id.albumListLayout);
-                        asd.setMinimumHeight(asd.getHeight() + findViewById(R.id.asd2).getHeight());
-                        isPlayer=false;
-                    }
                 }
                 return view;
             }
@@ -721,7 +730,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         View aa = findViewById(R.id.asd2);
-        if(aa!=null && aa.getVisibility()==View.VISIBLE && hasFocus) {
+        if(aa!=null && mService!=null && aa.getVisibility()==View.VISIBLE && hasFocus) {
             if (mService.isPlaying()) {
                 PlayerInterface.setPlay(aa);
             } else {

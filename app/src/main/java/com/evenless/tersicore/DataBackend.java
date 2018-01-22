@@ -14,11 +14,14 @@ import com.evenless.tersicore.model.TrackResources;
 import com.evenless.tersicore.model.TrackSuggestion;
 
 import java.net.MalformedURLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import io.realm.Case;
 import io.realm.Realm;
@@ -117,7 +120,22 @@ public class DataBackend {
     public static void insertPlaylist(Playlist p) {
         Realm realm = getInstance();
         realm.beginTransaction();
-        realm.copyToRealmOrUpdate(p);
+        SimpleDateFormat format =
+                new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+        Playlist pl = getPlaylist(p.id);
+        if(pl!=null) {
+            try {
+                Date date = format.parse(p.date_added);
+                Date date2 = format.parse(pl.date_added);
+                if (!date2.after(date))
+                    realm.copyToRealmOrUpdate(p);
+            } catch (Exception e) {
+                e.printStackTrace();
+                realm.copyToRealmOrUpdate(p);
+            }
+        } else
+            realm.copyToRealmOrUpdate(p);
+
         realm.commitTransaction();
     }
 
@@ -623,6 +641,14 @@ public class DataBackend {
                 t.isDownloaded=false;
                 realm.copyToRealmOrUpdate(t);
             }
+        realm.commitTransaction();
+    }
+
+    public static void deleteNullsFromPlaylist(Playlist playlist, List<String> toR) {
+        Realm realm = getInstance();
+        realm.beginTransaction();
+        playlist.tracks.removeAll(toR);
+        realm.insertOrUpdate(playlist);
         realm.commitTransaction();
     }
 }

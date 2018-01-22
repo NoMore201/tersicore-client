@@ -20,9 +20,6 @@
         <item
             android:id="@+id/nav_playlists"
             android:title="Playlists" />
-        <item
-            android:id="@+id/nav_dj"
-            android:title="DJ Mode" />
     </group>
 
     <item android:title="Configuration">

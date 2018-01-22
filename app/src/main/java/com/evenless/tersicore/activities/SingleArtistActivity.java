@@ -184,8 +184,6 @@ public class SingleArtistActivity extends AppCompatActivity
         } else if (id == R.id.nav_artists) {
             Intent asd = new Intent(this, ArtistsActivity.class);
             startActivity(asd);
-        } else if (id == R.id.nav_dj) {
-
         } else if (id == R.id.nav_home) {
             Intent asd = new Intent(this, SearchActivity.class);
             startActivity(asd);
@@ -204,6 +202,13 @@ public class SingleArtistActivity extends AppCompatActivity
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setCheckedItem(R.id.nav_artists);
     }
 
     @Override
@@ -282,7 +287,7 @@ public class SingleArtistActivity extends AppCompatActivity
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         View aa = findViewById(R.id.asd2);
-        if(aa!=null && aa.getVisibility()==View.VISIBLE && hasFocus) {
+        if(aa!=null && mService!=null && aa.getVisibility()==View.VISIBLE && hasFocus) {
             if (mService.isPlaying()) {
                 PlayerInterface.setPlay(aa);
             } else {

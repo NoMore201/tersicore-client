@@ -131,10 +131,6 @@ public class PlaylistsActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
-        navigationView.setCheckedItem(R.id.nav_playlists);
-        listPlaylists = DataBackend.getPlaylists(PreferencesHandler.getUsername(this));
-        updateList();
         Switch asd = navigationView.getMenu().findItem(R.id.app_bar_switch).getActionView().findViewById(R.id.switcharr);
         asd.setChecked(PreferencesHandler.getOffline(this));
         asd.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -159,6 +155,8 @@ public class PlaylistsActivity extends AppCompatActivity
         super.onResume();
         listPlaylists = DataBackend.getPlaylists(PreferencesHandler.getUsername(this));
         updateList();
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setCheckedItem(R.id.nav_playlists);
     }
 
     @Override
@@ -172,8 +170,6 @@ public class PlaylistsActivity extends AppCompatActivity
         } else if (id == R.id.nav_artists) {
             Intent asd = new Intent(this, ArtistsActivity.class);
             startActivity(asd);
-        } else if (id == R.id.nav_dj) {
-
         } else if (id == R.id.nav_home) {
             Intent asd = new Intent(this, SearchActivity.class);
             startActivity(asd);
@@ -301,7 +297,7 @@ public class PlaylistsActivity extends AppCompatActivity
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         View aa = findViewById(R.id.miniplayer);
-        if(aa!=null && aa.getVisibility()==View.VISIBLE && hasFocus) {
+        if(aa!=null && mService!=null && aa.getVisibility()==View.VISIBLE && hasFocus) {
             if (mService.isPlaying()) {
                 PlayerInterface.setPlay(aa);
             } else {

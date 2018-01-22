@@ -94,8 +94,6 @@ public class TracksActivity extends AppCompatActivity
                 PlayerInterface.UpdateTrack(v, mService);
             }
             NavigationView navigationView = findViewById(R.id.nav_view);
-            if(navigationView!=null && artist==null)
-                navigationView.setCheckedItem(R.id.nav_songs);
         }
 
         @Override
@@ -142,9 +140,6 @@ public class TracksActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        if(artist==null)
-            navigationView.setCheckedItem(R.id.nav_songs);
-
         if (artist == null)
             listTracks = DataBackend.getTracks();
         else
@@ -183,8 +178,6 @@ public class TracksActivity extends AppCompatActivity
         } else if (id == R.id.nav_artists) {
             Intent asd = new Intent(this, ArtistsActivity.class);
             startActivity(asd);
-        } else if (id == R.id.nav_dj) {
-
         } else if (id == R.id.nav_home) {
             Intent asd = new Intent(this, SearchActivity.class);
             startActivity(asd);
@@ -208,6 +201,16 @@ public class TracksActivity extends AppCompatActivity
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        if(artist==null)
+            navigationView.setCheckedItem(R.id.nav_songs);
+        else
+            navigationView.setCheckedItem(R.id.nav_artists);
     }
 
     @Override
@@ -355,7 +358,7 @@ public class TracksActivity extends AppCompatActivity
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         View aa = findViewById(R.id.miniplayer);
-        if(aa!=null && aa.getVisibility()==View.VISIBLE && hasFocus) {
+        if(aa!=null && mService!=null && aa.getVisibility()==View.VISIBLE && hasFocus) {
             if (mService.isPlaying()) {
                 PlayerInterface.setPlay(aa);
             } else {

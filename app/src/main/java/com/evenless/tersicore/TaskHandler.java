@@ -1,5 +1,6 @@
 package com.evenless.tersicore;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -38,6 +39,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import io.realm.RealmList;
@@ -67,8 +69,25 @@ public class TaskHandler {
         task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
+    public static void getTracksFromNow(ApiRequestTaskListener listener,
+                                 String server, long lastUpdate) throws MalformedURLException
+    {
+        Log.i(TAG, lastUpdate+"");
+        URL url = new URL(server + "/tracks/from/" + lastUpdate);
+        ApiGetTask task = new ApiGetTask(listener, url, DataBackend.getToken(server), ALL_TRACKS);
+        task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+    }
+
     public static void getLatestTracks(ApiRequestTaskListener listener,
                                  String server) throws MalformedURLException
+    {
+        URL url = new URL(server + "/tracks/latest");
+        ApiGetTask task = new ApiGetTask(listener, url, DataBackend.getToken(server), TRACKS_LATEST);
+        task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+    }
+
+    public static void getUpdatedTracks(ApiRequestTaskListener listener,
+                                       String server) throws MalformedURLException
     {
         URL url = new URL(server + "/tracks/latest");
         ApiGetTask task = new ApiGetTask(listener, url, DataBackend.getToken(server), TRACKS_LATEST);
