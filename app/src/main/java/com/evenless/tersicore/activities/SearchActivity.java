@@ -386,9 +386,8 @@ public class SearchActivity extends AppCompatActivity
                     meme.setText(me.id);
                 }
                 try {
+                    newMessages=0;
                     for(String ss : PreferencesHandler.getServer(ctx)) {
-                        users = new ArrayList<>();
-                        newMessages=0;
                         TaskHandler.getMessages(this, ss);
                         TaskHandler.getUsers(this, ss);
                     }
