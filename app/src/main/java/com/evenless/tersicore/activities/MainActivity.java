@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity
                         mService.seekToTrack(asd);
                         if(mService.getCurrentPlaylist().size()==1) {
                             mService.updateState();
-                            recreate();
+                            //recreate();
                         }
                     }
                     else{
