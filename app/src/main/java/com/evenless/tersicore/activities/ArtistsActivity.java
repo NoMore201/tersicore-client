@@ -17,6 +17,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -35,6 +36,8 @@ import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.model.Track;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -100,7 +103,7 @@ public class ArtistsActivity  extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        listArtists= DataBackend.getArtists();
+        getArtists();
         ListView listView = findViewById(R.id.listart);
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
                 this,
@@ -110,12 +113,23 @@ public class ArtistsActivity  extends AppCompatActivity
         listView.setAdapter(arrayAdapter);
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setCheckedItem(R.id.nav_artists);
+        // register onClickListener to handle click events on each item
+        listView.setOnItemClickListener(this);
+    }
+
+    private void getArtists() {
+        listArtists = DataBackend.getArtists();
+        Collections.sort(listArtists, new Comparator<String>() {
+            @Override
+            public int compare(String s, String t1) {
+                return s.compareToIgnoreCase(t1);
+            }
+        });
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        listArtists= DataBackend.getArtists();
         setContentView(R.layout.activity_main4);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -128,18 +142,7 @@ public class ArtistsActivity  extends AppCompatActivity
 
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-        navigationView.setCheckedItem(R.id.nav_artists);
 
-        ListView listView = findViewById(R.id.listart);
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
-                this,
-                android.R.layout.simple_list_item_1,
-                android.R.id.text1,
-                listArtists );
-        listView.setAdapter(arrayAdapter);
-
-        // register onClickListener to handle click events on each item
-        listView.setOnItemClickListener(this);
         Switch asd = navigationView.getMenu()
                 .findItem(R.id.app_bar_switch)
                 .getActionView()

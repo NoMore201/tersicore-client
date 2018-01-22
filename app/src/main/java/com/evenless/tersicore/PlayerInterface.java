@@ -1,8 +1,6 @@
 package com.evenless.tersicore;
 
 import android.graphics.BitmapFactory;
-import android.media.Image;
-import android.support.v4.view.ViewPager;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -10,12 +8,6 @@ import android.widget.TextView;
 
 import com.evenless.tersicore.model.Cover;
 import com.evenless.tersicore.model.Track;
-
-import me.crosswall.lib.coverflow.core.PagerContainer;
-
-/**
- * Created by McPhi on 21/12/2017.
- */
 
 public class PlayerInterface {
     public static void UpdateTrack(View v, MediaPlayerService mService){
@@ -28,10 +20,10 @@ public class PlayerInterface {
         else
             tv_artist.setText(tra.album_artist);
         if(mService.isPlaying()){
-            ImageButton vie = (ImageButton) v.findViewById(R.id.miniplay);
+            ImageButton vie = v.findViewById(R.id.miniplay);
             vie.setImageResource(R.drawable.ic_pause);
         } else {
-            ImageButton vie = (ImageButton) v.findViewById(R.id.miniplay);
+            ImageButton vie = v.findViewById(R.id.miniplay);
             vie.setImageResource(R.drawable.ic_play);
         }
         ImageView temp = v.findViewById(R.id.minicover);
@@ -56,12 +48,12 @@ public class PlayerInterface {
 
     public static void onClickPlay(View v, MediaPlayerService mService) {
         if(mService.isPlaying()) {
-            ImageButton vie = (ImageButton) v.findViewById(R.id.miniplay);
+            ImageButton vie = v.findViewById(R.id.miniplay);
             vie.setImageResource(R.drawable.ic_play);
             mService.pause();
         }
         else {
-            ImageButton vie = (ImageButton) v.findViewById(R.id.miniplay);
+            ImageButton vie = v.findViewById(R.id.miniplay);
             vie.setImageResource(R.drawable.ic_pause);
             mService.play();
         }
@@ -76,12 +68,12 @@ public class PlayerInterface {
     }
 
     public static void setStop(View v){
-        ImageButton vie = (ImageButton) v.findViewById(R.id.miniplay);
+        ImageButton vie = v.findViewById(R.id.miniplay);
         vie.setImageResource(R.drawable.ic_play);
     }
 
     public static void setPlay(View v){
-        ImageButton vie = (ImageButton) v.findViewById(R.id.miniplay);
+        ImageButton vie = v.findViewById(R.id.miniplay);
         vie.setImageResource(R.drawable.ic_pause);
     }
 }
