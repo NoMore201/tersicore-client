@@ -108,7 +108,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     public void downloadFile(TrackResources tr, String uuid, FileDownloadTaskListener ctx) throws MalformedURLException {
         if(tr!=null) {
-            String urlfile = PreferencesHandler.getServer(this) +
+            String urlfile = tr.server +
                     "/stream/" + tr.uuid;
             if(proxy.isCached(urlfile))
                 urlfile=proxy.getProxyUrl(urlfile);

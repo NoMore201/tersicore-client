@@ -591,6 +591,7 @@ public class MainActivity extends AppCompatActivity
             DataBackend.insertOfflineTrack(key, id);
             if (mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex()).uuid.compareTo(id) == 0) {
                 findViewById(R.id.progressani2).setVisibility(View.GONE);
+                findViewById(R.id.downloadButt2).setVisibility(View.GONE);
                 Toolbar toolbar = findViewById(R.id.toolbar2);
                 toolbar.setSubtitle("OFFLINE");
                 findViewById(R.id.removeButt2).setVisibility(View.VISIBLE);
