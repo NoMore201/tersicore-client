@@ -37,7 +37,7 @@ public class DataBackend {
      * Save tracks into the database
      * @param tracks list of track informations to save
      */
-    public static void insertTracks(List<Track> tracks, String server) {
+    public static List<Track> insertTracks(List<Track> tracks, String server) {
         List<Track> second = new ArrayList<>();
         Realm realm = getInstance();
         realm.beginTransaction();
@@ -55,6 +55,7 @@ public class DataBackend {
         }
         realm.copyToRealmOrUpdate(second);
         realm.commitTransaction();
+        return second;
     }
 
     public static void updateFavorite(Track t, boolean isFav) {
@@ -181,7 +182,7 @@ public class DataBackend {
     private static ArrayList<Track> findAllOffline(RealmResults<Track> tracks) {
         ArrayList <Track> offlineTracks = new ArrayList<>();
         for (Track t : tracks)
-            if(t.hasBeenDownloaded() || MediaPlayerService.hasBeenCached(t))
+            if(t.hasBeenDownloaded())
                 offlineTracks.add(t);
         return offlineTracks;
     }

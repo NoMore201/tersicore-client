@@ -9,7 +9,9 @@ import android.content.PeriodicSync;
 import android.content.ServiceConnection;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
@@ -84,7 +86,7 @@ public class SearchActivity extends AppCompatActivity
 
     private static final String TAG = "SearchActivity";
 
-    private Track[] listTracks = new Track[0];
+    private List<Track> listTracks = new ArrayList<>();
     private ArrayList<Track> listTracksFiltered = new ArrayList<>();
     private ArrayList<Album> listAlbums = new ArrayList<>();
     private ArrayList<Album> listRecentAlbums = new ArrayList<>();
@@ -97,10 +99,13 @@ public class SearchActivity extends AppCompatActivity
     private boolean mBound=false;
     private RecyclerView mRecyclerView;
     private User me;
+    private Handler handler = new Handler(Looper.getMainLooper() /*UI thread*/);
+    private Runnable workRunnable;
     private RecyclerView mRecyclerViewAlbums;
     private RecyclerView mRecyclerViewAlbumsRecent;
     private Gson gson = new Gson();
     private int page = 0;
+    private boolean isFirstTime=false;
     private MediaPlayerService mService;
     private ServiceConnection mConnection = new ServiceConnection() {
 
@@ -134,23 +139,7 @@ public class SearchActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        try {
-            List<String> servers = PreferencesHandler.getServer(ctx);
-            if (DataBackend.getTracks().size() != 0) {
-                listTracks = new Track[DataBackend.getTracks().size()];
-                DataBackend.getTracks().toArray(listTracks);
-                listRecentAlbums=DataBackend.getLastTracks();
-            } else
-                try {
-                    for(String ss : servers)
-                        TaskHandler.getTracks(this, ss);
-                    PreferencesHandler.setLastUpdate(this);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-        } catch (Exception e){
-            Log.e(TAG, e.getMessage());
-        }
+        listRecentAlbums=DataBackend.getLastTracks();
         setContentView(R.layout.activity_search);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -204,7 +193,9 @@ public class SearchActivity extends AppCompatActivity
             @Override
             public void afterTextChanged(Editable s) {
                 try {
-                    onQueryTextChange(s.toString());
+                    handler.removeCallbacks(workRunnable);
+                    workRunnable = () -> onQueryTextChange(s.toString());
+                    handler.postDelayed(workRunnable, 200 /*delay*/);
                 } catch (Exception e) {
                     Log.e("SearchActivity", e.getMessage());
                 }
@@ -216,14 +207,14 @@ public class SearchActivity extends AppCompatActivity
             public void onClick(View v) {
                 EditText editit = findViewById(R.id.searchone);
                 boolean brokeTracks = false;
-                for (int i = (3 + page*10); i < listTracks.length; i++) {
-                    if (checkTrackByTitle(listTracks[i], editit.getText().toString()) && !listTracksFiltered.contains(listTracks[i]))
+                for (int i = (3 + page*10); i < listTracks.size(); i++) {
+                    if (checkTrackByTitle(listTracks.get(i), editit.getText().toString()) && !listTracksFiltered.contains(listTracks.get(i)))
                         if(listTracksFiltered.size()>2 + ((page+1) *10)) {
                             brokeTracks = true;
                             page ++;
                             break;
                         } else
-                            listTracksFiltered.add(listTracks[i]);
+                            listTracksFiltered.add(listTracks.get(i));
                 }
 
                 if(!brokeTracks)
@@ -251,6 +242,21 @@ public class SearchActivity extends AppCompatActivity
                 startActivity(getIntent());
             }
         });
+        try {
+            List<String> servers = PreferencesHandler.getServer(ctx);
+            listTracks = DataBackend.getTracks();
+            if (listTracks.size() == 0)
+                try {
+                    isFirstTime=true;
+                    TaskHandler.getTracks(this, servers.get(0));
+                    PreferencesHandler.setLastUpdate(this);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+        } catch (Exception e){
+            e.printStackTrace();
+            Log.e(TAG, e.getMessage());
+        }
     }
 
     @Override
@@ -331,7 +337,6 @@ public class SearchActivity extends AppCompatActivity
                 users=new ArrayList<>();
                 for(String ss : PreferencesHandler.getServer(ctx)) {
                     TaskHandler.getTracksFromNow(this, ss, PreferencesHandler.getLastUpdate(this));
-                    TaskHandler.getPlaylists(this, ss);
                     TaskHandler.getMessages(this, ss);
                     TaskHandler.getUsers(this, ss);
                     TaskHandler.setUser(ss, null,
@@ -384,7 +389,6 @@ public class SearchActivity extends AppCompatActivity
                     TextView meme = drawer.findViewById(R.id.myname);
                     meme.setText(me.id);
                 }
-                drawer.openDrawer(GravityCompat.END);
                 try {
                     newMessages=0;
                     for(String ss : PreferencesHandler.getServer(ctx)) {
@@ -394,6 +398,7 @@ public class SearchActivity extends AppCompatActivity
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
                 }
+                drawer.openDrawer(GravityCompat.END);
                 return true;
 
             default:
@@ -531,6 +536,7 @@ public class SearchActivity extends AppCompatActivity
         updateList();
         mRecyclerView.setAdapter(new MyListAdapter(listArtists, MyListAdapter.ARTIST_STATE));
         mRecyclerViewAlbums.setAdapter(new MyListAdapter(listAlbums, MyListAdapter.ALBUMS_STATE));
+
         return false;
     }
 
@@ -587,6 +593,13 @@ public class SearchActivity extends AppCompatActivity
     @Override
     protected void onStop() {
         super.onStop();
+        mRecyclerView.setAdapter(null);
+        mRecyclerViewAlbums.setAdapter(null);
+        mRecyclerViewAlbumsRecent.setAdapter(null);
+        RecyclerView mRecyclerV = findViewById(R.id.coverlistuploadedview);
+        mRecyclerV.setAdapter(null);
+        mRecyclerV = findViewById(R.id.suggestionsview);
+        mRecyclerV.setAdapter(null);
         unbindService(mConnection);
         mBound = false;
     }
@@ -605,11 +618,19 @@ public class SearchActivity extends AppCompatActivity
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         } else if (response != null) {
             String s = DataBackend.getServer(token);
-            listTracks = gson.fromJson(response, Track[].class);
-            if(listTracks!=null) {
-                DataBackend.insertTracks(new ArrayList<>(Arrays.asList(listTracks)), s);
-            }
-            try {
+            Track[] listT = gson.fromJson(response, Track[].class);
+            if(!isFirstTime && listT!=null) {
+                ArrayList<Track> news=new ArrayList<>();
+                for(Track t : news)
+                    if(t!=null) {
+                        listTracks.add(t);
+                        news.add(t);
+                    }
+                DataBackend.insertTracks(news, s);
+            } else if (isFirstTime) {
+                isFirstTime=false;
+                listTracks = DataBackend.insertTracks(new ArrayList<>(Arrays.asList(listT)), s);
+            }try {
                 TaskHandler.getLatestTracks(this, s);
                 TaskHandler.getSuggestions(this, s);
             } catch (Exception ex) {
@@ -744,9 +765,6 @@ public class SearchActivity extends AppCompatActivity
     public void onUsersRequestComplete(String response, Exception e, String token) {
         if(e==null) {
             getMyUser(gson.fromJson(response, User[].class), DataBackend.getServer(token));
-            ListView flist = findViewById(R.id.friendslist);
-            if (flist != null)
-                flist.setAdapter(new MyUsersListAdapter(ctx, R.id.singasong, users));
         } else {
             e.printStackTrace();
         }

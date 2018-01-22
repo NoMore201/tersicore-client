@@ -231,6 +231,8 @@ public class SingleArtistActivity extends AppCompatActivity
     @Override
     protected void onStop() {
         super.onStop();
+        RecyclerView mRecyclerViewAlbums = findViewById(R.id.coverAlbumArtist);
+        mRecyclerViewAlbums.setAdapter(null);
         if (mBound) {
             unbindService(mConnection);
         }
