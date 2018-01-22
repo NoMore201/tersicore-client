@@ -455,6 +455,9 @@ public class DataBackend {
         Playlist p = realm.where(Playlist.class)
                 .equalTo("id", id)
                 .findFirst();
+        SimpleDateFormat format =
+                new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+        p.date_added=format.format(new Date());
         List<String> listTracks = p.tracks;
         String temp = listTracks.get(fromPosition);
         listTracks.remove(temp);
@@ -471,6 +474,9 @@ public class DataBackend {
                 .findFirst();
         List<Track> listTracks = p.getTrackObjects();
         p.tracks.remove(listTracks.indexOf(it));
+        SimpleDateFormat format =
+                new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+        p.date_added=format.format(new Date());
         realm.commitTransaction();
         return p.getTrackObjects();
     }
@@ -480,6 +486,9 @@ public class DataBackend {
         for (Track t: toPlay) {
             p.tracks.add(t.uuid);
         }
+        SimpleDateFormat format =
+                new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+        p.date_added=format.format(new Date());
         insertPlaylist(p);
         return p;
     }
@@ -491,6 +500,9 @@ public class DataBackend {
         for(Track t : toPlay)
             toAdd.add(t.uuid);
         playlist.tracks.addAll(toAdd);
+        SimpleDateFormat format =
+                new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+        playlist.date_added=format.format(new Date());
         realm.insertOrUpdate(playlist);
         realm.commitTransaction();
         return playlist;
@@ -650,6 +662,9 @@ public class DataBackend {
         Realm realm = getInstance();
         realm.beginTransaction();
         playlist.tracks.removeAll(toR);
+        SimpleDateFormat format =
+                new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+        playlist.date_added=format.format(new Date());
         realm.insertOrUpdate(playlist);
         realm.commitTransaction();
     }

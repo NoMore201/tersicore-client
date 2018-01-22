@@ -416,7 +416,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        if(hasFocus) {
+        if(mService!=null && hasFocus) {
             if (mService.isPlaying()) {
                 ((ImageButton) findViewById(R.id.playbutton))
                         .setImageResource(R.drawable.ic_pause);

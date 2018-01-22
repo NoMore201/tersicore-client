@@ -185,16 +185,17 @@ implements FileDownloadTaskListener{
     };
 
     private void updatePlaylistOnServer() {
-        try {
-            Playlist temp = DataBackend.getPlaylist(pid.id);
-            List<String> servers = PreferencesHandler.getServer(ctx);
-            for(String ss : servers)
-            TaskHandler.setPlaylist(ss, null, temp);
-        } catch (MalformedURLException e) {
-            Toast.makeText(ctx, "There can be errors in synchronizing with server", Toast.LENGTH_LONG).show();
-        } catch (Exception e){
-            //e.printStackTrace();
-        }
+        if(pid.uploader.equals(PreferencesHandler.getUsername(ctx)))
+            try {
+                Playlist temp = DataBackend.getPlaylist(pid.id);
+                List<String> servers = PreferencesHandler.getServer(ctx);
+                for(String ss : servers)
+                    TaskHandler.setPlaylist(ss, null, temp);
+            } catch (MalformedURLException e) {
+                Toast.makeText(ctx, "There can be errors in synchronizing with server", Toast.LENGTH_LONG).show();
+            } catch (Exception e){
+                //e.printStackTrace();
+            }
     }
 
     @Override
@@ -233,14 +234,17 @@ implements FileDownloadTaskListener{
                     builder.setMessage("Are you sure you want to cancel the playlist?");
                     builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
-                            try {
-                                for(String ss : PreferencesHandler.getServer(ctx))
-                                    TaskHandler.deletePlaylist(ss, pid);
-                                DataBackend.deletePlaylist(pid);
-                                finish();
-                            } catch (MalformedURLException e) {
-                                Toast.makeText(ctx, "There can be errors in synchronizing with server", Toast.LENGTH_LONG);
-                            }
+                            if(pid.uploader.equals(PreferencesHandler.getUsername(ctx)))
+                                try {
+                                    for(String ss : PreferencesHandler.getServer(ctx))
+                                        TaskHandler.deletePlaylist(ss, pid);
+                                    DataBackend.deletePlaylist(pid);
+                                    finish();
+                                } catch (MalformedURLException e) {
+                                    Toast.makeText(ctx, "There can be errors in synchronizing with server", Toast.LENGTH_LONG).show();
+                                }
+                            else
+                                Toast.makeText(ctx, "You can't delete a playlist that is not yours!", Toast.LENGTH_LONG).show();
                         }
                     });
                     builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
