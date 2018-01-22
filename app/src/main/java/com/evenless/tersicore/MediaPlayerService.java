@@ -624,6 +624,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     public int getCurrentTrackIndex() {
+        Log.i(TAG, mCurrentIndex + "");
         if(mCurrentIndex<getCurrentPlaylist().size())
             return mCurrentIndex;
         else
@@ -673,11 +674,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         // but don't start playing
         res=0;
         mCurrentIndex=0;
-
+        mMediaPlayer.reset();
+        mCurrentTimer.cancel();
+        newTrackPlaying(getCurrentPlaylist().get(0));
         if (mListener != null) {
             mListener.onPlaylistComplete();
         }
-
     }
 
     private void newTrackPlaying(Track current) {
@@ -700,8 +702,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         } else {
             final Track current = getCurrentPlaylist().get(mCurrentIndex);
             res = getPreferredRes(current, getApplicationContext());
-            newTrackPlaying(current);
             if (res >= 0 ) {
+                newTrackPlaying(current);
                 mMediaPlayer.reset();
                 Log.i(TAG, "inside " + res + "");
                 TrackResources trr = current.resources.get(res);
