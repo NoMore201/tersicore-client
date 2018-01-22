@@ -104,7 +104,6 @@ public class LoginActivity extends AppCompatActivity implements ServerStatusTask
     public void onRequestComplete(int requestType, Exception e, String result) {
         TextView us = findViewById(R.id.loginUsername);
         if(e==null) {
-            PreferencesHandler.setServer(this, server);
             PreferencesHandler.setUser(this, us.getText().toString());
             DataBackend.setToken(server, result);
             goToNextActivity();

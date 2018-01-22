@@ -2,6 +2,7 @@ package com.evenless.tersicore.activities;
 
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -77,7 +79,8 @@ public class SingleArtistActivity extends AppCompatActivity
                 v.setVisibility(View.VISIBLE);
                 View asd = findViewById(R.id.coverAlbumArtist);
                 ConstraintLayout.LayoutParams x = (ConstraintLayout.LayoutParams) asd.getLayoutParams();
-                x.bottomMargin = 200;
+                if(x.bottomMargin<80)
+                    x.bottomMargin = 160;
                 asd.setLayoutParams(x);
                 PlayerInterface.UpdateTrack(v, mService);
             }
@@ -139,9 +142,16 @@ public class SingleArtistActivity extends AppCompatActivity
         er.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                Intent dd = new Intent(v.getContext(), MainActivity.class);
-                mService.updatePlaylist(DataBackend.getTracks(artist), 0, true);
-                startActivity(dd);
+                final Intent dd = new Intent(v.getContext(), MainActivity.class);
+                AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+                builder.setTitle("Play options")
+                        .setItems(MediaPlayerService.playOptions, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                mService.updatePlaylist(DataBackend.getTracks(artist),0, true);
+                                mService.replacementChoice=which;
+                                startActivity(dd);
+                            }});
+                builder.show();
             }
         });
 

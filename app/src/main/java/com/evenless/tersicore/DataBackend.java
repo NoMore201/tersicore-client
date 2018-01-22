@@ -143,12 +143,19 @@ public class DataBackend {
             unique = getInstance().where(Track.class)
                     .distinct("artist");
             for (Track t : unique) {
-                if (t.artist != null) {
+                if (t.artist != null && !containsIgnoreCase(t.artist, result)) {
                     result.add(t.artist);
                 }
             }
         }
         return result;
+    }
+
+    private static boolean containsIgnoreCase(String artist, ArrayList<String> result) {
+        for(String s : result)
+            if(artist.equalsIgnoreCase(s))
+                return true;
+        return false;
     }
 
     private static ArrayList<Track> findAllOffline(RealmResults<Track> ttr) {
@@ -194,11 +201,15 @@ public class DataBackend {
             RealmResults<Track> unique = getInstance().where(Track.class)
                     .distinct("album");
             for (Track t : unique) {
-                if(t.album!=null)
+                if(t.album!=null) {
+                    Album temp=null;
                     if (t.album_artist != null) {
-                        result.add(new Album(t.album, t.album_artist));
+                        temp= new Album(t.album, t.album_artist);
                     } else
-                        result.add(new Album(t.album, t.artist));
+                        temp= new Album(t.album, t.artist);
+                    if(!result.contains(temp))
+                        result.add(temp);
+                }
             }
         }
         return result;

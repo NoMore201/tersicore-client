@@ -68,6 +68,7 @@ import org.json.JSONObject;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -108,7 +109,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
                 v.setVisibility(View.VISIBLE);
                 if(isPlayer) {
                     RelativeLayout asd = findViewById(R.id.albumListLayout);
-                    asd.setMinimumHeight(asd.getHeight() + 200);
+                    asd.setMinimumHeight(asd.getHeight() + findViewById(R.id.miniplayer).getHeight());
                     isPlayer=false;
                 } else
                     isPlayer=true;
@@ -382,7 +383,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
                     main.scrollTo(0, 0);
                     if(isPlayer) {
                         RelativeLayout asd = findViewById(R.id.albumListLayout);
-                        asd.setMinimumHeight(asd.getHeight() + 200);
+                        asd.setMinimumHeight(asd.getHeight() + findViewById(R.id.asd2).getHeight());
                         isPlayer=false;
                     }
                 }
@@ -522,10 +523,51 @@ public class SingleAlbumActivity  extends AppCompatActivity
     }
 
     @Override
-    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        mService.updatePlaylist(listTracks, i, false);
-        Intent dd = new Intent(ctx, MainActivity.class);
-        startActivity(dd);
+    public void onItemClick(AdapterView<?> adapterView, View view, final int i, long l) {
+        boolean askResource = PreferencesHandler.getPreferredQuality(ctx) == 6;
+        if(!askResource) {
+            mService.updatePlaylist(listTracks, i, false);
+            Intent dd = new Intent(ctx, MainActivity.class);
+            startActivity(dd);
+        }
+        else{
+            AlertDialog.Builder bd = new AlertDialog.Builder(ctx);
+            bd.setTitle("Resources");
+            CharSequence[] data = new CharSequence[listTracks.get(i).resources.size()];
+            int k=0;
+            for(TrackResources p : listTracks.get(i).resources) {
+                String toShow = "";
+                if(p.isDownloaded)
+                    toShow += "Offline\n";
+                else
+                    toShow += p.server + "\n";
+                data[k]=toShow + p.codec + " " + p.sample_rate / 1000 +
+                        "Khz " + p.bitrate / 1000 + "kbps";
+                k++;
+            }
+            bd.setItems(data, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int w) {
+                    Map<Integer, Integer> resfav = new HashMap<>();
+                    TrackResources d = listTracks.get(i).resources.get(w);
+                    for(int k=0; k<listTracks.size(); k++) {
+                        Track temp = listTracks.get(k);
+                        int index=0;
+                        int bitrate=temp.resources.get(0).bitrate;
+                        for (int j=1; j<temp.resources.size(); j++)
+                            if(Math.abs(bitrate-d.bitrate)>Math.abs(temp.resources.get(j).bitrate-d.bitrate)){
+                                index=j;
+                                bitrate=temp.resources.get(j).bitrate;
+                            }
+                        resfav.put(k, index);
+                    }
+                    mService.updatePlaylist(listTracks, i, false, resfav);
+                    Intent dd = new Intent(ctx, MainActivity.class);
+                    startActivity(dd);
+                }
+            });
+            bd.show();
+        }
     }
 
     @Override

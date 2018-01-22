@@ -111,7 +111,7 @@ implements FileDownloadTaskListener{
                 @Override
                 public void onItemSwipeEnded(ListSwipeItem item, ListSwipeItem.SwipeDirection swipedDirection) {
                     Pair<Long, Track> pt =  (Pair<Long, Track>) item.getTag();
-                    Track it = pt.second;
+                    final Track it = pt.second;
                     if(swipedDirection == ListSwipeItem.SwipeDirection.RIGHT) {
                         if (pid == null)
                             mService.deleteFromPlaylist(it);
@@ -124,8 +124,47 @@ implements FileDownloadTaskListener{
                     else if (swipedDirection == ListSwipeItem.SwipeDirection.LEFT) {
                         if (pid == null)
                             mService.seekToTrack(mService.getCurrentPlaylist().indexOf(it));
-                        else
-                            mService.updatePlaylist(listTracks, listTracks.indexOf(it), false);
+                        else {
+                            boolean askResource = PreferencesHandler.getPreferredQuality(ctx) == 6;
+                            if(!askResource)
+                                mService.updatePlaylist(listTracks, listTracks.indexOf(it), false);
+                            else{
+                                AlertDialog.Builder bd = new AlertDialog.Builder(ctx);
+                                bd.setTitle("Resources");
+                                CharSequence[] data = new CharSequence[it.resources.size()];
+                                int k=0;
+                                for(TrackResources p : it.resources) {
+                                    String toShow = "";
+                                    if(p.isDownloaded)
+                                        toShow += "Offline\n";
+                                    else
+                                        toShow += p.server + "\n";
+                                    data[k]=toShow + p.codec + " " + p.sample_rate / 1000 +
+                                            "Khz " + p.bitrate / 1000 + "kbps";
+                                    k++;
+                                }
+                                bd.setItems(data, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int w) {
+                                        Map<Integer, Integer> resfav = new HashMap<>();
+                                        TrackResources d = it.resources.get(w);
+                                        for(int k=0; k<listTracks.size(); k++) {
+                                            Track temp = listTracks.get(k);
+                                            int index=0;
+                                            int bitrate=temp.resources.get(0).bitrate;
+                                            for (int j=1; j<temp.resources.size(); j++)
+                                                if(Math.abs(bitrate-d.bitrate)>Math.abs(temp.resources.get(j).bitrate-d.bitrate)){
+                                                    index=j;
+                                                    bitrate=temp.resources.get(j).bitrate;
+                                                }
+                                            resfav.put(k, index);
+                                        }
+                                        mService.updatePlaylist(listTracks, listTracks.indexOf(it), false, resfav);
+                                    }
+                                });
+                                bd.show();
+                            }
+                        }
                         Intent dd = new Intent(ctx, MainActivity.class);
                         startActivity(dd);
                     }

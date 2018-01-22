@@ -57,8 +57,10 @@ import com.evenless.tersicore.view.SquareImageView;
 
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import me.crosswall.lib.coverflow.CoverFlow;
@@ -98,8 +100,58 @@ public class MainActivity extends AppCompatActivity
                             });
                     alertDialog.show();
                 }
-                else
-                    mService.seekToTrack(mService.append(toPlay));
+                else {
+                    final List<Track> temp = new ArrayList<>();
+                    temp.add(toPlay);
+                    boolean askResource = PreferencesHandler.getPreferredQuality((Context) ctx) == 6;
+                    if(!askResource) {
+                        int asd = mService.append(temp);
+                        PagerContainer container = findViewById(R.id.pager_container);
+                        final ViewPager pager = container.getViewPager();
+                        pager.setAdapter(new MainActivity.MyPagerAdapter());
+                        pager.setCurrentItem(mService.getCurrentTrackIndex());
+                        mService.seekToTrack(asd);
+                        if(mService.getCurrentPlaylist().size()==1) {
+                            mService.updateState();
+                            recreate();
+                        }
+                    }
+                    else{
+                        AlertDialog.Builder bd = new AlertDialog.Builder((Context) ctx);
+                        bd.setTitle("Resources");
+                        CharSequence[] data = new CharSequence[temp.get(0).resources.size()];
+                        int i=0;
+                        for(TrackResources p : temp.get(0).resources) {
+                            String toShow = "";
+                            if(p.isDownloaded)
+                                toShow += "Offline\n";
+                            else
+                                toShow += p.server + "\n";
+                            data[i]=toShow + p.codec + " " + p.sample_rate / 1000 +
+                                    "Khz " + p.bitrate / 1000 + "kbps";
+                            i++;
+                        }
+                        bd.setItems(data, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int w) {
+                                Map<Integer, Integer> resfav = new HashMap<>();
+                                resfav.put(0, w);
+                                int asd = mService.append(temp,resfav);
+                                PagerContainer container = findViewById(R.id.pager_container);
+                                final ViewPager pager = container.getViewPager();
+                                pager.setAdapter(new MainActivity.MyPagerAdapter());
+                                pager.setCurrentItem(mService.getCurrentTrackIndex());
+                                mService.seekToTrack(asd);
+                                if(mService.getCurrentPlaylist().size()==1) {
+                                    mService.updateState();
+                                    getIntent().putExtra("EXTRA_UUID", (String) null);
+                                    recreate();
+                                }
+                            }
+                        });
+                        bd.show();
+                    }
+                }
             }
             if(mService.getCurrentPlaylist().size()>0) {
                 mService.callTimer(mHandler);
@@ -465,6 +517,7 @@ public class MainActivity extends AppCompatActivity
             TextView fullT = findViewById(R.id.tv_full_time);
             fullT.setText(parseDuration(durat));
         }
+
     }
 
     @Override

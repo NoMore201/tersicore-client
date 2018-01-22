@@ -65,9 +65,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             "Lower Bitrate"
     };
 
-    public static TrackResources checkTrackResourceByPreference(Track tt, int which, boolean preferDownloaded) {
+    public static TrackResources checkTrackResourceByPreference(Track tt, int w, boolean preferDownloaded) {
         TrackResources res = tt.resources.get(0);
-        if(tt.resources.size()!=1) {
+        int which;
+        if(w==6 && replacementChoice!=-1)
+            which=replacementChoice;
+        else
+            which=w;
+        if(tt.resources.size()!=1 && which!=6) {
             int bitr = tt.resources.get(0).bitrate;
             for (int i=1; i<tt.resources.size(); i++){
                 int currbit = tt.resources.get(i).bitrate;
@@ -142,6 +147,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     private PendingIntent mPause;
     private PendingIntent mBack;
     private PendingIntent mForw;
+    public static int replacementChoice;
 
     public int getCurrentprogress(){return currentprogress;}
 
@@ -186,6 +192,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                 iAction1,
                 PendingIntent.FLAG_UPDATE_CURRENT
         );
+        replacementChoice = -1;
         iAction1.setAction("play");
         mPlay = PendingIntent.getService(
                 this,
@@ -334,7 +341,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         resNumb.remove(mCurrentPlaylist.indexOf(it));
     }
 
-    public int getPreferredRes(Track tr) {
+    public int getPreferredRes(Track tr, Context ctx) {
         if(tr.resources.size()==1)
             return 0;
 
@@ -342,9 +349,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         Integer aa = resNumb.get(ind);
         if(aa!=null)
             return aa;
-        else
-            //consider preferences!
-            return 0;
+        else {
+            return tr.resources.indexOf(checkTrackResourceByPreference(tr,
+                    PreferencesHandler.getPreferredQuality(ctx), PreferencesHandler.getPreferOffline(ctx)));
+        }
     }
 
     public void reset() {
@@ -685,14 +693,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         }
     }
 
-    private void updateState() {
+    public void updateState() {
         currentprogress=0;
         mMediaPlayer.reset();
         if (mCurrentIndex >= getCurrentPlaylist().size()) {
             playlistCompleted();
         } else {
             final Track current = getCurrentPlaylist().get(mCurrentIndex);
-            res = getPreferredRes(current);
+            res = getPreferredRes(current, getApplicationContext());
             newTrackPlaying(current);
             TrackResources trr = current.resources.get(res);
             if(trr.isDownloaded)

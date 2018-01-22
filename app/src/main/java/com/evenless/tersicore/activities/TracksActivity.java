@@ -2,6 +2,7 @@ package com.evenless.tersicore.activities;
 
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -37,10 +39,13 @@ import com.evenless.tersicore.PlayerInterface;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.model.Track;
+import com.evenless.tersicore.model.TrackResources;
 import com.evenless.tersicore.model.User;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by McPhi on 10/12/2017.
@@ -76,12 +81,13 @@ public class TracksActivity extends AppCompatActivity
                 FloatingActionButton fab = findViewById(R.id.floatingActionButton);
                 RelativeLayout.LayoutParams params =
                         (RelativeLayout.LayoutParams) fab.getLayoutParams();
-                params.bottomMargin = params.bottomMargin + v.getHeight();
+                if(params.bottomMargin<150)
+                    params.bottomMargin = params.bottomMargin + v.getHeight();
                 fab.setLayoutParams(params);
                 v.setVisibility(View.VISIBLE);
                 ListView asd = findViewById(R.id.listart);
                 ConstraintLayout.LayoutParams x = (ConstraintLayout.LayoutParams) asd.getLayoutParams();
-                x.bottomMargin=160;
+                x.bottomMargin=v.getHeight();
                 asd.setLayoutParams(x);
                 PlayerInterface.UpdateTrack(v, mService);
             }
@@ -235,11 +241,41 @@ public class TracksActivity extends AppCompatActivity
         lsv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             // argument position gives the index of item which is clicked
             public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3) {
-                List<Track> temp = new ArrayList<>();
+                final List<Track> temp = new ArrayList<>();
                 temp.add(listTracks.get(position));
-                mService.seekToTrack(mService.append(temp));
-                Intent dd = new Intent(ctx, MainActivity.class);
-                startActivity(dd);
+                boolean askResource = PreferencesHandler.getPreferredQuality(ctx) == 6;
+                if(!askResource) {
+                    mService.seekToTrack(mService.append(temp));
+                    Intent dd = new Intent(ctx, MainActivity.class);
+                    startActivity(dd);
+                }
+                else{
+                    AlertDialog.Builder bd = new AlertDialog.Builder(ctx);
+                    bd.setTitle("Resources");
+                    CharSequence[] data = new CharSequence[temp.get(0).resources.size()];
+                    int i=0;
+                    for(TrackResources p : temp.get(0).resources) {
+                        String toShow = "";
+                        if(p.isDownloaded)
+                            toShow += "Offline\n";
+                        else
+                            toShow += p.server + "\n";
+                        data[i]=toShow + p.codec + " " + p.sample_rate / 1000 +
+                                "Khz " + p.bitrate / 1000 + "kbps";
+                        i++;
+                    }
+                    bd.setItems(data, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int w) {
+                            Map<Integer, Integer> resfav = new HashMap<>();
+                            resfav.put(0, w);
+                            mService.seekToTrack(mService.append(temp, resfav));
+                            Intent dd = new Intent(ctx, MainActivity.class);
+                            startActivity(dd);
+                        }
+                    });
+                    bd.show();
+                }
             }
         });
 

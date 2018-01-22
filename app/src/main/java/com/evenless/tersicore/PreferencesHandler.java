@@ -1,7 +1,10 @@
 package com.evenless.tersicore;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.util.ArraySet;
@@ -15,9 +18,10 @@ import java.util.List;
 import java.util.Set;
 
 public class PreferencesHandler {
-    private static final String PREF_SERVER_KEY = "TersicoreServer";
-    private static final String PREF_TOKEN_KEY = "TersicoreToken";
     private static final String PREF_CACHE_SIZE_KEY = "CacheSize";
+    private static final String PREF_QUALITY_WIFI_KEY = "PreferredQualityWiFi";
+    private static final String PREF_QUALITY_DATA_KEY = "PreferredQualityData";
+    private static final String PREF_PRIOR_OFFLINE = "PreferOffline";
     private static final String PREF_OFFLINE = "Offline";
     private static final String PREF_USER = "User";
     public static boolean offline;
@@ -38,26 +42,6 @@ public class PreferencesHandler {
         return getSharedPreferences(ctx).getBoolean(PREF_OFFLINE, false);
     }
 
-    public static String getToken(Context ctx) {
-        return getSharedPreferences(ctx).getString(PREF_TOKEN_KEY, "0651863bf5d902262b17c4621ec340544ff016752543d99a92d7d22872d8a455");
-    }
-
-    public static void setServer(Context ctx, String str){
-        /*
-        Set<String> users = getServer(ctx);
-        SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
-        users.add(str);
-        editor.putStringSet(PREF_SERVER_KEY, users);
-        editor.apply();
-        editor.commit();*/
-    }
-
-    public static void setToken(Context ctx, String str){
-        SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
-        editor.putString(PREF_TOKEN_KEY, str);
-        editor.apply();
-        editor.commit();
-    }
 
     public static void setCacheSize(Context ctx, String cacheSize) {
         SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
@@ -86,13 +70,24 @@ public class PreferencesHandler {
     }
 
     public static void deleteServer(Context ctx, String s) {
-        /*
-        Set<String> users = getServer(ctx);
-        SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
-        users.remove(s);
-        editor.putStringSet(PREF_SERVER_KEY, users);
-        editor.apply();
-        editor.commit();*/
         DataBackend.deleteToken(s);
+    }
+
+    public static int getPreferredQuality(Context ctx) {
+        ConnectivityManager connManager = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
+        try {
+            NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+
+            if (mWifi.isConnected()) {
+                return Integer.parseInt(getSharedPreferences(ctx).getString(PREF_QUALITY_WIFI_KEY, "1"));
+            } else
+                return Integer.parseInt(getSharedPreferences(ctx).getString(PREF_QUALITY_DATA_KEY, "1"));
+        } catch (Exception e){
+            return Integer.parseInt(getSharedPreferences(ctx).getString(PREF_QUALITY_DATA_KEY, "1"));
+        }
+    }
+
+    public static boolean getPreferOffline(Context ctx) {
+        return getSharedPreferences(ctx).getBoolean(PREF_PRIOR_OFFLINE, true);
     }
 }

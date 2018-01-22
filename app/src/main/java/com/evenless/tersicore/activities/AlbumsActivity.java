@@ -2,6 +2,7 @@ package com.evenless.tersicore.activities;
 
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
@@ -13,6 +14,7 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
@@ -64,7 +66,8 @@ public class AlbumsActivity extends AppCompatActivity
                 View miniplayer = findViewById(R.id.miniplayer);
                 RelativeLayout.LayoutParams params =
                         (RelativeLayout.LayoutParams) floating.getLayoutParams();
-                params.bottomMargin = params.bottomMargin + miniplayer.getHeight();
+                if(params.bottomMargin<150)
+                    params.bottomMargin = params.bottomMargin + miniplayer.getHeight();
                 floating.setLayoutParams(params);
                 miniplayer.setVisibility(View.VISIBLE);
                 ListView list = findViewById(R.id.listart);
@@ -130,9 +133,16 @@ public class AlbumsActivity extends AppCompatActivity
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Intent dd = new Intent(v.getContext(), MainActivity.class);
-                        mService.updatePlaylist(DataBackend.getTracks(),0, true);
-                        startActivity(dd);
+                        final Intent dd = new Intent(v.getContext(), MainActivity.class);
+                        AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+                        builder.setTitle("Play options")
+                                .setItems(MediaPlayerService.playOptions, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        mService.updatePlaylist(DataBackend.getTracks(),0, true);
+                                        mService.replacementChoice=which;
+                                        startActivity(dd);
+                                    }});
+                        builder.show();
                     }
                 }
         );

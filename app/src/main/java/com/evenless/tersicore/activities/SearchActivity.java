@@ -3,6 +3,7 @@ package com.evenless.tersicore.activities;
 import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.PeriodicSync;
 import android.content.ServiceConnection;
@@ -16,6 +17,7 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -59,7 +61,9 @@ import com.evenless.tersicore.model.Track;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.evenless.tersicore.model.TrackResources;
@@ -274,10 +278,42 @@ public class SearchActivity extends AppCompatActivity
     }
 
     @Override
-    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        mService.seekToTrack(mService.append(listTracksFiltered.get(i)));
-        Intent dd = new Intent(ctx, MainActivity.class);
-        startActivity(dd);
+    public void onItemClick(AdapterView<?> adapterView, View view, final int i, long l) {
+
+        boolean askResource = PreferencesHandler.getPreferredQuality(ctx) == 6;
+        if(!askResource) {
+            mService.seekToTrack(mService.append(listTracksFiltered.get(i)));
+            Intent dd = new Intent(ctx, MainActivity.class);
+            startActivity(dd);
+        }else{
+            AlertDialog.Builder bd = new AlertDialog.Builder(ctx);
+            bd.setTitle("Resources");
+            CharSequence[] data = new CharSequence[listTracksFiltered.get(i).resources.size()];
+            int j=0;
+            for(TrackResources p : listTracksFiltered.get(i).resources) {
+                String toShow = "";
+                if(p.isDownloaded)
+                    toShow += "Offline\n";
+                else
+                    toShow += p.server + "\n";
+                data[j]=toShow + p.codec + " " + p.sample_rate / 1000 +
+                        "Khz " + p.bitrate / 1000 + "kbps";
+                j++;
+            }
+            bd.setItems(data, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int w) {
+                    Map<Integer, Integer> resfav = new HashMap<>();
+                    resfav.put(0, w);
+                    ArrayList<Track> temp = new ArrayList<>();
+                    temp.add(listTracksFiltered.get(i));
+                    mService.seekToTrack(mService.append(temp, resfav));
+                    Intent dd = new Intent(ctx, MainActivity.class);
+                    startActivity(dd);
+                }
+            });
+            bd.show();
+        }
     }
 
     @Override
