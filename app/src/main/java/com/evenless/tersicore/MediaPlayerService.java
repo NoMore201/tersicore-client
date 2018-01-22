@@ -771,7 +771,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     public Notification createNotification(boolean isPlayed, Track current){
         Notification.Builder xd = new Notification.Builder(this)
-                .setSmallIcon(R.drawable.ic_play_button)
+                .setSmallIcon(android.R.drawable.ic_media_play)
                 .setContentTitle(current.title)
                 .setContentIntent(PendingIntent.getActivity(
                         this,
@@ -786,15 +786,15 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                         PendingIntent.FLAG_CANCEL_CURRENT
                 ))
                 .setContentText(current.artist + " - " + current.album);
-        xd.addAction(new Notification.Action(R.drawable.ic_backward,
+        xd.addAction(new Notification.Action(android.R.drawable.ic_media_previous,
                 "Skip Backward", mBack));
         if(!isPlayed)
-            xd.addAction(new Notification.Action(R.drawable.ic_play_button,
+            xd.addAction(new Notification.Action(android.R.drawable.ic_media_play,
                     "Play", mPlay));
         else
-            xd.addAction(new Notification.Action(R.drawable.ic_pause,
+            xd.addAction(new Notification.Action(android.R.drawable.ic_media_pause,
                     "Play", mPause));
-        xd.addAction(new Notification.Action(R.drawable.ic_forward,
+        xd.addAction(new Notification.Action(android.R.drawable.ic_media_next,
                 "Skip Forward", mForw));
         xd.setStyle(new Notification.MediaStyle()
                 .setMediaSession(mSes.getSessionToken()).setShowActionsInCompactView(1));

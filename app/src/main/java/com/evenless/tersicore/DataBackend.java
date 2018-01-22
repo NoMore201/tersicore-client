@@ -1,8 +1,6 @@
 package com.evenless.tersicore;
 
-import android.app.Activity;
 import android.support.annotation.NonNull;
-import android.support.v7.graphics.Palette;
 import android.util.Log;
 
 import com.evenless.tersicore.model.Album;
@@ -14,7 +12,6 @@ import com.evenless.tersicore.model.Tokens;
 import com.evenless.tersicore.model.Track;
 import com.evenless.tersicore.model.TrackResources;
 import com.evenless.tersicore.model.TrackSuggestion;
-import com.evenless.tersicore.model.User;
 
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -25,7 +22,6 @@ import java.util.List;
 
 import io.realm.Case;
 import io.realm.Realm;
-import io.realm.RealmList;
 import io.realm.RealmResults;
 import io.realm.Sort;
 import io.realm.exceptions.RealmException;
@@ -134,7 +130,7 @@ public class DataBackend {
 
         ArrayList<String> result = new ArrayList<>();
         if(PreferencesHandler.offline){
-            ArrayList<Track> asd = findAllOffline(null);
+            ArrayList<Track> asd = findAllOffline();
             for (Track t : asd)
                 if(t.artist!=null && !result.contains(t.artist))
                     result.add(t.artist);
@@ -150,7 +146,6 @@ public class DataBackend {
         }
         return result;
     }
-
     private static boolean containsIgnoreCase(String artist, ArrayList<String> result) {
         for(String s : result)
             if(artist.equalsIgnoreCase(s))
@@ -158,11 +153,14 @@ public class DataBackend {
         return false;
     }
 
-    private static ArrayList<Track> findAllOffline(RealmResults<Track> ttr) {
-        if(ttr==null)
-            ttr = getInstance().where(Track.class).findAll();
+    private static ArrayList<Track> findAllOffline() {
+        RealmResults<Track> tracks = getInstance().where(Track.class).findAll();
+        return findAllOffline(tracks);
+    }
+
+    private static ArrayList<Track> findAllOffline(RealmResults<Track> tracks) {
         ArrayList <Track> offlineTracks = new ArrayList<>();
-        for (Track t : ttr)
+        for (Track t : tracks)
             if(t.hasBeenDownloaded() || MediaPlayerService.hasBeenCached(t))
                 offlineTracks.add(t);
         return offlineTracks;
@@ -174,7 +172,7 @@ public class DataBackend {
      */
     public static List<Track> getTracks() {
         if(PreferencesHandler.offline)
-            return findAllOffline(null);
+            return findAllOffline();
         else
             return getInstance().where(Track.class).findAll();
     }
@@ -186,7 +184,7 @@ public class DataBackend {
     public static List<Album> getAlbums() {
         ArrayList<Album> result = new ArrayList<>();
         if(PreferencesHandler.offline){
-            ArrayList<Track> asd = findAllOffline(null);
+            ArrayList<Track> asd = findAllOffline();
             for (Track t : asd)
                 if(t.album!=null) {
                     Album n;
@@ -223,7 +221,7 @@ public class DataBackend {
     public static List<Album> getAlbums(@NonNull String artist) {
         ArrayList<Album> result = new ArrayList<>();
         if(PreferencesHandler.offline){
-            ArrayList<Track> asd = findAllOffline(null);
+            ArrayList<Track> asd = findAllOffline();
             for (Track t : asd)
                 if(t.album!=null) {
                     Album n=null;
