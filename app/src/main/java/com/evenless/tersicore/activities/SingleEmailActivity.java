@@ -2,6 +2,8 @@ package com.evenless.tersicore.activities;
 
 import android.content.Intent;
 import android.graphics.BitmapFactory;
+import android.os.PersistableBundle;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -59,15 +61,6 @@ public class SingleEmailActivity extends AppCompatActivity {
             ImageButton rep = findViewById(R.id.reply);
             ImageButton play = findViewById(R.id.playsong);
             play.setVisibility(View.GONE);
-
-            mail = DataBackend.setMessageAsRead(mail);
-            for (String ss : PreferencesHandler.getServer(this))
-                try {
-                    TaskHandler.sendMessage(ss, null, mail);
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                }
-
             rep.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -108,6 +101,23 @@ public class SingleEmailActivity extends AppCompatActivity {
                     }
                 });
             }
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(!mail.isRead) {
+            DataBackend.setMessageAsRead(mail);
+            EmailType re = new EmailType();
+            re.id=mail.id;
+            re.isRead=true;
+            for (String ss : PreferencesHandler.getServer(this))
+                try {
+                    TaskHandler.sendMessage(ss, null, re);
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
         }
     }
 }

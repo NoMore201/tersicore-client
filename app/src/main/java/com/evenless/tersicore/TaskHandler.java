@@ -229,6 +229,7 @@ public class TaskHandler {
         URL serverUrl = new URL(server + "/messages");
         Gson gson = new Gson();
         String data = gson.toJson(mail, EmailType.class);
+        Log.i(TAG, data);
         GenericPostTask task = new GenericPostTask(serverUrl,
                 GenericPostTask.POST_MESSAGE,
                 DataBackend.getToken(server),
