@@ -7,4 +7,5 @@
     <color name="colorButtonGrey">#424242</color>
 
     <color name="black_overlay">#66000000</color>
+    <color name="almost_black">#FF212121</color>
 </resources>

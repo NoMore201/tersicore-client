@@ -31,7 +31,7 @@
             android:id="@+id/myimg"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/ic_account_circle_black_36dp" />
+            android:src="@drawable/ic_account_circle_black" />
 
         <TextView
             android:id="@+id/username"

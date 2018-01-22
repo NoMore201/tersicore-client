@@ -9,7 +9,7 @@
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:id="@+id/accountimg"
-            android:src="@drawable/ic_account_circle_black_36dp"/>
+            android:src="@drawable/ic_account_circle_black"/>
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -34,7 +34,7 @@
                     android:layout_height="10dp"
                     android:id="@+id/onlineimg"
                     android:layout_marginLeft="8dp"
-                    android:src="@drawable/roundonline"
+                    android:src="@drawable/ic_play_circle_green"
                     android:adjustViewBounds="true"
                     android:layout_gravity="center_vertical"/>
 
@@ -52,8 +52,7 @@
         android:layout_width="26dp"
         android:layout_height="20dp"
         android:layout_gravity="center_vertical"
-        android:src="@android:drawable/ic_dialog_email"
-        android:tint="#666666"
+        android:src="@drawable/ic_email_black"
         android:id="@+id/mailto"
         />
 </LinearLayout>
