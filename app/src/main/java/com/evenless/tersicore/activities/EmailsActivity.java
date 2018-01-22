@@ -38,8 +38,15 @@ import com.evenless.tersicore.model.Track;
 import com.google.gson.Gson;
 
 import java.net.MalformedURLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by McPhi on 10/12/2017.
@@ -165,16 +172,40 @@ public class EmailsActivity extends AppCompatActivity
                     }
                     else if(!listEmails.contains(duo)) {
                         aaa = true;
-                        if (!duo.isRead)
-                            listEmails.add(0, duo);
-                        else
-                            listEmails.add(duo);
+                        listEmails.add(duo);
                     }
                 }
         }
 
-        if(aaa)
+        if(aaa) {
+            Collections.sort(listEmails, new Comparator<EmailType>() {
+                @Override
+                public int compare(EmailType o1, EmailType o2) {
+                    if(o1.isRead && !o2.isRead)
+                        return 1;
+                    else if (!o1.isRead && o2.isRead)
+                        return -1;
+                    else {
+                        SimpleDateFormat format =
+                                new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+                        try {
+                            Date one = format.parse(o1.date);
+                            Date two = format.parse(o2.date);
+                            if(one.after(two))
+                                return -1;
+                            else if(one.before(two))
+                                return 1;
+                            else
+                                return 0;
+                        } catch (ParseException e1) {
+                            e1.printStackTrace();
+                            return 0;
+                        }
+                    }
+                }
+            });
             updateList();
+        }
 
         if(counter==0){
             SwipeRefreshLayout swip = findViewById(R.id.swiperefresh);
