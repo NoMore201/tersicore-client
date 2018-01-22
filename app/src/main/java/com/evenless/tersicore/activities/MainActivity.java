@@ -454,7 +454,7 @@ public class MainActivity extends AppCompatActivity
         long m = (duration - h * 3600) / 60;
         long s = duration - (h * 3600 + m * 60);
         if (h == 0) {
-            return m + ":" + String.format(Locale.US, "%02d",s);
+            return m + ":" + String.format("%02d",s);
         } else {
             return h + ":" + String.format("%02d",m) + ":" + String.format("%02d",s);
         }
