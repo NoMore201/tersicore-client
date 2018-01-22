@@ -133,9 +133,7 @@ public class MainActivity extends AppCompatActivity
                         bd.setItems(data, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int w) {
-                                Map<Integer, Integer> resfav = new HashMap<>();
-                                resfav.put(0, w);
-                                int asd = mService.append(temp,resfav);
+                                int asd = mService.append(temp.get(0),w);
                                 PagerContainer container = findViewById(R.id.pager_container);
                                 final ViewPager pager = container.getViewPager();
                                 pager.setAdapter(new MainActivity.MyPagerAdapter());

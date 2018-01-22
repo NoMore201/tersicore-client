@@ -57,7 +57,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         CoverRetrieveTaskListener
 {
     private static final String TAG = "MediaPlayerService";
-    private static final String mToken = "0651863bf5d902262b17c4621ec340544ff016752543d99a92d7d22872d8a455";
     public static final String[] playOptions = {
             "Higher Bitrate Ever",
             "Lossless Bitrate",
@@ -150,6 +149,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     private PendingIntent mBack;
     private PendingIntent mForw;
     public static int replacementChoice;
+    private Context ccx = this;
 
     public int getCurrentprogress(){return currentprogress;}
 
@@ -161,7 +161,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     // CurrentPlaylist index - Selected Resources. Not Required!
-    private Map<Integer, Integer> resNumb;
+    private Map<String, Integer> resNumb;
 
     private static HttpProxyCacheServer proxy;
 
@@ -183,7 +183,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         mMediaPlayer.setOnPreparedListener(this);
         mMediaPlayer.setOnErrorListener(this);
         mMediaPlayer.setOnCompletionListener(this);
-        mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+        mMediaPlayer.setWakeMode(ccx, PowerManager.PARTIAL_WAKE_LOCK);
         mSes = new MediaSession(this, "TAG1");
         mSes.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS | MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
         mCurrentPlaylist = new ArrayList<>();
@@ -230,7 +230,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         mMediaPlayer.setAudioAttributes(attributes);
 
         try {
-            WifiManager service = ((WifiManager) getApplicationContext()
+            WifiManager service = ((WifiManager) ccx
                     .getSystemService(Context.WIFI_SERVICE));
             if (service != null) {
                 mWifiLock = service.createWifiLock(WifiManager.WIFI_MODE_FULL, "mylock");
@@ -345,12 +345,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         if(mCurrentIndex==getCurrentPlaylist().indexOf(it))
             skip(SkipDirection.SKIP_FORWARD);
         getCurrentPlaylist().remove(it);
-        resNumb.remove(mCurrentPlaylist.indexOf(it));
+        if(!getCurrentPlaylist().contains(it))
+            resNumb.remove(it.uuid);
     }
 
     private int getPreferredRes(Track tr, Context ctx) {
-        int ind=mCurrentPlaylist.indexOf(tr);
-        Integer aa = resNumb.get(ind);
+        Integer aa = resNumb.get(tr.uuid);
 
         if(tr.resources.size()==1 && aa!=null && aa!=-1)
             return 0;
@@ -412,13 +412,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             Track temp = getCurrentPlaylist().get(fromPosition);
             getCurrentPlaylist().remove(fromPosition);
             getCurrentPlaylist().add(toPosition, temp);
-            if(!isShuffle) {
-                Integer res = resNumb.get(fromPosition);
-                if (res != null) {
-                    resNumb.remove(fromPosition);
-                    resNumb.put(toPosition, res);
-                }
-            }
         }
     }
 
@@ -459,7 +452,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
      * @param random Whether to start shuffling playlist or not
      * @param res Favorite resources for all, or part of the list
      */
-    public void updatePlaylist(List<Track> tracks, int position, boolean random, Map<Integer, Integer> res) {
+    public void updatePlaylist(List<Track> tracks, int position, boolean random, Map<String, Integer> res) {
         if (position >= tracks.size()) {
             throw new IndexOutOfBoundsException("Position exceed list size");
         }
@@ -501,7 +494,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
      * @param res List of the favorite resources for all, or part of the list
      * @return starting index of the inserted list
      */
-    public int appendAfterCurrent(List<Track> tracks, Map<Integer,Integer> res) {
+    public int appendAfterCurrent(List<Track> tracks, Map<String,Integer> res) {
         //TODO: check behaviour
         if(isShuffle){
             isShuffle=false;
@@ -509,14 +502,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         }
         mCurrentPlaylist.addAll(mCurrentIndex + 1, new ArrayList<>(tracks));
 
-        for (Integer i : resNumb.keySet()) {
-            if(i>mCurrentIndex)
-                res.put(i+tracks.size(), resNumb.get(i));
-        }
-        for (Integer i : res.keySet()) {
-            Track temp = tracks.get(i);
-            resNumb.put(mCurrentPlaylist.indexOf(temp), res.get(i));
-        }
+        resNumb.putAll(res);
         return mCurrentIndex + 1;
     }
 
@@ -536,13 +522,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
      * @param tracks List of Track to be appended
      * @return starting index of the list
      */
-    public int append(List<Track> tracks, Map<Integer, Integer> res) {
+    public int append(List<Track> tracks, Map<String, Integer> res) {
         mCurrentPlaylist.addAll(new ArrayList<>(tracks));
         mCurrentPlaylistSorted.addAll(new ArrayList<>(tracks));
-        for (Integer i : res.keySet()) {
-            Track temp = tracks.get(i);
-            resNumb.put(mCurrentPlaylist.indexOf(temp), res.get(i));
-        }
+        resNumb.putAll(res);
         return mCurrentPlaylist.size() - tracks.size();
     }
 
@@ -555,7 +538,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     public int append(Track track, int res) {
         mCurrentPlaylist.add(track);
         mCurrentPlaylistSorted.add(track);
-        resNumb.put(mCurrentPlaylist.size()-1, res);
+        resNumb.put(track.uuid, res);
         return mCurrentPlaylist.size() - 1;
     }
 
@@ -590,10 +573,11 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     public void skip(SkipDirection direction) {
         if (direction == SkipDirection.SKIP_FORWARD && mCurrentIndex<getCurrentPlaylist().size()-1) {
+            Log.i(TAG, mCurrentIndex + " Skipped");
             mCurrentIndex += 1;
             updateState();
-        }
-        if (direction == SkipDirection.SKIP_BACKWARD && mCurrentIndex>1) {
+        } else if (direction == SkipDirection.SKIP_BACKWARD && mCurrentIndex>0) {
+            Log.i(TAG, mCurrentIndex + " Back");
             mCurrentIndex -= 1;
             updateState();
         } else
@@ -603,6 +587,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     public void seekToTrack(int index) {
         if(index!=mCurrentIndex && index<getCurrentPlaylist().size()) {
+            Log.i(TAG, "Seek to " + index);
             mCurrentIndex = index;
             updateState();
         }
@@ -624,7 +609,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     public int getCurrentTrackIndex() {
-        Log.i(TAG, mCurrentIndex + "");
         if(mCurrentIndex<getCurrentPlaylist().size())
             return mCurrentIndex;
         else
@@ -697,28 +681,26 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     public void updateState() {
         currentprogress=0;
         if (mCurrentIndex >= getCurrentPlaylist().size()) {
-            mMediaPlayer.reset();
             playlistCompleted();
         } else {
-            final Track current = getCurrentPlaylist().get(mCurrentIndex);
-            res = getPreferredRes(current, getApplicationContext());
+            Track current = getCurrentPlaylist().get(mCurrentIndex);
+            res = getPreferredRes(current, ccx);
             if (res >= 0 ) {
                 newTrackPlaying(current);
                 mMediaPlayer.reset();
-                Log.i(TAG, "inside " + res + "");
                 TrackResources trr = current.resources.get(res);
                 if (trr.isDownloaded)
                     url = Environment.getExternalStorageDirectory() + "/TersicoreMusic/" + trr.uuid + "." + trr.codec;
                 else
                     url = proxy.getProxyUrl(trr.server + "/stream/" + trr.uuid);
                 try {
-                    mMediaPlayer.setDataSource(getApplicationContext(), Uri.parse(url));
+                    mMediaPlayer.setDataSource(ccx, Uri.parse(url));
                 } catch (IOException e) {
                     if (trr.isDownloaded)
                         try {
                             DataBackend.removeOfflineTrack(current, trr.uuid);
                             url = proxy.getProxyUrl(trr.server + "/stream/" + trr.uuid);
-                            mMediaPlayer.setDataSource(getApplicationContext(), Uri.parse(url));
+                            mMediaPlayer.setDataSource(ccx, Uri.parse(url));
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -726,7 +708,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                         e.printStackTrace();
                 }
                 mMediaPlayer.prepareAsync();
-
                 Notification noti = createNotification(true, current);
                 NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                 notificationManager.notify(9876, noti);

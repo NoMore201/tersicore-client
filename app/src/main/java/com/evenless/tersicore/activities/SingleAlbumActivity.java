@@ -475,16 +475,16 @@ public class SingleAlbumActivity  extends AppCompatActivity
                     builder.setTitle("Play options")
                             .setItems(pop, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
-                                    Map<Integer, Integer> resfav = new HashMap<>();
+                                    Map<String, Integer> resfav = new HashMap<>();
                                     Intent dd = new Intent(ctx, MainActivity.class);
                                     for(int i=0; i<listTracks.size(); i++) {
                                         Track t = listTracks.get(i);
                                         TrackResources res = MediaPlayerService.checkTrackResourceByPreference(t, which, which!=4,
                                                 PreferencesHandler.getDataProtection(ctx));
                                         if(res!=null)
-                                            resfav.put(i, t.resources.indexOf(res));
+                                            resfav.put(t.uuid, t.resources.indexOf(res));
                                         else
-                                            resfav.put(i, -1);
+                                            resfav.put(t.uuid, -1);
                                     }
                                     switch (choice){
                                         case 0: mService.updatePlaylist(listTracks, 0, false, resfav); startActivity(dd); break;
@@ -563,7 +563,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
             bd.setItems(data, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int w) {
-                    Map<Integer, Integer> resfav = new HashMap<>();
+                    Map<String, Integer> resfav = new HashMap<>();
                     TrackResources d = listTracks.get(i).resources.get(w);
                     for(int k=0; k<listTracks.size(); k++) {
                         Track temp = listTracks.get(k);
@@ -574,7 +574,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
                                 index=j;
                                 bitrate=temp.resources.get(j).bitrate;
                             }
-                        resfav.put(k, index);
+                        resfav.put(temp.uuid, index);
                     }
                     mService.updatePlaylist(listTracks, i, false, resfav);
                     Intent dd = new Intent(ctx, MainActivity.class);

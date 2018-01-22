@@ -269,9 +269,7 @@ public class TracksActivity extends AppCompatActivity
                     bd.setItems(data, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int w) {
-                            Map<Integer, Integer> resfav = new HashMap<>();
-                            resfav.put(0, w);
-                            mService.seekToTrack(mService.append(temp, resfav));
+                            mService.seekToTrack(mService.append(temp.get(0), w));
                             Intent dd = new Intent(ctx, MainActivity.class);
                             startActivity(dd);
                         }

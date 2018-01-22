@@ -114,8 +114,8 @@ public class AlertDialogTrack {
                                 bd.setItems(data, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int w) {
-                                        Map<Integer, Integer> resfav = new HashMap<>();
-                                        resfav.put(0, w);
+                                        Map<String, Integer> resfav = new HashMap<>();
+                                        resfav.put(toPlay.get(0).uuid, w);
                                         playSong(which, mService, toPlay, ctx, resfav);
                                     }
                                 });
@@ -156,7 +156,7 @@ public class AlertDialogTrack {
         }
     }
 
-    private static void playSong(int which, MediaPlayerService mService, List<Track> toPlay, Context ctx, Map<Integer, Integer> pref){
+    private static void playSong(int which, MediaPlayerService mService, List<Track> toPlay, Context ctx, Map<String, Integer> pref){
         Intent dd = new Intent(ctx, MainActivity.class);
         // TODO: use enum rather than integers
         switch (which) {
