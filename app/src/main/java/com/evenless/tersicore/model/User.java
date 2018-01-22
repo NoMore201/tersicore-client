@@ -8,7 +8,7 @@ import java.util.List;
 public class User {
     public String id;
     public boolean online;
-    public String lastTrack;
+    public String last_track;
     public String avatar;
     public String password;
     public ArrayList<String> servers;
@@ -22,7 +22,8 @@ public class User {
 
     public User(String id, String playing){
         this.id=id;
-        this.lastTrack=playing;
+        this.last_track=playing;
+        this.online=true;
     }
 
 

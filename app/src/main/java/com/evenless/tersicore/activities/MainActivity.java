@@ -31,6 +31,7 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.textservice.SuggestionsInfo;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -225,10 +226,11 @@ public class MainActivity extends AppCompatActivity
                         if(isChecked)
                             try {
                                 List<String> servers = PreferencesHandler.getServer((Context) ctx);
+                                TrackSuggestion temps = new TrackSuggestion(t.uuid, t.album, t.artist, t.title, PreferencesHandler.getUsername((Context) ctx));
                                 for(String ss : servers)
                                     TaskHandler.setSuggestion(ss,
                                             (ApiPostTaskListener) ctx,
-                                            new TrackSuggestion(t.uuid, t.album, t.artist, t.title, PreferencesHandler.getUsername((Context) ctx)));
+                                            temps);
                             } catch (MalformedURLException e) {
                                 e.printStackTrace();
                             }

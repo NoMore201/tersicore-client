@@ -214,6 +214,7 @@ public class TaskHandler {
         URL serverUrl = new URL(server + "/users");
         Gson gson = new Gson();
         String data = gson.toJson(u, User.class);
+        Log.i(TAG, data);
         GenericPostTask task = new GenericPostTask(serverUrl,
                 GenericPostTask.POST_USERS,
                 DataBackend.getToken(server),

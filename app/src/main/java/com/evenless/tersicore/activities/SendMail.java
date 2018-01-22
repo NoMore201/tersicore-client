@@ -66,7 +66,7 @@ public class SendMail extends AppCompatActivity
             suggestionTrack.album = temp.album;
             suggestionTrack.artist = temp.artist;
             suggestionTrack.username = PreferencesHandler.getUsername(this);
-            TextView asd = findViewById(R.id.songsend);
+            TextView asd = findViewById(R.id.songsnd);
             asd.setText("Track Suggested: " + suggestionTrack.toString());
             findViewById(R.id.addsong).setVisibility(View.GONE);
             findViewById(R.id.removesong).setVisibility(View.VISIBLE);
@@ -167,7 +167,7 @@ public class SendMail extends AppCompatActivity
                                     build2.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
-                                            TextView asd = findViewById(R.id.songsend);
+                                            TextView asd = findViewById(R.id.songsnd);
                                             if (suggestion != null) {
                                                 asd.setText("Album Suggested: " + suggestion.toString());
                                                 findViewById(R.id.addsong).setVisibility(View.GONE);
@@ -199,7 +199,7 @@ public class SendMail extends AppCompatActivity
                 suggestion=null;
                 findViewById(R.id.addsong).setVisibility(View.VISIBLE);
                 findViewById(R.id.removesong).setVisibility(View.GONE);
-                TextView asd = findViewById(R.id.songsend);
+                TextView asd = findViewById(R.id.songsnd);
                 asd.setText(R.string.no_suggestion_added);
             }
         });

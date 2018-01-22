@@ -251,7 +251,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         if (mMediaPlayer != null) {
             mMediaPlayer.release();
         }
-
+        for (String ss : PreferencesHandler.getServer(this))
+            try {
+                TaskHandler.setUser(ss, null, new User(PreferencesHandler.getUsername(this), false));
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
         NotificationManager notificationManager = (NotificationManager) getSystemService( Context.NOTIFICATION_SERVICE );
         notificationManager.cancel(9876);
     }

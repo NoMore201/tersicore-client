@@ -247,13 +247,6 @@ public class SearchActivity extends AppCompatActivity
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 PreferencesHandler.setOffline(ctx, isChecked);
-                for(String ss : PreferencesHandler.getServer(ctx))
-                    try {
-                        TaskHandler.setUser(ss, null,
-                                new User(PreferencesHandler.getUsername(ctx), isChecked));
-                    } catch (Exception e){
-                        e.printStackTrace();
-                    }
                 finish();
                 startActivity(getIntent());
             }
@@ -605,7 +598,6 @@ public class SearchActivity extends AppCompatActivity
         } else if (response != null) {
             String s = DataBackend.getServer(token);
             listTracks = gson.fromJson(response, Track[].class);
-            Log.i(TAG, response);
             if(listTracks!=null) {
                 DataBackend.insertTracks(new ArrayList<>(Arrays.asList(listTracks)), s);
             }

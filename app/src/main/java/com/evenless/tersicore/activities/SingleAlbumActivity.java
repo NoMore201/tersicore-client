@@ -192,9 +192,10 @@ public class SingleAlbumActivity  extends AppCompatActivity
                 DataBackend.updateFavorite(a, isChecked);
                 if(isChecked)
                     try {
+                    TrackSuggestion temps = new TrackSuggestion(albumName, artist, PreferencesHandler.getUsername(ctx));
                         for(String ss : PreferencesHandler.getServer(ctx))
                         TaskHandler.setSuggestion(ss,
-                                (ApiPostTaskListener) ctx, new TrackSuggestion(albumName, artist, PreferencesHandler.getUsername(ctx)));
+                                (ApiPostTaskListener) ctx, temps);
                     } catch (MalformedURLException e) {
                         e.printStackTrace();
                     }

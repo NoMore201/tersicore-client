@@ -71,8 +71,8 @@ public class MyUsersListAdapter extends ArrayAdapter<User> {
             final User a = data.get(position);
 
             viewHolder.txtName.setText(a.id);
-            if(a.lastTrack!=null)
-                viewHolder.txtSong.setText(a.lastTrack);
+            if(a.last_track!=null)
+                viewHolder.txtSong.setText(a.last_track);
             else
                 viewHolder.txtSong.setText("");
 

@@ -57,6 +57,13 @@ public class PreferencesHandler {
 
     public static void setOffline(Context ctx, boolean is) {
         offline = is;
+        for(String ss : PreferencesHandler.getServer(ctx))
+            try {
+                TaskHandler.setUser(ss, null,
+                        new User(PreferencesHandler.getUsername(ctx), !is));
+            } catch (Exception e){
+                e.printStackTrace();
+            }
         SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
         editor.putBoolean(PREF_OFFLINE, is);
         editor.apply();
