@@ -12,23 +12,15 @@ import android.graphics.BitmapFactory;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.media.Rating;
-import android.media.session.MediaController;
 import android.media.session.MediaSession;
-import android.media.session.MediaSessionManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
-import android.os.Build;
-import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
-import android.os.ResultReceiver;
-import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -58,82 +50,23 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener,
         CoverRetrieveTaskListener
 {
-    private static final String TAG = "MediaPlayerService";
+    public class LocalBinder extends Binder {
+        public MediaPlayerService getService() {
+            return MediaPlayerService.this;
+        }
+    }
     public static final String[] playOptions = {
             "Higher Bitrate Ever",
             "Lossless Bitrate",
             "Higher lossy bitrate",
             "Lower Bitrate"
     };
-    private static final String NOTIFICATION_CHANNEL_ID = "45564" ;
-    private static final CharSequence NOTIFICATION_CHANNEL_NAME = "Player" ;
-
-    public static TrackResources checkTrackResourceByPreference(Track tt, int w, boolean preferDownloaded, boolean isDataProt) {
-        TrackResources res = tt.resources.get(0);
-        int which;
-        if(w==6 && replacementChoice!=-1)
-            which=replacementChoice;
-        else
-            which=w;
-        if(tt.resources.size()!=1 && which!=6) {
-            int bitr = tt.resources.get(0).bitrate;
-            for (int i=1; i<tt.resources.size(); i++){
-                int currbit = tt.resources.get(i).bitrate;
-                if((!preferDownloaded || tt.resources.get(i).isDownloaded || !tt.resources.get(0).isDownloaded) &&
-                        ((which==0 && currbit>bitr) || (which==3 && currbit<bitr) ||
-                                (which==1 && ((bitr>1411200 && currbit<bitr) || (bitr<1411200 && currbit<1411200 && currbit>bitr))) ||
-                                (which==2 && ((bitr>350000 && currbit<bitr) || (bitr<350000 && currbit<350000 && currbit>bitr))))) {
-                    res = tt.resources.get(i);
-                    bitr=currbit;
-                }
-            }
-        }
-        if(which==3 && res.bitrate>350000 && isDataProt && !res.isDownloaded && !checkIsCached(res))
-            res=null;
-        return res;
-    }
-
-    public boolean isOfflineT() {
-        return getCurrentPlaylist().get(mCurrentIndex).resources.get(res).isDownloaded;
-    }
-
-    public void downloadCurrentFile(FileDownloadTaskListener ctx) throws MalformedURLException {
-        TrackResources tr = getCurrentPlaylist().get(mCurrentIndex).resources.get(res);
-        if(tr!=null) {
-            String urlfile = tr.server +
-                    "/stream/" + tr.uuid;
-            if(proxy.isCached(urlfile))
-                urlfile=url;
-
-            TaskHandler.downloadFile(urlfile, tr.uuid, tr.codec, ctx, getCurrentPlaylist().get(mCurrentIndex).uuid);
-        }
-    }
-
-    public void downloadFile(TrackResources tr, String uuid, FileDownloadTaskListener ctx) throws MalformedURLException {
-        if(tr!=null) {
-            String urlfile = tr.server +
-                    "/stream/" + tr.uuid;
-            if(proxy.isCached(urlfile))
-                urlfile=proxy.getProxyUrl(urlfile);
-            TaskHandler.downloadFile(urlfile, tr.uuid, tr.codec, ctx, uuid);
-        }
-    }
-
-    public static boolean hasBeenCached(Track t) {
-        for(TrackResources tr : t.resources)
-            if(checkIsCached(tr))
-                return true;
-
-        return false;
-    }
-
-
-    public enum SkipDirection { SKIP_FORWARD, SKIP_BACKWARD }
-    public class LocalBinder extends Binder {
-        public MediaPlayerService getService() {
-            return MediaPlayerService.this;
-        }
-    }
+    public final static int SKIP_FORWARD = 1;
+    public final static int SKIP_BACKWARD = 2;
+    public static int replacementChoice;
+    private static final String TAG = "MediaPlayerService";
+    private static final String NOTIFICATION_CHANNEL_ID = "45564";
+    private static final CharSequence NOTIFICATION_CHANNEL_NAME = "Player";
 
     private MediaPlayer mMediaPlayer;
     private WifiManager.WifiLock mWifiLock;
@@ -152,27 +85,11 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     private PendingIntent mPause;
     private PendingIntent mBack;
     private PendingIntent mForw;
-    public static int replacementChoice;
     private Context ccx = this;
-
-    public int getCurrentprogress(){return currentprogress;}
-
-    public int getCurrentResource(){
-        if(res!=-1 && getCurrentTrackIndex()==mCurrentIndex)
-            return res;
-        else
-            return 0;
-    }
-
     // CurrentPlaylist index - Selected Resources. Not Required!
     private Map<String, Integer> resNumb;
-
     private static HttpProxyCacheServer proxy;
-
-    /*
-     * Override methods
-     */
-
+    
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -246,7 +163,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             int importance = NotificationManager.IMPORTANCE_LOW;
-            NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, NOTIFICATION_CHANNEL_NAME, importance);
+            NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID,
+                    NOTIFICATION_CHANNEL_NAME, importance);
             notificationChannel.enableLights(false);
             notificationChannel.enableVibration(false);
             NotificationManager notificationManager = (NotificationManager) ccx.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -365,13 +283,82 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         }
     }
 
-    /*
-     * Custom methods
-     */
+    public static TrackResources checkTrackResourceByPreference(Track tt, int w,
+                                                                boolean preferDownloaded,
+                                                                boolean isDataProt) {
+        TrackResources res = tt.resources.get(0);
+        int which;
+        if(w==6 && replacementChoice!=-1)
+            which=replacementChoice;
+        else
+            which=w;
+        if(tt.resources.size()!=1 && which!=6) {
+            int bitr = tt.resources.get(0).bitrate;
+            for (int i=1; i<tt.resources.size(); i++){
+                int currbit = tt.resources.get(i).bitrate;
+                if((!preferDownloaded || tt.resources.get(i).isDownloaded ||
+                        !tt.resources.get(0).isDownloaded) &&
+                        ((which==0 && currbit>bitr) || (which==3 && currbit<bitr) ||
+                                (which==1 && ((bitr>1411200 && currbit<bitr) || (bitr<1411200 && currbit<1411200 && currbit>bitr))) ||
+                                (which==2 && ((bitr>350000 && currbit<bitr) || (bitr<350000 && currbit<350000 && currbit>bitr))))) {
+                    res = tt.resources.get(i);
+                    bitr=currbit;
+                }
+            }
+        }
+        if(which==3 && res.bitrate>350000 && isDataProt && !res.isDownloaded && !checkIsCached(res))
+            res=null;
+        return res;
+    }
+
+    public boolean isOfflineT() {
+        return getCurrentPlaylist().get(mCurrentIndex).resources.get(res).isDownloaded;
+    }
+
+    public void downloadCurrentFile(FileDownloadTaskListener ctx) throws MalformedURLException {
+        TrackResources tr = getCurrentPlaylist().get(mCurrentIndex).resources.get(res);
+        if(tr!=null) {
+            String urlfile = tr.server +
+                    "/stream/" + tr.uuid;
+            if(proxy.isCached(urlfile))
+                urlfile=url;
+
+            TaskHandler.downloadFile(urlfile, tr.uuid,
+                    tr.codec, ctx, getCurrentPlaylist().get(mCurrentIndex).uuid);
+        }
+    }
+
+    public void downloadFile(TrackResources tr, String uuid,
+                             FileDownloadTaskListener ctx) throws MalformedURLException {
+        if(tr!=null) {
+            String urlfile = tr.server +
+                    "/stream/" + tr.uuid;
+            if(proxy.isCached(urlfile))
+                urlfile=proxy.getProxyUrl(urlfile);
+            TaskHandler.downloadFile(urlfile, tr.uuid, tr.codec, ctx, uuid);
+        }
+    }
+
+    public static boolean hasBeenCached(Track t) {
+        for(TrackResources tr : t.resources)
+            if(checkIsCached(tr))
+                return true;
+
+        return false;
+    }
+
+    public int getCurrentprogress() {return currentprogress;}
+
+    public int getCurrentResource(){
+        if(res!=-1 && getCurrentTrackIndex()==mCurrentIndex)
+            return res;
+        else
+            return 0;
+    }
 
     public void deleteFromPlaylist(Track it) {
         if(mCurrentIndex==getCurrentPlaylist().indexOf(it))
-            skip(SkipDirection.SKIP_FORWARD);
+            skip(SKIP_FORWARD);
         getCurrentPlaylist().remove(it);
         if(!getCurrentPlaylist().contains(it))
             resNumb.remove(it.uuid);
@@ -599,12 +586,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         }
     }
 
-    public void skip(SkipDirection direction) {
-        if (direction == SkipDirection.SKIP_FORWARD && mCurrentIndex<getCurrentPlaylist().size()-1) {
+    public void skip(int direction) {
+        if (direction == SKIP_FORWARD && mCurrentIndex<getCurrentPlaylist().size()-1) {
             Log.i(TAG, mCurrentIndex + " Skipped");
             mCurrentIndex += 1;
             updateState();
-        } else if (direction == SkipDirection.SKIP_BACKWARD && mCurrentIndex>0) {
+        } else if (direction == SKIP_BACKWARD && mCurrentIndex>0) {
             Log.i(TAG, mCurrentIndex + " Back");
             mCurrentIndex -= 1;
             updateState();
@@ -749,7 +736,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                             e.printStackTrace();
                         }
             } else {
-                skip(SkipDirection.SKIP_FORWARD);
+                skip(SKIP_FORWARD);
             }
         }
     }

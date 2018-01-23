@@ -60,11 +60,11 @@ public class PlayerInterface {
     }
 
     public static void onClickForward(View v, MediaPlayerService mService) {
-        mService.skip(MediaPlayerService.SkipDirection.SKIP_FORWARD);
+        mService.skip(MediaPlayerService.SKIP_FORWARD);
     }
 
     public static void onClickBackward(View v, MediaPlayerService mService) {
-        mService.skip(MediaPlayerService.SkipDirection.SKIP_BACKWARD);
+        mService.skip(MediaPlayerService.SKIP_BACKWARD);
     }
 
     public static void setStop(View v){

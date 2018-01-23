@@ -22,9 +22,9 @@ public class MyReceiver extends IntentService {
             else if (action.equals("pause"))
                 mService.pause();
             else if (action.equals("forward"))
-                mService.skip(MediaPlayerService.SkipDirection.SKIP_FORWARD);
+                mService.skip(MediaPlayerService.SKIP_FORWARD);
             else if (action.equals("backward"))
-                mService.skip(MediaPlayerService.SkipDirection.SKIP_BACKWARD);
+                mService.skip(MediaPlayerService.SKIP_BACKWARD);
             unbindService(mConnection);
         }
 

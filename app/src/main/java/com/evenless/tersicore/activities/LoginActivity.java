@@ -2,7 +2,6 @@ package com.evenless.tersicore.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.EditText;
@@ -16,13 +15,9 @@ import com.evenless.tersicore.interfaces.ServerStatusTaskListener;
 import com.evenless.tersicore.TaskHandler;
 import com.evenless.tersicore.model.User;
 
-import java.lang.annotation.Target;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
-import java.util.Set;
-
-import io.realm.annotations.PrimaryKey;
 
 public class LoginActivity extends AppCompatActivity implements ServerStatusTaskListener, ApiPostTaskListener {
     private final static String TAG = "LoginActivity";
@@ -73,7 +68,7 @@ public class LoginActivity extends AppCompatActivity implements ServerStatusTask
             temp.id = tt.getText().toString();
             temp.password = pp.getText().toString();
             try {
-                TaskHandler.Login(temp, originalUrl.toExternalForm(), this);
+                TaskHandler.login(temp, originalUrl.toExternalForm(), this);
                 server=originalUrl.toExternalForm();
             } catch (MalformedURLException e) {
                 e.printStackTrace();
@@ -118,7 +113,7 @@ public class LoginActivity extends AppCompatActivity implements ServerStatusTask
                 us.setEnabled(true);
             }
             ((EditText)findViewById(R.id.loginUsername))
-                    .setError("Login Failed!");
+                    .setError("login Failed!");
         }
     }
 }

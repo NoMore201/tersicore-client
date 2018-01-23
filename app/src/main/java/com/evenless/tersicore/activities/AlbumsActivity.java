@@ -38,6 +38,8 @@ import com.evenless.tersicore.R;
 import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.Track;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -106,7 +108,12 @@ public class AlbumsActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
         listAlbums = DataBackend.getAlbums();
-        createList();
+        Collections.sort(listAlbums, new Comparator<Album>() {
+            @Override
+            public int compare(Album album, Album t1) {
+                return album.name.compareToIgnoreCase(t1.name);
+            }
+        });
         if (listAlbums != null)
             createList();
         NavigationView navigationView = findViewById(R.id.nav_view);

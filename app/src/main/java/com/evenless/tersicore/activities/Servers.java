@@ -1,16 +1,11 @@
 package com.evenless.tersicore.activities;
 
-import android.app.Dialog;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.preference.DialogPreference;
-import android.provider.ContactsContract;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -20,7 +15,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.evenless.tersicore.AlertDialogTrack;
 import com.evenless.tersicore.DataBackend;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
@@ -36,8 +30,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
 
 public class Servers extends AppCompatActivity
 implements ServerStatusTaskListener, ApiPostTaskListener, ApiRequestTaskListener {
@@ -51,7 +43,7 @@ implements ServerStatusTaskListener, ApiPostTaskListener, ApiRequestTaskListener
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_servers);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar2);
+        Toolbar toolbar = findViewById(R.id.toolbar2);
         toolbar.setTitle("Servers");
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -187,7 +179,7 @@ implements ServerStatusTaskListener, ApiPostTaskListener, ApiRequestTaskListener
                         User temp = new User();
                         temp.id = PreferencesHandler.getUsername(builder.getContext());
                         temp.password=input.getText().toString();
-                        TaskHandler.Login(temp, originalUrl.toExternalForm(), ctx);
+                        TaskHandler.login(temp, originalUrl.toExternalForm(), ctx);
                         pending=sd;
                         pendingInput=input;
                     } catch (MalformedURLException e) {
@@ -222,7 +214,7 @@ implements ServerStatusTaskListener, ApiPostTaskListener, ApiRequestTaskListener
             pending.dismiss();
             createList();
         } else {
-            pendingInput.setError("Login Failed!");
+            pendingInput.setError("login Failed!");
         }
     }
 
