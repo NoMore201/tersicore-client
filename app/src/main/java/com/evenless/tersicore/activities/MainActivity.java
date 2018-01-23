@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity
                         mService.seekToTrack(asd);
                         if(mService.getCurrentPlaylist().size()==1) {
                             mService.updateState();
-                            //recreate();
+                            getIntent().putExtra("EXTRA_UUID", (String) null);
                         }
                     }
                     else{
@@ -241,6 +241,9 @@ public class MainActivity extends AppCompatActivity
                 tv_seek.setOnSeekBarChangeListener(new seekListener());
                 tv_seek.setMax(tr.duration * 1000);
                 tv_seek.setProgress(mService.getCurrentprogress());
+                if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                    tv_seek.setThumb(null);
+                }
                 pager.setCurrentItem(mService.getCurrentTrackIndex(), true);
                 pager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
                     @Override

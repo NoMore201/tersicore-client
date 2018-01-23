@@ -1,6 +1,7 @@
 package com.evenless.tersicore;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -64,6 +65,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             "Higher lossy bitrate",
             "Lower Bitrate"
     };
+    private static final String NOTIFICATION_CHANNEL_ID = "45564" ;
+    private static final CharSequence NOTIFICATION_CHANNEL_NAME = "Player" ;
 
     public static TrackResources checkTrackResourceByPreference(Track tt, int w, boolean preferDownloaded, boolean isDataProt) {
         TrackResources res = tt.resources.get(0);
@@ -239,6 +242,17 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
         } catch (NullPointerException e) {
             Log.w(TAG, "onCreate: unable to lock Wifi", e);
+        }
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            int importance = NotificationManager.IMPORTANCE_LOW;
+            NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, NOTIFICATION_CHANNEL_NAME, importance);
+            notificationChannel.enableLights(false);
+            notificationChannel.enableVibration(false);
+            NotificationManager notificationManager = (NotificationManager) ccx.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (notificationManager != null) {
+                notificationManager.createNotificationChannel(notificationChannel);
+            }
         }
     }
 
@@ -772,8 +786,13 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     public Notification createNotification(boolean isPlayed, Track current){
-        Notification.Builder xd = new Notification.Builder(this)
-                .setSmallIcon(android.R.drawable.ic_media_play)
+        Notification.Builder xd = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            xd = new Notification.Builder(this, NOTIFICATION_CHANNEL_ID);
+        } else
+            xd = new Notification.Builder(this);
+
+        xd.setSmallIcon(android.R.drawable.ic_media_play)
                 .setContentTitle(current.title)
                 .setContentIntent(PendingIntent.getActivity(
                         this,
