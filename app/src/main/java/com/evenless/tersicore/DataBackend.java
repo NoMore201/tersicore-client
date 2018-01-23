@@ -202,28 +202,22 @@ public class DataBackend {
     public static List<Album> getAlbums() {
         ArrayList<Album> result = new ArrayList<>();
         if(PreferencesHandler.offline){
-            List<Track> asd = findAllOffline();
-            for (Track t : asd)
-                if(t.album!=null) {
-                    Album n;
-                    if (t.album_artist != null) {
-                        n = new Album(t.album, t.album_artist);
-                    } else
-                        n = new Album(t.album, t.artist);
-                    if(!result.contains(n))
-                        result.add(n);
+            for (Track t : findAllOffline())
+                if (t.album != null) {
+                    String artistString = t.album_artist != null ? t.album_artist : t.artist;
+                    Album temp = new Album(t.album, artistString);
+                    if (!result.contains(temp))
+                        result.add(temp);
                 }
         } else {
-            RealmResults<Track> unique = getInstance().where(Track.class)
+            RealmResults<Track> unique = getInstance()
+                    .where(Track.class)
                     .distinct("album");
             for (Track t : unique) {
                 if(t.album!=null) {
-                    Album temp=null;
-                    if (t.album_artist != null) {
-                        temp= new Album(t.album, t.album_artist);
-                    } else
-                        temp= new Album(t.album, t.artist);
-                    if(!result.contains(temp))
+                    String artistString = t.album_artist != null ? t.album_artist : t.artist;
+                    Album temp= new Album(t.album, artistString);
+                    if (!result.contains(temp))
                         result.add(temp);
                 }
             }
@@ -238,32 +232,26 @@ public class DataBackend {
      */
     public static List<Album> getAlbums(@NonNull String artist) {
         ArrayList<Album> result = new ArrayList<>();
-        if(PreferencesHandler.offline){
-            List<Track> asd = findAllOffline();
-            for (Track t : asd)
-                if(t.album!=null) {
-                    Album n=null;
-                    if (t.album_artist != null && t.album_artist.equalsIgnoreCase(artist)) {
-                        n = new Album(t.album, t.album_artist);
-                    } else if(t.artist!=null && t.artist.equalsIgnoreCase(artist))
-                        n = new Album(t.album, t.artist);
-                    if(n!=null && !result.contains(n))
-                        result.add(n);
-                }
-        } else {
-            RealmResults<Track> unique = getInstance().where(Track.class)
-                    .distinct("album", "album_artist");
-            for (Track t : unique) {
-                if(t.album!=null) {
-                    Album temp = null;
-                    if (t.album_artist != null && t.album_artist.equalsIgnoreCase(artist)) {
-                        temp = new Album(t.album, t.album_artist);
-                        if(!result.contains(temp))
+        if(PreferencesHandler.offline) {
+            for (Track t : findAllOffline())
+                if(t.album != null) {
+                    String artistString = t.album_artist != null ? t.album_artist : t.artist;
+                    if (artistString != null && artistString.equalsIgnoreCase(artist)) {
+                        Album temp = new Album(t.album, t.album_artist);
+                        if (!result.contains(temp))
                             result.add(temp);
                     }
-                    else if (t.artist != null && t.artist.equalsIgnoreCase(artist)) {
-                        temp = new Album(t.album, t.artist);
-                        if(!result.contains(temp))
+                }
+        } else {
+            RealmResults<Track> unique = getInstance()
+                    .where(Track.class)
+                    .distinct("album", "album_artist");
+            for (Track t : unique) {
+                if (t.album != null) {
+                    String artistString = t.album_artist != null ? t.album_artist : t.artist;
+                    if (artistString != null && artistString.equalsIgnoreCase(artist)) {
+                        Album temp = new Album(t.album, artistString);
+                        if (!result.contains(temp))
                             result.add(temp);
                     }
                 }
@@ -334,12 +322,16 @@ public class DataBackend {
      * @return
      */
     public static ArrayList<Track> getTracks(@NonNull String artist, @NonNull String album) {
-        List<Track> result =  getInstance().where(Track.class).beginGroup()
-                .equalTo("artist", artist, Case.INSENSITIVE).or().equalTo("album_artist", artist, Case.INSENSITIVE)
-                .endGroup().equalTo("album", album, Case.INSENSITIVE)
+        List<Track> result =  getInstance().where(Track.class)
+                .beginGroup()
+                .equalTo("artist", artist, Case.INSENSITIVE)
+                .or()
+                .equalTo("album_artist", artist, Case.INSENSITIVE)
+                .endGroup()
+                .equalTo("album", album, Case.INSENSITIVE)
                 .findAll();
         if(PreferencesHandler.offline)
-            result=findAllOffline((RealmResults<Track>) result);
+            result=findAllOffline(result);
         ArrayList<Track> toReturn = new ArrayList<>(result);
         orderByTrack(toReturn);
         return toReturn;

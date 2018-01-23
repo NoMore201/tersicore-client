@@ -60,7 +60,7 @@ implements ServerStatusTaskListener, ApiPostTaskListener, ApiRequestTaskListener
                     public void onClick(final View v) {
                         server=null;
                         AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
-                        builder.setMessage("Insert Server URL");
+                        builder.setTitle("Insert Server URL");
                         final EditText input = new EditText(v.getContext());
                         input.setInputType(InputType.TYPE_CLASS_TEXT);
                         builder.setView(input);
