@@ -256,12 +256,14 @@
 
     <TextView
         android:id="@+id/tv_song"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@id/tv_artist"
-        android:layout_centerHorizontal="true"
         android:layout_marginBottom="@dimen/space8"
+        android:textAlignment="center"
         android:textColor="@color/colorTextDark"
+        android:layout_marginStart="@dimen/space8"
+        android:layout_marginEnd="@dimen/space8"
         android:textSize="18sp" />
 
     <ToggleButton
