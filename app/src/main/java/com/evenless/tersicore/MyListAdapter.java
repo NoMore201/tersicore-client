@@ -108,9 +108,8 @@ implements ImageRequestTaskListener, CoverDownloadTaskListener {
             temp = mDataset.get(position);
             final String artist = temp;
             tempImg = mImages.get(temp);
-            getArtistImage(temp, ARTIST_STATE);
             if(tempImg==null)
-                getArtistImage(temp, ALBUMS_STATE);
+                getArtistImage(temp, ARTIST_STATE);
             list = v -> {
                 Intent asd = new Intent(v.getContext(), SingleArtistActivity.class);
                 asd.putExtra("EXTRA_ARTIST", artist);
