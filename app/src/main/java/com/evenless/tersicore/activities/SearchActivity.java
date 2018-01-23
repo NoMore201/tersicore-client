@@ -198,6 +198,7 @@ public class SearchActivity extends AppCompatActivity
                     handler.postDelayed(workRunnable, 200 /*delay*/);
                 } catch (Exception e) {
                     Log.e("SearchActivity", e.getMessage());
+                    e.printStackTrace();
                 }
             }
         });

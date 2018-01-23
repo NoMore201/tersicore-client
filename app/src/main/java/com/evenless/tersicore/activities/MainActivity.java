@@ -513,7 +513,7 @@ public class MainActivity extends AppCompatActivity
     public void onNewTrackPlaying(Track newTrack) {
         PagerContainer container = findViewById(R.id.pager_container);
         ViewPager pager = container.getViewPager();
-        pager.setCurrentItem(mService.getCurrentTrackIndex(), true);
+        pager.setCurrentItem(mService.getCurrentPlaylist().indexOf(newTrack), true);
     }
 
     @Override

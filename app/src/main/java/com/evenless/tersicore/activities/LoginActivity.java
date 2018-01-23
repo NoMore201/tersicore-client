@@ -90,8 +90,8 @@ public class LoginActivity extends AppCompatActivity implements ServerStatusTask
     }
 
     private void goToNextActivity() {
-        Intent asd = new Intent(this, SearchActivity.class);
-        startActivity(asd);
+        Intent Main = new Intent(this, SearchActivity.class); //this is actually MainActivity
+        startActivity(Main);
         finish();
     }
 

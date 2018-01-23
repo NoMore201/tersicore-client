@@ -1,5 +1,6 @@
 package com.evenless.tersicore;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -25,6 +26,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.danikula.videocache.HttpProxyCacheServer;
+import com.danikula.videocache.file.FileNameGenerator;
 import com.evenless.tersicore.activities.MainActivity;
 import com.evenless.tersicore.exceptions.MediaPlayerException;
 import com.evenless.tersicore.interfaces.CoverRetrieveTaskListener;
@@ -630,9 +632,17 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             return 0;
     }
 
+    @SuppressLint("HandlerLeak")
+    public Handler mHandlertwo = new Handler() {
+        public void handleMessage(Message msg) {
+            onCompletion(mMediaPlayer);
+        }
+    };
+
     public void callTimer(Handler h){
         final Handler mHandler = h;
         final MediaPlayer mediaPlayerInstance = mMediaPlayer;
+
         mCurrentTimer.cancel();
         mCurrentTimer = new Timer();
         mCurrentTimer.scheduleAtFixedRate(new TimerTask() {
@@ -641,9 +651,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                 try {
                     if (mMediaPlayer.isPlaying()) {
                         currentprogress=mediaPlayerInstance.getCurrentPosition();
-                        Message a = new Message();
-                        a.arg1 = mediaPlayerInstance.getCurrentPosition();
-                        mHandler.sendMessage(a);
+                        if(currentprogress>mediaPlayerInstance.getDuration()) {
+                            mHandlertwo.sendMessage(new Message());
+                        }
+                        else {
+                            Message a = new Message();
+                            a.arg1 = mediaPlayerInstance.getCurrentPosition();
+                            mHandler.sendMessage(a);
+                        }
                     }
                 } catch (Exception e) {
                     Log.e(TAG, e.getMessage());
@@ -744,6 +759,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     //Size in MB
     public void changeProxyCacheSize(int size) {
         proxy = new HttpProxyCacheServer.Builder(this)
+                .fileNameGenerator(new MyFileNameGenerator())
                 .maxCacheSize(size * 1024 * 1024)
                 .build();
     }
@@ -809,6 +825,15 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         xd.setVisibility(Notification.VISIBILITY_PUBLIC);
         xd.setLargeIcon(getCover(current));
         return xd.build();
+    }
+
+    public class MyFileNameGenerator implements FileNameGenerator {
+        public String generate(String url) {
+            Uri uri = Uri.parse(url);
+            String videoId = uri.getEncodedPath();
+            int ind = videoId.lastIndexOf("/");
+            return videoId.substring(ind+1);
+        }
     }
 
 

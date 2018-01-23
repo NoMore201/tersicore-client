@@ -111,13 +111,10 @@ implements ImageRequestTaskListener, CoverDownloadTaskListener {
             getArtistImage(temp, ARTIST_STATE);
             if(tempImg==null)
                 getArtistImage(temp, ALBUMS_STATE);
-            list = new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent asd = new Intent(v.getContext(), SingleArtistActivity.class);
-                    asd.putExtra("EXTRA_ARTIST", artist);
-                    v.getContext().startActivity(asd);
-                }
+            list = v -> {
+                Intent asd = new Intent(v.getContext(), SingleArtistActivity.class);
+                asd.putExtra("EXTRA_ARTIST", artist);
+                v.getContext().startActivity(asd);
             };
         }
         else if(listtypeNumber==ALBUMS_STATE || listtypeNumber==ARTALB_STATE) {
@@ -127,14 +124,11 @@ implements ImageRequestTaskListener, CoverDownloadTaskListener {
             final String ar = mTrackSet.get(position).artist;
             if(tempImg==null)
                 getAlbumCover(mTrackSet.get(position), ALBUMS_STATE);
-            list = new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent asd = new Intent(v.getContext(), SingleAlbumActivity.class);
-                    asd.putExtra("EXTRA_ARTIST", ar);
-                    asd.putExtra("EXTRA_ALBUM", al);
-                    v.getContext().startActivity(asd);
-                }
+            list = v -> {
+                Intent asd = new Intent(v.getContext(), SingleAlbumActivity.class);
+                asd.putExtra("EXTRA_ARTIST", ar);
+                asd.putExtra("EXTRA_ALBUM", al);
+                v.getContext().startActivity(asd);
             };
         } else if(listtypeNumber==SUGGESTIONS_STATE){
             final TrackSuggestion t = mTrackSugg.get(position);
@@ -152,19 +146,16 @@ implements ImageRequestTaskListener, CoverDownloadTaskListener {
             tempImg = mImages.get(t.album + t.artist);
             if(tempImg==null)
                 getAlbumCover(new Album(t.album, t.artist), ALBUMS_STATE);
-            list = new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if(t.uuid==null) {
-                        Intent asd = new Intent(v.getContext(), SingleAlbumActivity.class);
-                        asd.putExtra("EXTRA_ARTIST", t.artist);
-                        asd.putExtra("EXTRA_ALBUM", t.album);
-                        v.getContext().startActivity(asd);
-                    } else {
-                        Intent asd = new Intent(v.getContext(), MainActivity.class);
-                        asd.putExtra("EXTRA_UUID", t.uuid);
-                        v.getContext().startActivity(asd);
-                    }
+            list = v -> {
+                if(t.uuid==null) {
+                    Intent asd = new Intent(v.getContext(), SingleAlbumActivity.class);
+                    asd.putExtra("EXTRA_ARTIST", t.artist);
+                    asd.putExtra("EXTRA_ALBUM", t.album);
+                    v.getContext().startActivity(asd);
+                } else {
+                    Intent asd = new Intent(v.getContext(), MainActivity.class);
+                    asd.putExtra("EXTRA_UUID", t.uuid);
+                    v.getContext().startActivity(asd);
                 }
             };
         }
