@@ -13,6 +13,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.NavigationView;
@@ -494,18 +495,14 @@ public class SearchActivity extends AppCompatActivity
                     listTracksFiltered.add(t);
                 }
             }
-            for (Track t: listTracks) {
-                if (checkTrackByAlbum(t, query) && !isParsedAlbum(t)) {
-                    if (t.album_artist != null) {
-                        listAlbums.add(new Album(t.album, t.album_artist));
-                    } else {
-                        listAlbums.add(new Album(t.album, t.artist));
-                    }
+            for (Album t: DataBackend.getAlbums()) {
+                if (checkTrackByAlbum(t, query)) {
+                    listAlbums.add(t);
                 }
             }
-            for (Track t : listTracks) {
-                if (checkTrackByArtist(t, query) && !listArtists.contains(t.artist)) {
-                    listArtists.add(t.artist);
+            for (String t : DataBackend.getArtists()) {
+                if (checkTrackByArtist(t, query)) {
+                    listArtists.add(t);
                 }
             }
 
@@ -581,14 +578,14 @@ public class SearchActivity extends AppCompatActivity
         return (s.title!=null && (s.title.toLowerCase().startsWith(newText) || s.title.toLowerCase().contains(" " + newText)));
     }
 
-    public boolean checkTrackByArtist(Track s, String t){
+    public boolean checkTrackByArtist(String s, String t){
         String newText = t.toLowerCase();
-        return (s.artist!=null && (s.artist.toLowerCase().startsWith(newText)|| s.artist.toLowerCase().contains(" " + newText)));
+        return s.toLowerCase().startsWith(newText)|| s.toLowerCase().contains(" " + newText);
     }
 
-    public boolean checkTrackByAlbum(Track s, String t){
+    public boolean checkTrackByAlbum(Album s, String t){
         String newText = t.toLowerCase();
-        return (s.album!=null && (s.album.toLowerCase().startsWith(newText)|| s.album.toLowerCase().contains(" " + newText))) ;
+        return s.name.toLowerCase().startsWith(newText)|| s.name.toLowerCase().contains(" " + newText) ;
     }
 
     @Override
