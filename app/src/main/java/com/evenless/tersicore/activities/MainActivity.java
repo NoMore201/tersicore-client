@@ -556,32 +556,17 @@ public class MainActivity extends AppCompatActivity
     }
 
     private Bitmap getCover(Track tr){
-        byte[] cov = getEmbeddedCover(tr);
+        String art;
+        if(tr.album_artist!=null)
+            art=tr.album_artist;
+        else
+            art=tr.artist;
+        Cover asd = DataBackend.getCover(art, tr.album);
+        if(asd!=null)
+            return BitmapFactory.decodeByteArray(asd.cover,0,asd.cover.length);
+        else
+            return BitmapFactory.decodeResource(this.getResources(), R.drawable.nocover);
 
-        // convert the byte array to a bitmap
-        if(cov!= null && cov.length!=0)
-            return BitmapFactory.decodeByteArray(cov, 0, cov.length);
-        else {
-            String art;
-            if(tr.album_artist!=null)
-                art=tr.album_artist;
-            else
-                art=tr.artist;
-            Cover asd = DataBackend.getCover(art, tr.album);
-            if(asd!=null)
-                return BitmapFactory.decodeByteArray(asd.cover,0,asd.cover.length);
-            else
-                return BitmapFactory.decodeResource(this.getResources(), R.drawable.nocover);
-        }
-    }
-
-    private byte[] getEmbeddedCover(Track tr){
-        for(TrackResources r : tr.resources)
-            if(r.cover_data!=null && r.cover_data.length!=0)
-                return r.cover_data;
-            else if(r.cover_data==null)
-                mService.fetchCover(tr, tr.resources.indexOf(r));
-        return new byte[0];
     }
 
     @Override

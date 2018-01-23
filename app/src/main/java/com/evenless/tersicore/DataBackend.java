@@ -14,6 +14,7 @@ import com.evenless.tersicore.model.TrackResources;
 import com.evenless.tersicore.model.TrackSuggestion;
 
 import java.net.MalformedURLException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -150,7 +151,7 @@ public class DataBackend {
 
         ArrayList<String> result = new ArrayList<>();
         if(PreferencesHandler.offline){
-            ArrayList<Track> asd = findAllOffline();
+            List<Track> asd = findAllOffline();
             for (Track t : asd)
                 if(t.artist!=null && !result.contains(t.artist))
                     result.add(t.artist);
@@ -173,13 +174,12 @@ public class DataBackend {
         return false;
     }
 
-    private static ArrayList<Track> findAllOffline() {
-        RealmResults<Track> tracks = getInstance().where(Track.class).findAll();
-        return findAllOffline(tracks);
+    private static List<Track> findAllOffline() {
+        return findAllOffline(getInstance().where(Track.class).findAll());
     }
 
-    private static ArrayList<Track> findAllOffline(RealmResults<Track> tracks) {
-        ArrayList <Track> offlineTracks = new ArrayList<>();
+    private static List<Track> findAllOffline(List<Track> tracks) {
+        List <Track> offlineTracks = new ArrayList<>();
         for (Track t : tracks)
             if(t.hasBeenDownloaded())
                 offlineTracks.add(t);
@@ -191,10 +191,8 @@ public class DataBackend {
      * @return list of Track
      */
     public static List<Track> getTracks() {
-        if(PreferencesHandler.offline)
-            return findAllOffline();
-        else
-            return getInstance().where(Track.class).findAll();
+        return PreferencesHandler.offline ?
+                findAllOffline() : getInstance().where(Track.class).findAll();
     }
 
     /**
@@ -204,7 +202,7 @@ public class DataBackend {
     public static List<Album> getAlbums() {
         ArrayList<Album> result = new ArrayList<>();
         if(PreferencesHandler.offline){
-            ArrayList<Track> asd = findAllOffline();
+            List<Track> asd = findAllOffline();
             for (Track t : asd)
                 if(t.album!=null) {
                     Album n;
@@ -241,7 +239,7 @@ public class DataBackend {
     public static List<Album> getAlbums(@NonNull String artist) {
         ArrayList<Album> result = new ArrayList<>();
         if(PreferencesHandler.offline){
-            ArrayList<Track> asd = findAllOffline();
+            List<Track> asd = findAllOffline();
             for (Track t : asd)
                 if(t.album!=null) {
                     Album n=null;
@@ -290,12 +288,13 @@ public class DataBackend {
      * @param artist string representing the artist
      * @return list of Track
      */
-    public static ArrayList<Track> getTracks(@NonNull String artist) {
-        RealmResults<Track> result = getInstance().where(Track.class).equalTo("artist", artist, Case.INSENSITIVE).findAll();
-        if(PreferencesHandler.offline)
-            return findAllOffline(result);
-        else
-            return new ArrayList<>(result);
+    public static List<Track> getTracks(@NonNull String artist) {
+        List<Track> result = getInstance()
+                .where(Track.class)
+                .equalTo("artist", artist, Case.INSENSITIVE)
+                .findAll();
+        return PreferencesHandler.offline ?
+                findAllOffline(result) : result;
     }
 
     /**
@@ -304,10 +303,11 @@ public class DataBackend {
      */
     public static ArrayList<Album> getLastTracks() {
         List<Track> result = getInstance().where(Track.class).
-                isNotNull("playedIn").findAllSorted("playedIn", Sort.DESCENDING);
+                isNotNull("playedIn")
+                .findAllSorted("playedIn", Sort.DESCENDING);
 
         if(PreferencesHandler.offline)
-            result=findAllOffline((RealmResults<Track>) result);
+            result=findAllOffline(result);
 
         ArrayList<Album> toReturn = new ArrayList<>();
         for(Track t : result){
