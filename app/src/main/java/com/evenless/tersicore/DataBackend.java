@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Locale;
 
 import io.realm.Case;
-import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.Sort;
@@ -720,7 +719,7 @@ public class DataBackend {
     }
 
     public static boolean isFirstTime() {
-        return getInstance().where(Track.class).findFirst()!=null;
+        return getInstance().where(Track.class).findFirst() == null;
     }
 
     public static void setOffline(boolean is) {
