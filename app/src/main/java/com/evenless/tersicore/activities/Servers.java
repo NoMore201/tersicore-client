@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -60,10 +61,7 @@ implements ServerStatusTaskListener, ApiPostTaskListener, ApiRequestTaskListener
                     public void onClick(final View v) {
                         server=null;
                         AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
-                        builder.setTitle("Insert Server URL");
-                        final EditText input = new EditText(v.getContext());
-                        input.setInputType(InputType.TYPE_CLASS_TEXT);
-                        builder.setView(input);
+                        builder.setView(R.layout.server_form);
                         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -79,6 +77,7 @@ implements ServerStatusTaskListener, ApiPostTaskListener, ApiRequestTaskListener
                         sd.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
+                                EditText input = v.getRootView().findViewById(R.id.form_input);
                                 try {
                                     URL toValidate = new URL(input.getText().toString());
                                     TaskHandler.isServerRunning((ServerStatusTaskListener) ctx, toValidate);
