@@ -52,8 +52,6 @@ public class MyUsersListAdapter extends ArrayAdapter<User> {
             // Check if an existing view is being reused, otherwise inflate the view
             ViewHolder viewHolder; // view lookup cache stored in tag
 
-            final View result;
-
             if (convertView == null) {
                 viewHolder = new ViewHolder();
                 LayoutInflater inflater = LayoutInflater.from(getContext());
@@ -84,13 +82,10 @@ public class MyUsersListAdapter extends ArrayAdapter<User> {
             byte[] avatars = a.getAvatar();
             if(avatars!=null && avatars.length!=0)
                 viewHolder.avatar.setImageBitmap(BitmapFactory.decodeByteArray(avatars, 0, avatars.length));
-            viewHolder.mailto.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent asd = new Intent(v.getContext(), SendMail.class);
-                    asd.putExtra("EXTRA_CONTACT_NAME", a.id);
-                    v.getContext().startActivity(asd);
-                }
+            viewHolder.mailto.setOnClickListener(v -> {
+                Intent asd = new Intent(v.getContext(), SendMail.class);
+                asd.putExtra("EXTRA_CONTACT_NAME", a.id);
+                v.getContext().startActivity(asd);
             });
             return convertView;
         }

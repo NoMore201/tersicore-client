@@ -76,6 +76,9 @@ import com.evenless.tersicore.model.User;
 import com.evenless.tersicore.view.NonScrollableListView;
 import com.google.gson.Gson;
 
+import io.realm.Realm;
+import io.realm.Sort;
+
 public class SearchActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         ApiRequestExtraTaskListener,
@@ -140,7 +143,8 @@ public class SearchActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        listRecentAlbums=DataBackend.getLastTracks();
+
+
         setContentView(R.layout.activity_search);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -164,20 +168,11 @@ public class SearchActivity extends AppCompatActivity
                 LinearLayoutManager.HORIZONTAL,
                 false);
 
-        RecyclerView.LayoutManager mLayoutManagerAlbumRecent = new LinearLayoutManager(this,
-                LinearLayoutManager.HORIZONTAL,
-                false);
-
         mRecyclerView = findViewById(R.id.artistlistview);
         mRecyclerViewAlbums = findViewById(R.id.coverlistview);
-        mRecyclerViewAlbumsRecent = findViewById(R.id.coverlistrecentview);
-        mRecyclerViewAlbumsRecent.setLayoutManager(mLayoutManagerAlbumRecent);
-        if(listRecentAlbums.size()<1)
-            findViewById(R.id.textView2).setVisibility(View.GONE);
-        else
-            mRecyclerViewAlbumsRecent.setAdapter(new MyListAdapter(listRecentAlbums, MyListAdapter.ALBUMS_STATE));
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerViewAlbums.setLayoutManager(mLayoutManagerAlbum);
+        mRecyclerViewAlbumsRecent = findViewById(R.id.coverlistrecentview);
 
         final EditText editit = findViewById(R.id.searchone);
         editit.addTextChangedListener(new TextWatcher() {
@@ -204,26 +199,23 @@ public class SearchActivity extends AppCompatActivity
             }
         });
 
-        smTracks.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                EditText editit = findViewById(R.id.searchone);
-                boolean brokeTracks = false;
-                for (int i = (3 + page*10); i < listTracks.size(); i++) {
-                    if (checkTrackByTitle(listTracks.get(i), editit.getText().toString()) && !listTracksFiltered.contains(listTracks.get(i)))
-                        if(listTracksFiltered.size()>2 + ((page+1) *10)) {
-                            brokeTracks = true;
-                            page ++;
-                            break;
-                        } else
-                            listTracksFiltered.add(listTracks.get(i));
-                }
-
-                if(!brokeTracks)
-                    v.setVisibility(View.GONE);
-
-                updateList();
+        smTracks.setOnClickListener(v -> {
+            EditText editit1 = findViewById(R.id.searchone);
+            boolean brokeTracks = false;
+            for (int i = (3 + page*10); i < listTracks.size(); i++) {
+                if (checkTrackByTitle(listTracks.get(i), editit1.getText().toString()) && !listTracksFiltered.contains(listTracks.get(i)))
+                    if(listTracksFiltered.size()>2 + ((page+1) *10)) {
+                        brokeTracks = true;
+                        page ++;
+                        break;
+                    } else
+                        listTracksFiltered.add(listTracks.get(i));
             }
+
+            if(!brokeTracks)
+                v.setVisibility(View.GONE);
+
+            updateList();
         });
 
         NonScrollableListView lsv = findViewById(R.id.listtr);
@@ -236,29 +228,24 @@ public class SearchActivity extends AppCompatActivity
 
         Switch asd = navigationView.getMenu().findItem(R.id.app_bar_switch).getActionView().findViewById(R.id.switcharr);
         asd.setChecked(PreferencesHandler.getOffline(this));
-        asd.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                PreferencesHandler.setOffline(ctx, isChecked);
-                finish();
-                startActivity(getIntent());
-            }
+        asd.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            PreferencesHandler.setOffline(ctx, isChecked);
+            finish();
+            startActivity(getIntent());
         });
-        try {
-            List<String> servers = PreferencesHandler.getServer(ctx);
-            listTracks = DataBackend.getTracks();
-            if (listTracks.size() == 0)
-                try {
-                    isFirstTime=true;
-                    TaskHandler.getTracks(this, servers.get(0));
-                    PreferencesHandler.setLastUpdate(this);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-        } catch (Exception e){
-            e.printStackTrace();
-            Log.e(TAG, e.getMessage());
-        }
+        DataBackend.getInstance().executeTransactionAsync(realm -> {
+                List<String> servers = PreferencesHandler.getServer(ctx);
+                listTracks = PreferencesHandler.offline ?
+                        DataBackend.findAllOffline(realm) : realm.where(Track.class).findAll();
+                if (listTracks.size() == 0 && !PreferencesHandler.offline)
+                    try {
+                        isFirstTime=true;
+                        TaskHandler.getTracks((ApiRequestExtraTaskListener) ctx, servers.get(0));
+                        PreferencesHandler.setLastUpdate(ctx);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+        });
     }
 
     @Override
@@ -284,13 +271,10 @@ public class SearchActivity extends AppCompatActivity
                         "Khz " + p.bitrate / 1000 + "kbps";
                 j++;
             }
-            bd.setItems(data, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int w) {
-                    mService.seekToTrack(mService.append(listTracksFiltered.get(i), w));
-                    Intent dd = new Intent(ctx, MainActivity.class);
-                    startActivity(dd);
-                }
+            bd.setItems(data, (dialog, w) -> {
+                mService.seekToTrack(mService.append(listTracksFiltered.get(i), w));
+                Intent dd = new Intent(ctx, MainActivity.class);
+                startActivity(dd);
             });
             bd.show();
         }
@@ -331,6 +315,39 @@ public class SearchActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
+        DataBackend.getInstance().executeTransactionAsync(realm -> {
+            List<Track> result = realm.where(Track.class).
+                    isNotNull("playedIn")
+                    .findAllSorted("playedIn", Sort.DESCENDING);
+
+            if(PreferencesHandler.offline)
+                result=DataBackend.findAllOffline(result);
+
+            ArrayList<Album> toReturn = new ArrayList<>();
+            for(Track t : result){
+                String temp;
+                if(t.album_artist==null)
+                    temp=t.artist;
+                else
+                    temp=t.album_artist;
+
+                Album a = new Album(t.album, temp);
+                if(!toReturn.contains(a))
+                    toReturn.add(a);
+
+                if(toReturn.size()>9)
+                    break;
+            }
+            listRecentAlbums=toReturn;
+            RecyclerView.LayoutManager mLayoutManagerAlbumRecent = new LinearLayoutManager(ctx,
+                    LinearLayoutManager.HORIZONTAL,
+                    false);
+            mRecyclerViewAlbumsRecent.setLayoutManager(mLayoutManagerAlbumRecent);
+            if(listRecentAlbums.size()<1)
+                findViewById(R.id.textView2).setVisibility(View.GONE);
+            else
+                mRecyclerViewAlbumsRecent.setAdapter(new MyListAdapter(listRecentAlbums, MyListAdapter.ALBUMS_STATE));
+        });
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setCheckedItem(R.id.nav_home);
         if(!PreferencesHandler.getOffline(this))
@@ -360,16 +377,13 @@ public class SearchActivity extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-
+            //Handles the Top Right button
             case R.id.action_favorite:
                 DrawerLayout drawer = findViewById(R.id.drawer_layout);
                 ImageButton asdasd = drawer.findViewById(R.id.showmail);
-                asdasd.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent sdsd = new Intent(ctx, EmailsActivity.class);
-                        startActivity(sdsd);
-                    }
+                asdasd.setOnClickListener(v -> {
+                    Intent sdsd = new Intent(ctx, EmailsActivity.class);
+                    startActivity(sdsd);
                 });
                 if(newMessages>0) {
                     drawer.findViewById(R.id.roundcircle).setVisibility(View.VISIBLE);

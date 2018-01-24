@@ -3,6 +3,7 @@ package com.evenless.tersicore;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.evenless.tersicore.interfaces.SuggestionsTaskListener;
 import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.Cover;
 import com.evenless.tersicore.model.EmailType;
@@ -174,11 +175,15 @@ public class DataBackend {
         return false;
     }
 
-    private static List<Track> findAllOffline() {
+    public static List<Track> findAllOffline() {
         return findAllOffline(getInstance().where(Track.class).findAll());
     }
 
-    private static List<Track> findAllOffline(List<Track> tracks) {
+    public static List<Track> findAllOffline(Realm realm) {
+        return findAllOffline(realm.where(Track.class).findAll());
+    }
+
+    public static List<Track> findAllOffline(List<Track> tracks) {
         List <Track> offlineTracks = new ArrayList<>();
         for (Track t : tracks)
             if(t.hasBeenDownloaded())
@@ -216,6 +221,42 @@ public class DataBackend {
         } else {
             RealmResults<Track> unique = getInstance().where(Track.class)
                     .distinct("album");
+            for (Track t : unique) {
+                if(t.album!=null) {
+                    Album temp=null;
+                    if (t.album_artist != null) {
+                        temp= new Album(t.album, t.album_artist);
+                    } else
+                        temp= new Album(t.album, t.artist);
+                    if(!result.contains(temp))
+                        result.add(temp);
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Get a list of all Albums contained in the collection
+     * @return list of Album
+     */
+    public static List<Album> getAlbums(Realm realm) {
+        ArrayList<Album> result = new ArrayList<>();
+        if(PreferencesHandler.offline){
+            List<Track> asd = findAllOffline(realm);
+            for (Track t : asd)
+                if(t.album!=null) {
+                    Album n;
+                    if (t.album_artist != null) {
+                        n = new Album(t.album, t.album_artist);
+                    } else
+                        n = new Album(t.album, t.artist);
+                    if(!result.contains(n))
+                        result.add(n);
+                }
+        } else {
+            RealmResults<Track> unique = realm.where(Track.class)
+                    .distinct("album").sort("album", Sort.ASCENDING);
             for (Track t : unique) {
                 if(t.album!=null) {
                     Album temp=null;
@@ -423,7 +464,7 @@ public class DataBackend {
         return isUpdated ? track : null;
     }
 
-    private static Realm getInstance() {
+    public static Realm getInstance() {
         return Realm.getDefaultInstance();
     }
 
@@ -517,11 +558,11 @@ public class DataBackend {
         realm.commitTransaction();
     }
 
-    public static ArrayList<TrackSuggestion> getTracksCopied() {
+    public static void getTracksCopied(SuggestionsTaskListener suggestionsTaskListener) {
         ArrayList<TrackSuggestion> temp = new ArrayList<>();
         for (Track t : getTracks())
             temp.add(new TrackSuggestion(t.uuid, t.album, getTrackArtist(t), t.title, null));
-        return temp;
+        suggestionsTaskListener.onSuggestionsCompleted(temp);
     }
 
     private static String getTrackArtist(Track t) {

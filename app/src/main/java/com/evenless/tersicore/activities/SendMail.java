@@ -26,6 +26,7 @@ import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.TaskHandler;
 import com.evenless.tersicore.interfaces.ApiPostTaskListener;
+import com.evenless.tersicore.interfaces.SuggestionsTaskListener;
 import com.evenless.tersicore.model.Album;
 import com.evenless.tersicore.model.EmailType;
 import com.evenless.tersicore.model.Track;
@@ -38,7 +39,7 @@ import java.util.Date;
 import java.util.List;
 
 public class SendMail extends AppCompatActivity
-    implements ApiPostTaskListener{
+    implements ApiPostTaskListener, SuggestionsTaskListener{
 
     Album suggestion;
     TrackSuggestion suggestionTrack;
@@ -84,111 +85,83 @@ public class SendMail extends AppCompatActivity
         ImageButton add = findViewById(R.id.addsong);
         ImageButton rem = findViewById(R.id.removesong);
         ImageButton send = findViewById(R.id.send);
-        this.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                trackSugg=DataBackend.getTracksCopied();
-            }
-        });
-        send.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                EmailType email = new EmailType();
-                email.recipient = u.id;
-                EditText subj = findViewById(R.id.subject);
-                email.object = subj.getText().toString();
-                EditText body = findViewById(R.id.msg);
-                email.msg = body.getText().toString();
-                email.sender = PreferencesHandler.getUsername((Context) ctx);
-                if(suggestion!=null) {
-                    email.album = suggestion.name;
-                    email.artist = suggestion.artist;
-                } else if(suggestionTrack!=null)
-                    email.songuuid = suggestionTrack.uuid;
+        Runnable r = () -> DataBackend.getTracksCopied(this);
+        new Thread(r).start();
+        send.setOnClickListener(v -> {
+            EmailType email = new EmailType();
+            email.recipient = u.id;
+            EditText subj = findViewById(R.id.subject);
+            email.object = subj.getText().toString();
+            EditText body = findViewById(R.id.msg);
+            email.msg = body.getText().toString();
+            email.sender = PreferencesHandler.getUsername((Context) ctx);
+            if(suggestion!=null) {
+                email.album = suggestion.name;
+                email.artist = suggestion.artist;
+            } else if(suggestionTrack!=null)
+                email.songuuid = suggestionTrack.uuid;
 
-                email.date = new Date().toString();
-                counter=u.servers.size();
-                for(String s : u.servers){
-                    try {
-                        TaskHandler.sendMessage(s, ctx, email);
-                    } catch (MalformedURLException e) {
-                        counter--;
-                        e.printStackTrace();
-                    }
+            email.date = new Date().toString();
+            counter=u.servers.size();
+            for(String s : u.servers){
+                try {
+                    TaskHandler.sendMessage(s, ctx, email);
+                } catch (MalformedURLException e) {
+                    counter--;
+                    e.printStackTrace();
                 }
             }
         });
-        add.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        add.setOnClickListener(v -> {
+            if(trackSugg.size()!=0) {
                 final Context ctx = v.getContext();
                 final AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
-                builder.setItems(selectOption, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                if(which==1 || which==0) {
-                                    AlertDialog.Builder build2 = new AlertDialog.Builder(ctx);
-                                    final AutoCompleteTextView albums = new AutoCompleteTextView(ctx);
-                                    switch (which) {
-                                        // Album
-                                        case 0:
-                                            build2.setTitle("Search Album");
-                                            ArrayAdapter<Album> adapter = new ArrayAdapter<>(ctx,
-                                                    android.R.layout.simple_dropdown_item_1line, DataBackend.getAlbums());
-                                            albums.setAdapter(adapter);
-                                            break;
-                                        // Track
-                                        case 1:
-                                            while(trackSugg.size()==0)
-                                                try {
-                                                    wait(1000);
-                                                } catch (InterruptedException e) {
-                                                    e.printStackTrace();
-                                                }
-                                            build2.setTitle("Search Track");
-                                            ArrayAdapter<TrackSuggestion> tadapter = new ArrayAdapter<>(ctx,
-                                                    android.R.layout.simple_dropdown_item_1line, trackSugg);
-                                            albums.setAdapter(tadapter);
-                                            break;
-                                    }
-                                    final int selected = which;
-                                    albums.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                                        @Override
-                                        public void onItemClick(AdapterView<?> parent, View arg1, int pos,
-                                                                long id) {
-                                            if (selected == 0) {
-                                                suggestion = (Album) parent.getItemAtPosition(pos);
-                                            } else {
-                                                suggestionTrack = (TrackSuggestion) parent.getItemAtPosition(pos);
-                                            }
-                                        }
-                                    });
-                                    build2.setView(albums);
-                                    // Set up the buttons
-                                    build2.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            TextView asd = findViewById(R.id.songsnd);
-                                            if (suggestion != null) {
-                                                asd.setText("Album Suggested: " + suggestion.toString());
-                                                findViewById(R.id.addsong).setVisibility(View.GONE);
-                                                findViewById(R.id.removesong).setVisibility(View.VISIBLE);
-                                            } else if (suggestionTrack != null) {
-                                                asd.setText("Track Suggested: " + suggestionTrack.toString());
-                                                findViewById(R.id.addsong).setVisibility(View.GONE);
-                                                findViewById(R.id.removesong).setVisibility(View.VISIBLE);
-                                            }
-                                        }
-                                    });
-                                    build2.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            dialog.cancel();
-                                        }
-                                    });
-                                    build2.show();
-                                }
+                builder.setItems(selectOption, (dialog, which) -> {
+                    if (which == 1 || which == 0) {
+                        AlertDialog.Builder build2 = new AlertDialog.Builder(ctx);
+                        final AutoCompleteTextView albums = new AutoCompleteTextView(ctx);
+                        switch (which) {
+                            // Album
+                            case 0:
+                                build2.setTitle(R.string.searchAlbum);
+                                ArrayAdapter<Album> adapter = new ArrayAdapter<>(ctx,
+                                        android.R.layout.simple_dropdown_item_1line, DataBackend.getAlbums());
+                                albums.setAdapter(adapter);
+                                break;
+                            // Track
+                            case 1:
+                                build2.setTitle(R.string.searchTrack);
+                                ArrayAdapter<TrackSuggestion> tadapter = new ArrayAdapter<>(ctx,
+                                        android.R.layout.simple_dropdown_item_1line, trackSugg);
+                                albums.setAdapter(tadapter);
+                                break;
+                        }
+                        final int selected = which;
+                        albums.setOnItemClickListener((parent, arg1, pos, id) -> {
+                            if (selected == 0) {
+                                suggestion = (Album) parent.getItemAtPosition(pos);
+                            } else {
+                                suggestionTrack = (TrackSuggestion) parent.getItemAtPosition(pos);
                             }
                         });
+                        build2.setView(albums);
+                        // Set up the buttons
+                        build2.setPositiveButton("OK", (dialog1, which1) -> {
+                            TextView asd = findViewById(R.id.songsnd);
+                            if (suggestion != null) {
+                                asd.setText(R.string.AlbumSugg + " " + suggestion.toString());
+                                findViewById(R.id.addsong).setVisibility(View.GONE);
+                                findViewById(R.id.removesong).setVisibility(View.VISIBLE);
+                            } else if (suggestionTrack != null) {
+                                asd.setText(R.string.TrackSugg + " " + suggestionTrack.toString());
+                                findViewById(R.id.addsong).setVisibility(View.GONE);
+                                findViewById(R.id.removesong).setVisibility(View.VISIBLE);
+                            }
+                        });
+                        build2.setNegativeButton("Cancel", (dialog12, which12) -> dialog12.cancel());
+                        build2.show();
+                    }
+                });
                 builder.show();
             }
         });
@@ -227,13 +200,14 @@ public class SendMail extends AppCompatActivity
         else if((counter-succedeed)==0){
             AlertDialog.Builder builder = new AlertDialog.Builder((Context) ctx);
             builder.setMessage("Message Sent!")
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            finish();
-                        }
-                    });
+                    .setPositiveButton("OK", (dialog, id) -> finish());
             builder.show();
         }
 
+    }
+
+    @Override
+    public void onSuggestionsCompleted(ArrayList<TrackSuggestion> result) {
+        trackSugg=result;
     }
 }

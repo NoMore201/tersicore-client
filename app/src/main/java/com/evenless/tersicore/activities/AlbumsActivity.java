@@ -42,6 +42,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import io.realm.Realm;
+
 /**
  * Created by McPhi on 10/12/2017.
  */
@@ -107,15 +109,11 @@ public class AlbumsActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        listAlbums = DataBackend.getAlbums();
-        Collections.sort(listAlbums, new Comparator<Album>() {
-            @Override
-            public int compare(Album album, Album t1) {
-                return album.name.compareToIgnoreCase(t1.name);
-            }
+        DataBackend.getInstance().executeTransactionAsync(realm -> {
+            listAlbums = DataBackend.getAlbums(realm);
+            if (listAlbums != null)
+                createList();
         });
-        if (listAlbums != null)
-            createList();
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setCheckedItem(R.id.nav_albums);
     }

@@ -87,19 +87,16 @@ public class EmailsActivity extends AppCompatActivity
         });
 
         final SwipeRefreshLayout swip = findViewById(R.id.swiperefresh);
-        swip.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                counter=0;
-                for(String ss : PreferencesHandler.getServer(ctx))
-                    try {
-                        counter++;
-                        TaskHandler.getMessages((ApiRequestExtraTaskListener) ctx, ss);
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                        counter--;
-                    }
-            }
+        swip.setOnRefreshListener(() -> {
+            counter=0;
+            for(String ss : PreferencesHandler.getServer(ctx))
+                try {
+                    counter++;
+                    TaskHandler.getMessages((ApiRequestExtraTaskListener) ctx, ss);
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                    counter--;
+                }
         });
     }
 
