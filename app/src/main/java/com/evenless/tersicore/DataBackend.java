@@ -187,7 +187,7 @@ public class DataBackend {
         return findAllOffline(getInstance().where(Track.class).findAll());
     }
 
-    public static List<Track> findAllOffline(Realm realm, OrderedRealmCollectionChangeListener xx) {
+    public static List<Track> findAllOffline(Realm realm) {
         return findAllOffline(realm.where(Track.class).findAll());
     }
 
@@ -245,7 +245,7 @@ public class DataBackend {
     public static List<Album> getAlbums(Realm realm) {
         ArrayList<Album> result = new ArrayList<>();
         if(PreferencesHandler.offline){
-            List<Track> asd = findAllOffline();
+            List<Track> asd = findAllOffline(realm);
             for (Track t : asd)
                 if(t.album!=null) {
                     Album n;

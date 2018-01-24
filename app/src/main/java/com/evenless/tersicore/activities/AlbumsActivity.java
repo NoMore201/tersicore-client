@@ -109,11 +109,9 @@ public class AlbumsActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        DataBackend.getInstance().executeTransactionAsync(realm -> {
-            listAlbums = DataBackend.getAlbums(realm);
-            if (listAlbums != null)
-                createList();
-        });
+        listAlbums = DataBackend.getAlbums();
+        if (listAlbums != null)
+            createList();
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setCheckedItem(R.id.nav_albums);
     }
