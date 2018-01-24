@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:app="http://schemas.android.com/apk/res-auto"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:android="http://schemas.android.com/apk/res/android"
     android:animateLayoutChanges="true">
+
         <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
             xmlns:tools="http://schemas.android.com/tools"
@@ -21,17 +23,25 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
-                    android:background="@null"
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="60dp"
+                    android:background="@null"
+                    android:drawableLeft="@drawable/ic_search"
+                    android:hint="Search Artists, Albums or Tracks"
                     android:paddingBottom="8dp"
                     android:paddingTop="8dp"
-                    android:hint="Search Artists, Albums or Tracks"
                     android:singleLine="true"
                     android:theme="@android:style/Widget.Material.Light.SearchView"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
+
+                <View android:id="@+id/darkline"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@android:color/darker_gray"
+                    app:layout_constraintTop_toBottomOf="@id/searchone"
+                    app:layout_constraintStart_toStartOf="parent"/>
 
                 <TextView
                     android:id="@+id/tvArtists"
@@ -43,12 +53,12 @@
                     android:layout_weight="1"
                     android:paddingLeft="5dp"
                     android:paddingTop="8dp"
-                    android:visibility="gone"
                     android:text="Artists"
+                    android:visibility="gone"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHorizontal_bias="0.0"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/searchone" />
+                    app:layout_constraintTop_toBottomOf="@+id/darkline" />
 
                 <LinearLayout
                     android:id="@+id/linearArtists"
@@ -60,12 +70,12 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/tvArtists">
+
                         <android.support.v7.widget.RecyclerView
+                            android:id="@+id/artistlistview"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:orientation="horizontal"
-                            android:id="@+id/artistlistview">
-                        </android.support.v7.widget.RecyclerView>
+                            android:orientation="horizontal"></android.support.v7.widget.RecyclerView>
                 </LinearLayout>
 
 
@@ -77,14 +87,15 @@
                     android:layout_marginEnd="8dp"
                     android:layout_marginStart="8dp"
                     android:layout_weight="1"
-                    android:visibility="gone"
                     android:paddingLeft="5dp"
                     android:paddingTop="8dp"
                     android:text="Albums"
+                    android:visibility="gone"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHorizontal_bias="0.0"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/linearArtists" />
+
                 <LinearLayout
                     android:id="@+id/linearAlbums"
                     android:layout_width="match_parent"
@@ -94,13 +105,13 @@
                     android:orientation="vertical"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tvAlbums" >
+                    app:layout_constraintTop_toBottomOf="@+id/tvAlbums">
+
                         <android.support.v7.widget.RecyclerView
+                            android:id="@+id/coverlistview"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:orientation="horizontal"
-                            android:id="@+id/coverlistview">
-                        </android.support.v7.widget.RecyclerView>
+                            android:orientation="horizontal"></android.support.v7.widget.RecyclerView>
                 </LinearLayout>
 
                 <TextView
@@ -109,22 +120,25 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
                     android:layout_weight="1"
-                    android:visibility="gone"
                     android:paddingLeft="5dp"
                     android:paddingTop="8dp"
                     android:text="Tracks"
+                    android:visibility="gone"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/linearAlbums" />
+
                 <RelativeLayout
                     android:id="@+id/listtrR"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:layout_constraintTop_toBottomOf="@+id/tvtracks">
+
                         <com.evenless.tersicore.view.NonScrollableListView
                             android:id="@+id/listtr"
                             android:layout_width="match_parent"
                             android:layout_height="0dp" />
                 </RelativeLayout>
+
                 <TextView
                     android:id="@+id/tvsmlist"
                     android:layout_width="wrap_content"
@@ -133,8 +147,8 @@
                     android:layout_weight="1"
                     android:paddingLeft="5dp"
                     android:paddingTop="8dp"
-                    android:visibility="gone"
                     android:text="@string/showmore"
+                    android:visibility="gone"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/listtrR" />
 
@@ -148,8 +162,8 @@
                     android:layout_weight="1"
                     android:paddingLeft="5dp"
                     android:paddingTop="8dp"
-                    android:visibility="gone"
                     android:text="Friend's Suggestions"
+                    android:visibility="gone"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/tvsmlist" />
@@ -163,13 +177,13 @@
                     android:orientation="vertical"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/textView1" >
+                    app:layout_constraintTop_toBottomOf="@+id/textView1">
+
                         <android.support.v7.widget.RecyclerView
+                            android:id="@+id/suggestionsview"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:orientation="horizontal"
-                            android:id="@+id/suggestionsview">
-                        </android.support.v7.widget.RecyclerView>
+                            android:orientation="horizontal"></android.support.v7.widget.RecyclerView>
                 </LinearLayout>
 
                 <TextView
@@ -196,13 +210,13 @@
                     android:orientation="vertical"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/textView2" >
+                    app:layout_constraintTop_toBottomOf="@+id/textView2">
+
                         <android.support.v7.widget.RecyclerView
+                            android:id="@+id/coverlistrecentview"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:orientation="horizontal"
-                            android:id="@+id/coverlistrecentview">
-                        </android.support.v7.widget.RecyclerView>
+                            android:orientation="horizontal"></android.support.v7.widget.RecyclerView>
                 </LinearLayout>
 
                 <TextView
@@ -215,10 +229,10 @@
                     android:paddingLeft="5dp"
                     android:paddingTop="8dp"
                     android:text="Recently Uploaded Albums"
+                    android:visibility="gone"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHorizontal_bias="0.0"
                     app:layout_constraintStart_toStartOf="parent"
-                    android:visibility="gone"
                     app:layout_constraintTop_toBottomOf="@+id/linearRecentAlbums" />
 
                 <LinearLayout
