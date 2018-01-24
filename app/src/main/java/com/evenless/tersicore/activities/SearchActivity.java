@@ -238,7 +238,7 @@ public class SearchActivity extends AppCompatActivity
         asd.setOnCheckedChangeListener((buttonView, isChecked) -> {
             PreferencesHandler.setOffline(ctx, isChecked);
             finish();
-            startActivity(getIntent());
+            startActivity(new Intent(this, SearchActivity.class));
         });
         List<String> servers = PreferencesHandler.getServer(ctx);
         if (DataBackend.isFirstTime() && !PreferencesHandler.offline)
@@ -332,7 +332,7 @@ public class SearchActivity extends AppCompatActivity
                     isNotNull("playedIn")
                     .findAllSorted("playedIn", Sort.DESCENDING);
 
-            if(PreferencesHandler.offline)
+            if(PreferencesHandler.getOffline(ctx))
                 result=DataBackend.findAllOffline(result);
 
             ArrayList<Album> toReturn = new ArrayList<>();

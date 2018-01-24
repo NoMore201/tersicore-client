@@ -149,20 +149,10 @@ public class TracksActivity extends AppCompatActivity
 
         Switch asd = navigationView.getMenu().findItem(R.id.app_bar_switch).getActionView().findViewById(R.id.switcharr);
         asd.setChecked(PreferencesHandler.getOffline(this));
-        asd.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                PreferencesHandler.setOffline(ctx, isChecked);
-                for(String ss : PreferencesHandler.getServer(ctx))
-                    try {
-                        TaskHandler.setUser(ss, null,
-                                new User(PreferencesHandler.getUsername(ctx), isChecked));
-                    } catch (Exception e){
-                        e.printStackTrace();
-                    }
-                finish();
-                startActivity(getIntent());
-            }
+        asd.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            PreferencesHandler.setOffline(ctx, isChecked);
+            finish();
+            startActivity(new Intent(this, SearchActivity.class));
         });
 
     }

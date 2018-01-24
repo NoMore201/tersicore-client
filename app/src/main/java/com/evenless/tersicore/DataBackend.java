@@ -33,6 +33,7 @@ import io.realm.exceptions.RealmException;
 public class DataBackend {
 
     private static final String TAG = "DataBackend";
+    private static List<Track> offline=new ArrayList<>();
 
     /**
      * Save tracks into the database
@@ -184,17 +185,25 @@ public class DataBackend {
     }
 
     public static List<Track> findAllOffline() {
-        return findAllOffline(getInstance().where(Track.class).findAll());
+        return offline;
     }
 
     public static List<Track> findAllOffline(Realm realm) {
-        return findAllOffline(realm.where(Track.class).findAll());
+        return offline;
     }
 
     public static List<Track> findAllOffline(List<Track> tracks) {
         List <Track> offlineTracks = new ArrayList<>();
         for (Track t : tracks)
-            if(t.hasBeenDownloaded())
+            if(offline.contains(t))
+                offlineTracks.add(t);
+        return offlineTracks;
+    }
+
+    private static List<Track> createOffline(List<Track> tracks) {
+        List <Track> offlineTracks = new ArrayList<>();
+        for (Track t : tracks)
+            if(t.hasBeenDownloaded() || MediaPlayerService.hasBeenCached(t))
                 offlineTracks.add(t);
         return offlineTracks;
     }
@@ -712,5 +721,12 @@ public class DataBackend {
 
     public static boolean isFirstTime() {
         return getInstance().where(Track.class).findFirst()!=null;
+    }
+
+    public static void setOffline(boolean is) {
+        if(!is)
+            offline = new ArrayList<>();
+        else
+            offline = createOffline(getInstance().where(Track.class).findAll());
     }
 }

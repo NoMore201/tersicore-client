@@ -204,13 +204,10 @@ public class SingleAlbumActivity  extends AppCompatActivity
 
         Switch asd = navigationView.getMenu().findItem(R.id.app_bar_switch).getActionView().findViewById(R.id.switcharr);
         asd.setChecked(PreferencesHandler.getOffline(this));
-        asd.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                PreferencesHandler.setOffline(ctx, isChecked);
-                finish();
-                startActivity(getIntent());
-            }
+        asd.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            PreferencesHandler.setOffline(ctx, isChecked);
+            finish();
+            startActivity(new Intent(this, SearchActivity.class));
         });
 
         findViewById(R.id.removeButt).setOnClickListener(new View.OnClickListener() {

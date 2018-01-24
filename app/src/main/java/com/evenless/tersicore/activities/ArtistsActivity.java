@@ -147,13 +147,10 @@ public class ArtistsActivity  extends AppCompatActivity
                 .getActionView()
                 .findViewById(R.id.switcharr);
         asd.setChecked(PreferencesHandler.getOffline(this));
-        asd.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                PreferencesHandler.setOffline(ctx, isChecked);
-                finish();
-                startActivity(getIntent());
-            }
+        asd.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            PreferencesHandler.setOffline(ctx, isChecked);
+            finish();
+            startActivity(new Intent(this, SearchActivity.class));
         });
         findViewById(R.id.floatingActionButton).setOnClickListener(
                 new View.OnClickListener() {

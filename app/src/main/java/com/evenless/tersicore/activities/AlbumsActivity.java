@@ -152,7 +152,7 @@ public class AlbumsActivity extends AppCompatActivity
         asd.setOnCheckedChangeListener((buttonView, isChecked) -> {
             PreferencesHandler.setOffline(ctx, isChecked);
             finish();
-            startActivity(getIntent());
+            startActivity(new Intent(this, SearchActivity.class));
         });
     }
 

@@ -68,6 +68,7 @@ public class PreferencesHandler {
         editor.putBoolean(PREF_OFFLINE, is);
         editor.apply();
         editor.commit();
+        DataBackend.setOffline(is);
     }
 
     public static void setUser(Context ctx, String u){
