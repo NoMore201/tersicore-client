@@ -204,6 +204,8 @@ public class SearchActivity extends AppCompatActivity
             }
         });
 
+        PreferencesHandler.offline= PreferencesHandler.getOffline(ctx);
+
         smTracks.setOnClickListener(v -> {
             EditText editit1 = findViewById(R.id.searchone);
             boolean brokeTracks = false;
