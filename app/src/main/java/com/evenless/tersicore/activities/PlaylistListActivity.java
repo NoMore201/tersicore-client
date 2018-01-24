@@ -143,24 +143,21 @@ implements FileDownloadTaskListener{
                                             "Khz " + p.bitrate / 1000 + "kbps";
                                     k++;
                                 }
-                                bd.setItems(data, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int w) {
-                                        Map<String, Integer> resfav = new HashMap<>();
-                                        TrackResources d = it.resources.get(w);
-                                        for(int k=0; k<listTracks.size(); k++) {
-                                            Track temp = listTracks.get(k);
-                                            int index=0;
-                                            int bitrate=temp.resources.get(0).bitrate;
-                                            for (int j=1; j<temp.resources.size(); j++)
-                                                if(Math.abs(bitrate-d.bitrate)>Math.abs(temp.resources.get(j).bitrate-d.bitrate)){
-                                                    index=j;
-                                                    bitrate=temp.resources.get(j).bitrate;
-                                                }
-                                            resfav.put(temp.uuid, index);
-                                        }
-                                        mService.updatePlaylist(listTracks, listTracks.indexOf(it), false, resfav);
+                                bd.setItems(data, (dialog, w) -> {
+                                    Map<String, Integer> resfav = new HashMap<>();
+                                    TrackResources d = it.resources.get(w);
+                                    for(int k1 = 0; k1 <listTracks.size(); k1++) {
+                                        Track temp = listTracks.get(k1);
+                                        int index=0;
+                                        int bitrate=temp.resources.get(0).bitrate;
+                                        for (int j=1; j<temp.resources.size(); j++)
+                                            if(Math.abs(bitrate-d.bitrate)>Math.abs(temp.resources.get(j).bitrate-d.bitrate)){
+                                                index=j;
+                                                bitrate=temp.resources.get(j).bitrate;
+                                            }
+                                        resfav.put(temp.uuid, index);
                                     }
+                                    mService.updatePlaylist(listTracks, listTracks.indexOf(it), false, resfav);
                                 });
                                 bd.show();
                             }

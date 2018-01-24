@@ -134,20 +134,16 @@ public class AlbumsActivity extends AppCompatActivity
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         findViewById(R.id.floatingActionButton).setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        final Intent dd = new Intent(v.getContext(), MainActivity.class);
-                        AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
-                        builder.setTitle("Play options")
-                                .setItems(MediaPlayerService.playOptions, new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        mService.updatePlaylist(DataBackend.getTracks(),0, true);
-                                        mService.replacementChoice=which;
-                                        startActivity(dd);
-                                    }});
-                        builder.show();
-                    }
+                v -> {
+                    final Intent dd = new Intent(v.getContext(), MainActivity.class);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+                    builder.setTitle("Play options")
+                            .setItems(MediaPlayerService.playOptions, (dialog, which) -> {
+                                mService.updatePlaylist(DataBackend.getTracks(),0, true);
+                                mService.replacementChoice=which;
+                                startActivity(dd);
+                            });
+                    builder.show();
                 }
         );
         Switch asd = navigationView.getMenu()
@@ -155,13 +151,10 @@ public class AlbumsActivity extends AppCompatActivity
                 .getActionView()
                 .findViewById(R.id.switcharr);
         asd.setChecked(PreferencesHandler.getOffline(this));
-        asd.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                PreferencesHandler.setOffline(ctx, isChecked);
-                finish();
-                startActivity(getIntent());
-            }
+        asd.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            PreferencesHandler.setOffline(ctx, isChecked);
+            finish();
+            startActivity(getIntent());
         });
     }
 

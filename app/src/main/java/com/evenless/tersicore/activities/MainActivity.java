@@ -87,13 +87,12 @@ public class MainActivity extends AppCompatActivity
                 Track toPlay=DataBackend.getTrack(uuidnow);
                 if(toPlay==null){
                     AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+                    //We can have suggestions that refers to tracks in other servers due to many->many logic
                     alertDialog.setMessage("You don't have this track in your servers");
                     alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "BACK",
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                    onBackPressed();
-                                }
+                            (dialog, which) -> {
+                                dialog.dismiss();
+                                onBackPressed();
                             });
                     alertDialog.show();
                 }
@@ -128,20 +127,17 @@ public class MainActivity extends AppCompatActivity
                                     "Khz " + p.bitrate / 1000 + "kbps";
                             i++;
                         }
-                        bd.setItems(data, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int w) {
-                                int asd = mService.append(temp.get(0),w);
-                                PagerContainer container = findViewById(R.id.pager_container);
-                                final ViewPager pager = container.getViewPager();
-                                pager.setAdapter(new MainActivity.MyPagerAdapter());
-                                pager.setCurrentItem(mService.getCurrentTrackIndex());
-                                mService.seekToTrack(asd);
-                                if(mService.getCurrentPlaylist().size()==1) {
-                                    mService.updateState();
-                                    getIntent().putExtra("EXTRA_UUID", (String) null);
-                                    recreate();
-                                }
+                        bd.setItems(data, (dialog, w) -> {
+                            int asd = mService.append(temp.get(0),w);
+                            PagerContainer container = findViewById(R.id.pager_container);
+                            final ViewPager pager = container.getViewPager();
+                            pager.setAdapter(new MyPagerAdapter());
+                            pager.setCurrentItem(mService.getCurrentTrackIndex());
+                            mService.seekToTrack(asd);
+                            if(mService.getCurrentPlaylist().size()==1) {
+                                mService.updateState();
+                                getIntent().putExtra("EXTRA_UUID", (String) null);
+                                recreate();
                             }
                         });
                         bd.show();
@@ -152,12 +148,7 @@ public class MainActivity extends AppCompatActivity
                 mService.callTimer(mHandler);
                 PagerContainer container = findViewById(R.id.pager_container);
                 final Toolbar toolbar = findViewById(R.id.toolbar2);
-                toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        onBackPressed();
-                    }
-                });
+                toolbar.setNavigationOnClickListener(v -> onBackPressed());
                 final ViewPager pager = container.getViewPager();
                 pager.setAdapter(new MainActivity.MyPagerAdapter());
                 pager.setClipChildren(false);
@@ -192,20 +183,14 @@ public class MainActivity extends AppCompatActivity
                         "Khz " + tr.resources.get(curres).bitrate / 1000 + "kbps");
                 ToggleButton toggleR = (ToggleButton) findViewById(R.id.toggleRepeat);
                 toggleR.setChecked(mService.getRepeat());
-                toggleR.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                        mService.setRepeat(isChecked);
-                    }
-                });
+                toggleR.setOnCheckedChangeListener((buttonView, isChecked) -> mService.setRepeat(isChecked));
                 ToggleButton toggleS = findViewById(R.id.toggleShuffle);
                 toggleS.setChecked(mService.getShuffle());
-                toggleS.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                        if (isChecked != mService.getShuffle()) {
-                            mService.toggleShuffle();
-                            pager.setAdapter(new MainActivity.MyPagerAdapter());
-                            pager.setCurrentItem(mService.getCurrentTrackIndex());
-                        }
+                toggleS.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                    if (isChecked != mService.getShuffle()) {
+                        mService.toggleShuffle();
+                        pager.setAdapter(new MyPagerAdapter());
+                        pager.setCurrentItem(mService.getCurrentTrackIndex());
                     }
                 });
                 if (mService.isPlaying())
@@ -214,23 +199,20 @@ public class MainActivity extends AppCompatActivity
                     vie.setImageResource(R.drawable.ic_play);
                 ToggleButton lik = findViewById(R.id.tb_love);
                 lik.setChecked(DataBackend.checkFavorite(tr));
-                lik.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                    @Override
-                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                        Track t = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex());
-                        DataBackend.updateFavorite(t , isChecked);
-                        if(isChecked)
-                            try {
-                                List<String> servers = PreferencesHandler.getServer((Context) ctx);
-                                TrackSuggestion temps = new TrackSuggestion(t.uuid, t.album, t.artist, t.title, PreferencesHandler.getUsername((Context) ctx));
-                                for(String ss : servers)
-                                    TaskHandler.setSuggestion(ss,
-                                            (ApiPostTaskListener) ctx,
-                                            temps);
-                            } catch (MalformedURLException e) {
-                                e.printStackTrace();
-                            }
-                    }
+                lik.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                    Track t = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex());
+                    DataBackend.updateFavorite(t , isChecked);
+                    if(isChecked)
+                        try {
+                            List<String> servers = PreferencesHandler.getServer((Context) ctx);
+                            TrackSuggestion temps = new TrackSuggestion(t.uuid, t.album, t.artist, t.title, PreferencesHandler.getUsername((Context) ctx));
+                            for(String ss : servers)
+                                TaskHandler.setSuggestion(ss,
+                                        (ApiPostTaskListener) ctx,
+                                        temps);
+                        } catch (MalformedURLException e) {
+                            e.printStackTrace();
+                        }
                 });
                 SeekBar tv_seek = findViewById(R.id.tv_seek);
                 tv_seek.setOnSeekBarChangeListener(new seekListener());
@@ -308,35 +290,31 @@ public class MainActivity extends AppCompatActivity
                     public void onClick(View v) {
                         AlertDialog.Builder builder = new AlertDialog.Builder((Context) ctx);
                         builder.setTitle("Share your song")
-                                .setItems(shareOptions, new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        final Track temp = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex());
-                                        switch (which) {
-                                            case 0:
-                                                AlertDialog.Builder builder = new AlertDialog.Builder((Context) ctx);
-                                                final String[] usersName = new String[SearchActivity.users.size()];
-                                                for (int i=0;i<SearchActivity.users.size();i++)
-                                                    usersName[i]=SearchActivity.users.get(i).id;
-                                                builder.setTitle("Select User")
-                                                        .setItems(usersName, new DialogInterface.OnClickListener() {
-                                                            public void onClick(DialogInterface dialog, int sel) {
-                                                                Intent sendMail = new Intent((Context) ctx, SendMail.class);
-                                                                sendMail.putExtra("EXTRA_UUID", temp.uuid);
-                                                                sendMail.putExtra("EXTRA_CONTACT_NAME", usersName[sel]);
-                                                                startActivity(sendMail);
-                                                            }
-                                                        });
-                                                builder.show();
-                                                break;
-                                            case 1:
-                                                Intent sendIntent = new Intent();
-                                                sendIntent.setAction(Intent.ACTION_SEND);
-                                                sendIntent.putExtra(Intent.EXTRA_TEXT, "Currently Playing: " +
-                                                        temp.title + " by " + temp.artist + " on #tersicore");
-                                                sendIntent.setType("text/plain");
-                                                startActivity(sendIntent);
-                                                break;
-                                        }
+                                .setItems(shareOptions, (dialog, which) -> {
+                                    final Track temp = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex());
+                                    switch (which) {
+                                        case 0:
+                                            AlertDialog.Builder builder1 = new AlertDialog.Builder((Context) ctx);
+                                            final String[] usersName = new String[SearchActivity.users.size()];
+                                            for (int i=0;i<SearchActivity.users.size();i++)
+                                                usersName[i]=SearchActivity.users.get(i).id;
+                                            builder1.setTitle("Select User")
+                                                    .setItems(usersName, (dialog1, sel) -> {
+                                                        Intent sendMail = new Intent((Context) ctx, SendMail.class);
+                                                        sendMail.putExtra("EXTRA_UUID", temp.uuid);
+                                                        sendMail.putExtra("EXTRA_CONTACT_NAME", usersName[sel]);
+                                                        startActivity(sendMail);
+                                                    });
+                                            builder1.show();
+                                            break;
+                                        case 1:
+                                            Intent sendIntent = new Intent();
+                                            sendIntent.setAction(Intent.ACTION_SEND);
+                                            sendIntent.putExtra(Intent.EXTRA_TEXT, "Currently Playing: " +
+                                                    temp.title + " by " + temp.artist + " on #tersicore");
+                                            sendIntent.setType("text/plain");
+                                            startActivity(sendIntent);
+                                            break;
                                     }
                                 });
                         builder.show();
@@ -355,30 +333,25 @@ public class MainActivity extends AppCompatActivity
                     download.setVisibility(View.VISIBLE);
                     remove.setVisibility(View.GONE);
                 }
-                download.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (ContextCompat.checkSelfPermission(v.getContext(),
-                                Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                                != PackageManager.PERMISSION_GRANTED) {
-
-                                ActivityCompat.requestPermissions(MainActivity.this,
-                                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                                        355);
-
-                        } else {
-                            v.setVisibility(View.GONE);
-                            findViewById(R.id.progressani2).setVisibility(View.VISIBLE);
-                            try {
-                                mService.downloadCurrentFile((FileDownloadTaskListener) ctx);
-                            } catch (MalformedURLException e) {
-                                findViewById(R.id.progressani2).setVisibility(View.GONE);
-                                v.setVisibility(View.VISIBLE);
-                                Toast.makeText((Context) ctx,
-                                        "Error in downloading file from server",
-                                        Toast.LENGTH_LONG).show();
-                                e.printStackTrace();
-                            }
+                download.setOnClickListener(v -> {
+                    if (ContextCompat.checkSelfPermission(v.getContext(),
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                            != PackageManager.PERMISSION_GRANTED) {
+                            ActivityCompat.requestPermissions(MainActivity.this,
+                                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                                    355);
+                    } else {
+                        v.setVisibility(View.GONE);
+                        findViewById(R.id.progressani2).setVisibility(View.VISIBLE);
+                        try {
+                            mService.downloadCurrentFile((FileDownloadTaskListener) ctx);
+                        } catch (MalformedURLException e) {
+                            findViewById(R.id.progressani2).setVisibility(View.GONE);
+                            v.setVisibility(View.VISIBLE);
+                            Toast.makeText((Context) ctx,
+                                    "Error in downloading file from server",
+                                    Toast.LENGTH_LONG).show();
+                            e.printStackTrace();
                         }
                     }
                 });
@@ -516,7 +489,6 @@ public class MainActivity extends AppCompatActivity
         pager.setCurrentItem(mService.getCurrentPlaylist().indexOf(newTrack), true);
     }
 
-    @Override
     public void onPlaybackProgressUpdate(int currentMilliseconds) {
         long durat = mService.getDuration();
         if(durat==0)
@@ -533,7 +505,6 @@ public class MainActivity extends AppCompatActivity
             TextView fullT = findViewById(R.id.tv_full_time);
             fullT.setText(parseDuration(durat));
         }
-
     }
 
     @Override

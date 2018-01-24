@@ -339,14 +339,16 @@ public class SearchActivity extends AppCompatActivity
                     break;
             }
             listRecentAlbums=toReturn;
-            RecyclerView.LayoutManager mLayoutManagerAlbumRecent = new LinearLayoutManager(ctx,
-                    LinearLayoutManager.HORIZONTAL,
-                    false);
-            mRecyclerViewAlbumsRecent.setLayoutManager(mLayoutManagerAlbumRecent);
-            if(listRecentAlbums.size()<1)
-                findViewById(R.id.textView2).setVisibility(View.GONE);
-            else
-                mRecyclerViewAlbumsRecent.setAdapter(new MyListAdapter(listRecentAlbums, MyListAdapter.ALBUMS_STATE));
+            SearchActivity.this.runOnUiThread(() -> {
+                RecyclerView.LayoutManager mLayoutManagerAlbumRecent = new LinearLayoutManager(ctx,
+                        LinearLayoutManager.HORIZONTAL,
+                        false);
+                mRecyclerViewAlbumsRecent.setLayoutManager(mLayoutManagerAlbumRecent);
+                if(listRecentAlbums.size()<1)
+                    findViewById(R.id.textView2).setVisibility(View.GONE);
+                else
+                    mRecyclerViewAlbumsRecent.setAdapter(new MyListAdapter(listRecentAlbums, MyListAdapter.ALBUMS_STATE));
+            });
         });
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setCheckedItem(R.id.nav_home);
