@@ -14,7 +14,6 @@ import com.evenless.tersicore.model.TrackResources;
 import com.evenless.tersicore.model.TrackSuggestion;
 
 import java.net.MalformedURLException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -68,7 +67,11 @@ public class DataBackend {
         }
         else
             try {
-                realm.where(Favorites.class).and().equalTo("uuid", t.uuid).findFirst().deleteFromRealm();
+                Favorites fav = realm.where(Favorites.class)
+                        .and()
+                        .equalTo("uuid", t.uuid).findFirst();
+                if (fav != null)
+                    fav.deleteFromRealm();
             } catch (Exception e){
                 Log.i(TAG,"No Favorite Found");
             }
@@ -85,7 +88,11 @@ public class DataBackend {
         }
         else
             try {
-                realm.where(Favorites.class).equalTo("uuid", a.name + a.artist).findFirst().deleteFromRealm();
+                Favorites fav = realm.where(Favorites.class)
+                        .equalTo("uuid", a.name + a.artist)
+                        .findFirst();
+                if (fav != null)
+                    fav.deleteFromRealm();
             } catch (Exception e){
                 Log.i(TAG,"No Favorite Found");
             }
