@@ -4,12 +4,17 @@
     android:layout_height="wrap_content"
     android:padding="8dp"
     android:orientation="horizontal">
+        <android.support.constraint.ConstraintLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
 
-        <ImageView
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:id="@+id/accountimg"
-            android:src="@drawable/ic_account_circle_black"/>
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:id="@+id/accountimg"
+                android:src="@drawable/nocover"/>
+        </android.support.constraint.ConstraintLayout>
+
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"

@@ -13,6 +13,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.evenless.tersicore.DataBackend;
+import com.evenless.tersicore.MyUsersListAdapter;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.TaskHandler;
@@ -54,7 +55,8 @@ public class SingleEmailActivity extends AppCompatActivity {
             final User sender = SearchActivity.getUser(mail.sender);
             byte [] ava = sender.getAvatar();
             if(ava!=null && ava.length!=0)
-                asd.setImageBitmap(BitmapFactory.decodeByteArray(ava, 0, ava.length));
+                asd.setImageBitmap(
+                        MyUsersListAdapter.getRoundedShape(BitmapFactory.decodeByteArray(ava, 0, ava.length)));
             text1.setText(mail.sender);
             text2.setText(mail.object);
             text3.setText(mail.msg);

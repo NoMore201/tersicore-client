@@ -403,7 +403,8 @@ public class SearchActivity extends AppCompatActivity
                 if(me!=null) {
                     byte[] avatar = me.getAvatar();
                     if (avatar != null && avatar.length != 0)
-                        myimg.setImageBitmap(BitmapFactory.decodeByteArray(avatar, 0, avatar.length));
+                        myimg.setImageBitmap(
+                                MyUsersListAdapter.getRoundedShape(BitmapFactory.decodeByteArray(avatar, 0, avatar.length)));
                     TextView meme = drawer.findViewById(R.id.myname);
                     meme.setText(me.id);
                 }

@@ -14,10 +14,10 @@
     android:summary="It could take time"/>
     </PreferenceCategory>
     <PreferenceCategory
-        android:title="Resources Management">
+        android:title="@string/ResourcesTitleManagement">
         <ListPreference
-            android:key="PreferredQualityWiFi"
-            android:title="Preferred Quality on Wi-Fi"
+            android:key="@string/WifiQualityPrefKey"
+            android:title="@string/WifiQualityPrefTitle"
             android:entries="@array/pref_sync_quality_entries"
             android:entryValues="@array/pref_sync_quality_values"
             android:defaultValue="1"
@@ -37,12 +37,12 @@
             android:defaultValue="512"
             />
         <Preference
-            android:title="Delete All Cached Tracks"
-            android:key="deleteCached"
-            android:summary="Downloaded Tracks not deleted."/>
+            android:title="@string/DeleteCacheTitle"
+            android:key="@string/DeleteCacheKey"
+            android:summary="@string/DeleteCacheSummay"/>
         <CheckBoxPreference
-            android:key="PreferOffline"
-            android:title="Prefer Offline Tracks if Available"
+            android:key="@string/PreferOfflineKey"
+            android:title="@string/PreferOfflineTitle"
             android:defaultValue="true"
             />
         <CheckBoxPreference

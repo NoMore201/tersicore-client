@@ -121,4 +121,12 @@
     <string name="searchTrack">Search Track</string>
     <string name="AlbumSugg">Album Suggested:</string>
     <string name="TrackSugg">Track Suggested:</string>
+    <string name="WifiQualityPrefKey">PreferredQualityWiFi</string>
+    <string name="WifiQualityPrefTitle">Preferred Quality on Wi-Fi</string>
+    <string name="DeleteCacheTitle">Delete All Cached Tracks</string>
+    <string name="DeleteCacheKey">deleteCached</string>
+    <string name="DeleteCacheSummay">Downloaded Tracks not deleted.</string>
+    <string name="PreferOfflineKey">PreferOffline</string>
+    <string name="PreferOfflineTitle">Prefer Offline Tracks if Available</string>
+    <string name="ResourcesTitleManagement">Resources Management</string>
 </resources>

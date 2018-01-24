@@ -34,8 +34,8 @@ public class PreferencesHandler {
     private static SharedPreferences getSharedPreferences(Context ctx) {
         return PreferenceManager.getDefaultSharedPreferences(ctx);
     }
-
     public static int getCacheSize(Context ctx) {
+        //Example of preference retrieving, We coded the preferences name as constant strings
         return Integer.parseInt(getSharedPreferences(ctx).getString(PREF_CACHE_SIZE_KEY, "512"));
     }
 

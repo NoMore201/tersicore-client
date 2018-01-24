@@ -22,6 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.evenless.tersicore.DataBackend;
+import com.evenless.tersicore.MyUsersListAdapter;
 import com.evenless.tersicore.PreferencesHandler;
 import com.evenless.tersicore.R;
 import com.evenless.tersicore.TaskHandler;
@@ -78,7 +79,8 @@ public class SendMail extends AppCompatActivity
         ImageView imgv = findViewById(R.id.myimg);
         if(u.avatar!=null && u.avatar.length()!=0) {
             byte[] av = u.getAvatar();
-            imgv.setImageBitmap(BitmapFactory.decodeByteArray(av, 0, av.length));
+            imgv.setImageBitmap(
+                    MyUsersListAdapter.getRoundedShape(BitmapFactory.decodeByteArray(av, 0, av.length)));
         }
         Toolbar toolbar = findViewById(R.id.toolbar2);
         toolbar.setTitle("Send Email");

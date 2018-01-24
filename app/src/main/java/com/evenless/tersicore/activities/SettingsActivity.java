@@ -72,30 +72,27 @@ public class SettingsActivity extends AppCompatPreferenceActivity
      * A preference value change listener that updates the preference's summary
      * to reflect its new value.
      */
-    private static Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListener = new Preference.OnPreferenceChangeListener() {
-        @Override
-        public boolean onPreferenceChange(Preference preference, Object value) {
-            String stringValue = value.toString();
+    private static Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListener = (preference, value) -> {
+        String stringValue = value.toString();
 
-            if (preference instanceof ListPreference) {
-                // For list preferences, look up the correct display value in
-                // the preference's 'entries' list.
-                ListPreference listPreference = (ListPreference) preference;
-                int index = listPreference.findIndexOfValue(stringValue);
+        if (preference instanceof ListPreference) {
+            // For list preferences, look up the correct display value in
+            // the preference's 'entries' list.
+            ListPreference listPreference = (ListPreference) preference;
+            int index = listPreference.findIndexOfValue(stringValue);
 
-                // Set the summary to reflect the new value.
-                preference.setSummary(
-                        index >= 0
-                                ? listPreference.getEntries()[index]
-                                : null);
+            // Set the summary to reflect the new value.
+            preference.setSummary(
+                    index >= 0
+                            ? listPreference.getEntries()[index]
+                            : null);
 
-            } else {
-                // For all other preferences, set the summary to the value's
-                // simple string representation.
-                preference.setSummary(stringValue);
-            }
-            return true;
+        } else {
+            // For all other preferences, set the summary to the value's
+            // simple string representation.
+            preference.setSummary(stringValue);
         }
+        return true;
     };
 
 
@@ -188,52 +185,40 @@ public class SettingsActivity extends AppCompatPreferenceActivity
             setHasOptionsMenu(true);
 
             Preference button = findPreference("updateservers");
-            button.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                @Override
-                public boolean onPreferenceClick(Preference preference) {
-                    try {
-                        DataBackend.removeAll();
-                        for(String ss : PreferencesHandler.getServer(preference.getContext()))
-                            TaskHandler.getTracks((ApiRequestTaskListener) preference.getContext(), ss);
-                        PreferencesHandler.setLastUpdate(preference.getContext());
-                    } catch (MalformedURLException e) {
-                        Toast.makeText(preference.getContext(), "There was an  error with a non valid server", Toast.LENGTH_LONG).show();
-                    }
-                    //code for what you want it to do
-                    return true;
+            button.setOnPreferenceClickListener(preference -> {
+                try {
+                    DataBackend.removeAll();
+                    for(String ss : PreferencesHandler.getServer(preference.getContext()))
+                        TaskHandler.getTracks((ApiRequestTaskListener) preference.getContext(), ss);
+                    PreferencesHandler.setLastUpdate(preference.getContext());
+                } catch (MalformedURLException e) {
+                    Toast.makeText(preference.getContext(), "There was an  error with a non valid server", Toast.LENGTH_LONG).show();
                 }
+                //code for what you want it to do
+                return true;
             });
 
             Preference butt = findPreference("manageservers");
-            butt.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                @Override
-                public boolean onPreferenceClick(Preference preference) {
-                    Intent i = new Intent(preference.getContext(), Servers.class);
-                    startActivity(i);
-                    //code for what you want it to do
-                    return true;
-                }
+            butt.setOnPreferenceClickListener(preference -> {
+                Intent i = new Intent(preference.getContext(), Servers.class);
+                startActivity(i);
+                //code for what you want it to do
+                return true;
             });
 
             Preference bcache = findPreference("deleteCached");
-            bcache.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                @Override
-                public boolean onPreferenceClick(Preference preference) {
-                    deleteCache(preference.getContext());
-                    Toast.makeText(preference.getContext(), "Cache Deleted", Toast.LENGTH_SHORT).show();
-                    return true;
-                }
+            bcache.setOnPreferenceClickListener(preference -> {
+                deleteCache(preference.getContext());
+                Toast.makeText(preference.getContext(), "Cache Deleted", Toast.LENGTH_SHORT).show();
+                return true;
             });
 
             Preference dcache = findPreference("deletedownloaded");
-            dcache.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                @Override
-                public boolean onPreferenceClick(Preference preference) {
-                    TaskHandler.removeAllFiles();
-                    DataBackend.removeOfflineTracks();
-                    Toast.makeText(preference.getContext(), "All File Deleted", Toast.LENGTH_SHORT).show();
-                    return true;
-                }
+            dcache.setOnPreferenceClickListener(preference -> {
+                TaskHandler.removeAllFiles();
+                DataBackend.removeOfflineTracks();
+                Toast.makeText(preference.getContext(), "All File Deleted", Toast.LENGTH_SHORT).show();
+                return true;
             });
 
             Preference cacheSize = findPreference("CacheSize");
@@ -246,14 +231,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity
             bindPreferenceSummaryToValue(findPreference("PreferredQualityWiFi"));
             bindPreferenceSummaryToValue(findPreference("PreferredQualityData"));
 
-            cacheSize.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-                @Override
-                public boolean onPreferenceChange(Preference preference, Object newValue) {
-                    PreferencesHandler.setCacheSize(preference.getContext(), (String) newValue);
-                    bindPreferenceSummaryToValue(preference);
-                    mService.changeProxyCacheSize(Integer.parseInt((String) newValue));
-                    return false;
-                }
+            cacheSize.setOnPreferenceChangeListener((preference, newValue) -> {
+                PreferencesHandler.setCacheSize(preference.getContext(), (String) newValue);
+                bindPreferenceSummaryToValue(preference);
+                mService.changeProxyCacheSize(Integer.parseInt((String) newValue));
+                return false;
             });
         }
     }
