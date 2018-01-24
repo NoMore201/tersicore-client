@@ -204,7 +204,7 @@ public class SearchActivity extends AppCompatActivity
             }
         });
 
-        PreferencesHandler.offline= PreferencesHandler.getOffline(ctx);
+        PreferencesHandler.setOffline(this, PreferencesHandler.getOffline(ctx));
 
         smTracks.setOnClickListener(v -> {
             EditText editit1 = findViewById(R.id.searchone);
@@ -476,6 +476,9 @@ public class SearchActivity extends AppCompatActivity
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
@@ -498,9 +501,6 @@ public class SearchActivity extends AppCompatActivity
         } else if (id == R.id.nav_view) {
 
         }
-
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
         return true;
     }
 

@@ -192,6 +192,9 @@ public class AlbumsActivity extends AppCompatActivity
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+
         // Handle navigation view item clicks here.
         switch (item.getItemId()) {
             case R.id.nav_albums:
@@ -217,8 +220,7 @@ public class AlbumsActivity extends AppCompatActivity
                 break;
         }
 
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
+
         return true;
     }
 

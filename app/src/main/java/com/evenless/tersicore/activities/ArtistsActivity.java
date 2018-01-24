@@ -181,6 +181,9 @@ public class ArtistsActivity  extends AppCompatActivity
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+
         // Handle navigation view item clicks here.
 
         switch (item.getItemId()) {
@@ -207,8 +210,7 @@ public class ArtistsActivity  extends AppCompatActivity
                 break;
         }
 
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
+
         return true;
     }
 
