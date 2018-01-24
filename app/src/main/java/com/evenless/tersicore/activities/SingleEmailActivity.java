@@ -63,13 +63,10 @@ public class SingleEmailActivity extends AppCompatActivity {
             ImageButton rep = findViewById(R.id.reply);
             ImageButton play = findViewById(R.id.playsong);
             play.setVisibility(View.GONE);
-            rep.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent asd = new Intent(v.getContext(), SendMail.class);
-                    asd.putExtra("EXTRA_CONTACT_NAME", sender.id);
-                    startActivity(asd);
-                }
+            rep.setOnClickListener(v -> {
+                Intent asd1 = new Intent(v.getContext(), SendMail.class);
+                asd1.putExtra("EXTRA_CONTACT_NAME", sender.id);
+                startActivity(asd1);
             });
             TextView sg = findViewById(R.id.songsend);
             if(mail.songuuid!=null){

@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Locale;
 
 import io.realm.Case;
+import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.Sort;
@@ -186,7 +187,7 @@ public class DataBackend {
         return findAllOffline(getInstance().where(Track.class).findAll());
     }
 
-    public static List<Track> findAllOffline(Realm realm) {
+    public static List<Track> findAllOffline(Realm realm, OrderedRealmCollectionChangeListener xx) {
         return findAllOffline(realm.where(Track.class).findAll());
     }
 
@@ -244,7 +245,7 @@ public class DataBackend {
     public static List<Album> getAlbums(Realm realm) {
         ArrayList<Album> result = new ArrayList<>();
         if(PreferencesHandler.offline){
-            List<Track> asd = findAllOffline(realm);
+            List<Track> asd = findAllOffline();
             for (Track t : asd)
                 if(t.album!=null) {
                     Album n;
@@ -707,5 +708,9 @@ public class DataBackend {
         playlist.date_added=format.format(new Date());
         realm.insertOrUpdate(playlist);
         realm.commitTransaction();
+    }
+
+    public static boolean isFirstTime() {
+        return getInstance().where(Track.class).findFirst()!=null;
     }
 }

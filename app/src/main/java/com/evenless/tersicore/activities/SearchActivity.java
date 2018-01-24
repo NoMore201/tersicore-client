@@ -76,7 +76,12 @@ import com.evenless.tersicore.model.User;
 import com.evenless.tersicore.view.NonScrollableListView;
 import com.google.gson.Gson;
 
+import javax.annotation.Nullable;
+
+import io.realm.OrderedCollectionChangeSet;
+import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.Realm;
+import io.realm.RealmResults;
 import io.realm.Sort;
 
 public class SearchActivity extends AppCompatActivity
@@ -233,20 +238,25 @@ public class SearchActivity extends AppCompatActivity
             finish();
             startActivity(getIntent());
         });
-        DataBackend.getInstance().executeTransactionAsync(realm -> {
-                List<String> servers = PreferencesHandler.getServer(ctx);
-                listTracks = PreferencesHandler.offline ?
-                        DataBackend.findAllOffline(realm) : realm.where(Track.class).findAll();
-                if (listTracks.size() == 0 && !PreferencesHandler.offline)
-                    try {
-                        isFirstTime=true;
-                        TaskHandler.getTracks((ApiRequestExtraTaskListener) ctx, servers.get(0));
-                        PreferencesHandler.setLastUpdate(ctx);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-        });
+        List<String> servers = PreferencesHandler.getServer(ctx);
+        if (DataBackend.isFirstTime() && !PreferencesHandler.offline)
+            try {
+                isFirstTime=true;
+                TaskHandler.getTracks((ApiRequestExtraTaskListener) ctx, servers.get(0));
+                PreferencesHandler.setLastUpdate(ctx);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        if(PreferencesHandler.offline)
+            listTracks=DataBackend.findAllOffline();
+        else
+            DataBackend.getInstance().where(Track.class).findAllAsync().addChangeListener(callback);
     }
+
+    private OrderedRealmCollectionChangeListener<RealmResults<Track>> callback = (tracks, changeSet) -> {
+        RealmResults<Track> listTracksParsed = tracks;
+        listTracks = listTracksParsed;
+    };
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, final int i, long l) {
@@ -548,10 +558,10 @@ public class SearchActivity extends AppCompatActivity
             t1 = findViewById(R.id.tvtracks);
             t1.setVisibility(View.GONE);
         }
+
         updateList();
         mRecyclerView.setAdapter(new MyListAdapter(listArtists, MyListAdapter.ARTIST_STATE));
         mRecyclerViewAlbums.setAdapter(new MyListAdapter(listAlbums, MyListAdapter.ALBUMS_STATE));
-
         return false;
     }
 

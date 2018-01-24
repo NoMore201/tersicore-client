@@ -46,48 +46,28 @@ implements ServerStatusTaskListener, ApiPostTaskListener, ApiRequestTaskListener
         setContentView(R.layout.activity_servers);
         Toolbar toolbar = findViewById(R.id.toolbar2);
         toolbar.setTitle("Servers");
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onBackPressed();
-            }
-        });
+        toolbar.setNavigationOnClickListener(v -> onBackPressed());
         createList();
 
 
         findViewById(R.id.floatingAdd).setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(final View v) {
-                        server=null;
-                        AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
-                        builder.setView(R.layout.server_form);
-                        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        });
-                        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.cancel();
-                            }
-                        });
-                        final AlertDialog sd = builder.show();
-                        sd.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                EditText input = v.getRootView().findViewById(R.id.form_input);
-                                try {
-                                    URL toValidate = new URL(input.getText().toString());
-                                    TaskHandler.isServerRunning((ServerStatusTaskListener) ctx, toValidate);
-                                    sd.dismiss();
-                                } catch (MalformedURLException e) {
-                                    input.setError("URL should have the form protoc://host:port");
-                                }
-                            }
-                        });
-                    }
+                v -> {
+                    server=null;
+                    AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
+                    builder.setView(R.layout.server_form);
+                    builder.setPositiveButton("OK", (dialog, which) -> {});
+                    builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+                    final AlertDialog sd = builder.show();
+                    sd.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v1 -> {
+                        EditText input = v1.getRootView().findViewById(R.id.form_input);
+                        try {
+                            URL toValidate = new URL(input.getText().toString());
+                            TaskHandler.isServerRunning((ServerStatusTaskListener) ctx, toValidate);
+                            sd.dismiss();
+                        } catch (MalformedURLException e) {
+                            input.setError("URL should have the form protoc://host:port");
+                        }
+                    });
                 }
         );
     }
@@ -114,38 +94,27 @@ implements ServerStatusTaskListener, ApiPostTaskListener, ApiRequestTaskListener
         };
         lsv.setAdapter(arrayAdapter);
         // register onClickListener to handle click events on each item
-        lsv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            // argument position gives the index of item which is clicked
-            public void onItemClick(AdapterView<?> arg0, final View v, final int position, long arg3) {
-                if (servers.size() < 2) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
-                    builder.setMessage("You can't delete your last server!!");
-                    builder.setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
-                    });
-                    builder.show();
-                } else {
-                    final String s = servers.get(position);
-                    // Use the Builder class for convenient dialog construction
-                    AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
-                    builder.setMessage("Are you sure you want to delete " + s + " ?")
-                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    PreferencesHandler.deleteServer(v.getContext(), s);
-                                    createList();
-                                }
-                            })
-                            .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    // User cancelled the dialog
-                                }
-                            });
-                    // Create the AlertDialog object and return it
-                    builder.show();
-                }
+        // argument position gives the index of item which is clicked
+        lsv.setOnItemClickListener((arg0, v, position, arg3) -> {
+            if (servers.size() < 2) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
+                builder.setMessage("You can't delete your last server!!");
+                builder.setNeutralButton(R.string.ok, (dialog, which) -> dialog.dismiss());
+                builder.show();
+            } else {
+                final String s = servers.get(position);
+                // Use the Builder class for convenient dialog construction
+                AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
+                builder.setMessage("Are you sure you want to delete " + s + " ?")
+                        .setPositiveButton(R.string.ok, (dialog, id) -> {
+                            PreferencesHandler.deleteServer(v.getContext(), s);
+                            createList();
+                        })
+                        .setNegativeButton(R.string.cancel, (dialog, id) -> {
+                            // User cancelled the dialog
+                        });
+                // Create the AlertDialog object and return it
+                builder.show();
             }
         });
     }
@@ -159,43 +128,27 @@ implements ServerStatusTaskListener, ApiPostTaskListener, ApiRequestTaskListener
             final EditText input = new EditText(this);
             input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
             builder.setView(input);
-            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                }
+            builder.setPositiveButton("OK", (dialog, which) -> {
             });
-            builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
-                }
-            });
+            builder.setNegativeButton(R.string.cancel, (dialog, which) -> dialog.dismiss());
             final AlertDialog sd = builder.show();
-            sd.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    try {
-                        User temp = new User();
-                        temp.id = PreferencesHandler.getUsername(builder.getContext());
-                        temp.password=input.getText().toString();
-                        TaskHandler.login(temp, originalUrl.toExternalForm(), ctx);
-                        pending=sd;
-                        pendingInput=input;
-                    } catch (MalformedURLException e) {
-                        input.setError("There was an error in the login phase");
-                    }
+            sd.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+                try {
+                    User temp = new User();
+                    temp.id = PreferencesHandler.getUsername(builder.getContext());
+                    temp.password=input.getText().toString();
+                    TaskHandler.login(temp, originalUrl.toExternalForm(), ctx);
+                    pending=sd;
+                    pendingInput=input;
+                } catch (MalformedURLException e) {
+                    input.setError("There was an error in the login phase");
                 }
             });
 
         } else {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setMessage("Tersicore is not Running in " + originalUrl.toExternalForm());
-            builder.setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
-                }
-            });
+            builder.setNeutralButton(R.string.ok, (dialog, which) -> dialog.dismiss());
             builder.show();
         }
 
