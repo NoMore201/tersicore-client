@@ -405,6 +405,9 @@ public class SearchActivity extends AppCompatActivity
                                 MyUsersListAdapter.getRoundedShape(BitmapFactory.decodeByteArray(avatar, 0, avatar.length)));
                     TextView meme = drawer.findViewById(R.id.myname);
                     meme.setText(me.id);
+                } else {
+                    TextView meme = drawer.findViewById(R.id.myname);
+                    meme.setText(PreferencesHandler.getUsername(ctx));
                 }
                 try {
                     newMessages=0;
