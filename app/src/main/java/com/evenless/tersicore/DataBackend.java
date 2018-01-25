@@ -298,7 +298,7 @@ public class DataBackend {
                 if(t.album != null) {
                     String artistString = t.album_artist != null ? t.album_artist : t.artist;
                     if (artistString != null && artistString.equalsIgnoreCase(artist)) {
-                        Album temp = new Album(t.album, t.album_artist);
+                        Album temp = new Album(t.album, artistString);
                         if (!result.contains(temp))
                             result.add(temp);
                     }
