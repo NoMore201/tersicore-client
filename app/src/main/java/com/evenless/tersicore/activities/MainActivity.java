@@ -491,7 +491,7 @@ public class MainActivity extends AppCompatActivity
 
     public void onPlaybackProgressUpdate(int currentMilliseconds) {
         long durat = mService.getDuration();
-        if(durat==0)
+        if(durat<1000)
             durat = mService.getCurrentPlaylist().get(mService.getCurrentTrackIndex()).duration*1000;
         boolean result = durat!=0;
         // update seekbar

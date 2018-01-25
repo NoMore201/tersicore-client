@@ -663,7 +663,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                 try {
                     if (mMediaPlayer.isPlaying()) {
                         currentprogress=mediaPlayerInstance.getCurrentPosition();
-                        if(currentprogress>=mediaPlayerInstance.getDuration()) {
+                        if(currentprogress>=mediaPlayerInstance.getDuration() && mediaPlayerInstance.getDuration()>1000) {
                             //Prevent corrupted cache errors by triggering onCompletion manually
                             mHandlertwo.sendMessage(new Message());
                         }
