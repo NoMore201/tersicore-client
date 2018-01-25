@@ -64,6 +64,8 @@ import com.google.gson.Gson;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import io.realm.OrderedRealmCollectionChangeListener;
@@ -146,6 +148,9 @@ public class SearchActivity extends AppCompatActivity
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
+
+        if(PreferencesHandler.getOffline(ctx))
+            MediaPlayerService.changeProxyCacheSize(PreferencesHandler.getCacheSize(this), this);
 
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
@@ -315,27 +320,26 @@ public class SearchActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
         DataBackend.getInstance().executeTransactionAsync(realm -> {
-            List<Track> result = realm.where(Track.class).
-                    isNotNull("playedIn")
-                    .findAllSorted("playedIn", Sort.DESCENDING);
-
-            if(PreferencesHandler.getOffline(ctx))
-                result=DataBackend.findAllOffline(result);
-
+            List<Track> result;
+            result= realm.where(Track.class).
+                        isNotNull("playedIn")
+                        .findAllSorted("playedIn", Sort.DESCENDING);
             ArrayList<Album> toReturn = new ArrayList<>();
             for(Track t : result){
-                String temp;
-                if(t.album_artist==null)
-                    temp=t.artist;
-                else
-                    temp=t.album_artist;
+               if(!PreferencesHandler.getOffline(ctx) || DataBackend.findAllOffline(realm).contains(t)) {
+                    String temp;
+                    if (t.album_artist == null)
+                        temp = t.artist;
+                    else
+                        temp = t.album_artist;
 
-                Album a = new Album(t.album, temp);
-                if(!toReturn.contains(a))
-                    toReturn.add(a);
+                    Album a = new Album(t.album, temp);
+                    if (!toReturn.contains(a))
+                        toReturn.add(a);
 
-                if(toReturn.size()>9)
-                    break;
+                    if (toReturn.size() > 9)
+                        break;
+                }
             }
             listRecentAlbums=toReturn;
             SearchActivity.this.runOnUiThread(() -> {

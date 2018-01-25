@@ -184,10 +184,14 @@ public class DataBackend {
     }
 
     public static List<Track> findAllOffline() {
+        if(offline.size()==0)
+            createOffline(getInstance().where(Track.class).findAll());
         return offline;
     }
 
     public static List<Track> findAllOffline(Realm realm) {
+        if(offline.size()==0)
+            createOffline(realm.where(Track.class).findAll());
         return offline;
     }
 
@@ -347,12 +351,21 @@ public class DataBackend {
      * @return list of Track
      */
     public static ArrayList<Album> getLastTracks() {
-        List<Track> result = getInstance().where(Track.class).
-                isNotNull("playedIn")
-                .findAllSorted("playedIn", Sort.DESCENDING);
+        List<Track> result;
 
-        if(PreferencesHandler.offline)
-            result=findAllOffline(result);
+        if(PreferencesHandler.offline) {
+            result = DataBackend.findAllOffline();
+            Collections.sort(result, (o1, o2) -> {
+                if (o1.playedIn!=null && o1.playedIn.after(o2.playedIn))
+                    return +1;
+                else
+                    return -1;
+            });
+        } else {
+            result = getInstance().where(Track.class).
+                    isNotNull("playedIn")
+                    .findAllSorted("playedIn", Sort.DESCENDING);
+        }
 
         ArrayList<Album> toReturn = new ArrayList<>();
         for(Track t : result){

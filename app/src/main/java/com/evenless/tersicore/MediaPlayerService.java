@@ -774,8 +774,19 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                 .build();
     }
 
+    //Size in MB
+    public static void changeProxyCacheSize(int size, Context ctx) {
+        proxy = new HttpProxyCacheServer.Builder(ctx)
+                .fileNameGenerator(new MyFileNameGenerator())
+                .maxCacheSize(size * 1024 * 1024)
+                .build();
+    }
+
     public static boolean checkIsCached(TrackResources t){
-        return proxy.isCached(t.server + "/stream/" + t.uuid);
+        if(proxy!=null)
+            return proxy.isCached(t.server + "/stream/" + t.uuid);
+        else
+            return false;
     }
 
     private Bitmap getCover(Track tr){
@@ -837,7 +848,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         return xd.build();
     }
 
-    public class MyFileNameGenerator implements FileNameGenerator {
+    public static class MyFileNameGenerator implements FileNameGenerator {
         public String generate(String url) {
             Uri uri = Uri.parse(url);
             String videoId = uri.getEncodedPath();
