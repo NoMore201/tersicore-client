@@ -283,6 +283,7 @@ public class MainActivity extends AppCompatActivity
                     public void onClick(View v) {
                         Intent asd = new Intent(v.getContext(), PlaylistListActivity.class);
                         startActivity(asd);
+                        finish();
                     }
                 });
                 findViewById(R.id.playlistshare).setOnClickListener(new View.OnClickListener() {

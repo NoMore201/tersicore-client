@@ -376,11 +376,24 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     public void deleteFromPlaylist(Track it) {
-        if(mCurrentIndex==getCurrentPlaylist().indexOf(it))
-            skip(SKIP_FORWARD);
-        getCurrentPlaylist().remove(it);
-        if(!getCurrentPlaylist().contains(it))
-            resNumb.remove(it.uuid);
+        int index = getCurrentPlaylist().indexOf(it);
+        boolean completed = false;
+
+        if(mCurrentIndex==getCurrentPlaylist().indexOf(it)) {
+            if (mCurrentIndex<getCurrentPlaylist().size()-1) {
+                mCurrentIndex++;
+                updateState();
+            } else {
+                completed = true;
+                playlistCompleted();
+            }
+        }
+        if (index < mCurrentIndex && !completed) {
+            mCurrentIndex--;
+        }
+        mCurrentPlaylist.remove(it);
+        mCurrentPlaylistSorted.remove(it);
+        resNumb.remove(it.uuid);
     }
 
     private int getPreferredRes(Track tr, Context ctx) {

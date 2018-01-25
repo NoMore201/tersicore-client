@@ -113,8 +113,9 @@ implements FileDownloadTaskListener{
                     Pair<Long, Track> pt =  (Pair<Long, Track>) item.getTag();
                     final Track it = pt.second;
                     if(swipedDirection == ListSwipeItem.SwipeDirection.RIGHT) {
-                        if (pid == null)
+                        if (pid == null) {
                             mService.deleteFromPlaylist(it);
+                        }
                         else {
                             listTracks = DataBackend.deleteFromPlaylist(it, pid.id);
                             updatePlaylistOnServer();
@@ -122,12 +123,16 @@ implements FileDownloadTaskListener{
                         mDragListView.getAdapter().removeItem(mDragListView.getAdapter().getPositionForItem(pt));
                     }
                     else if (swipedDirection == ListSwipeItem.SwipeDirection.LEFT) {
-                        if (pid == null)
+                        if (pid == null) {
                             mService.seekToTrack(mService.getCurrentPlaylist().indexOf(it));
+                            finish();
+                            startActivity(new Intent(ctx, MainActivity.class));
+                        }
                         else {
                             boolean askResource = PreferencesHandler.getPreferredQuality(ctx) == 6;
-                            if(!askResource)
+                            if(!askResource) {
                                 mService.updatePlaylist(listTracks, listTracks.indexOf(it), false);
+                            }
                             else{
                                 AlertDialog.Builder bd = new AlertDialog.Builder(ctx);
                                 bd.setTitle("Resources");
@@ -161,10 +166,9 @@ implements FileDownloadTaskListener{
                                 });
                                 bd.show();
                             }
+                            Intent dd = new Intent(ctx, MainActivity.class);
+                            startActivity(dd);
                         }
-                        Intent dd = new Intent(ctx, MainActivity.class);
-                        startActivity(dd);
-                        finish();
                     }
                 }
 
@@ -178,7 +182,6 @@ implements FileDownloadTaskListener{
         @Override
         public void onServiceDisconnected(ComponentName name) {
             mBound=false;
-            mService.setMediaPlayerServiceListener(null);
         }
 
     };
@@ -408,9 +411,19 @@ implements FileDownloadTaskListener{
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                finish();
+                onBackPressed();
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (pid == null) {
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
+        } else {
+            super.onBackPressed();
+        }
     }
 
     private long getTotalDurationMs() {
