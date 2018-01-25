@@ -95,6 +95,7 @@ public class PlaylistsActivity extends AppCompatActivity
         @Override
         public void onServiceDisconnected(ComponentName name) {
             mBound = false;
+            mService.setMediaPlayerServiceListener(null);
         }
 
     };

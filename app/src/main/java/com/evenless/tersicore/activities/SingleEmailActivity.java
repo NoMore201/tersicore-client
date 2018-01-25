@@ -38,14 +38,14 @@ public class SingleEmailActivity extends AppCompatActivity {
         String mailid = getIntent().getStringExtra("EXTRA_EMAIL_ID");
         mail = DataBackend.getMessage(mailid);
         if(mail==null)
-            onBackPressed();
+            finish();
         else {
             Toolbar toolbar = findViewById(R.id.toolbar2);
             toolbar.setTitle("View Email");
             toolbar.setNavigationOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    onBackPressed();
+                    finish();
                 }
             });
             ImageView asd = findViewById(R.id.myimg);

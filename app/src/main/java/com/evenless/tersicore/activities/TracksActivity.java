@@ -93,12 +93,12 @@ public class TracksActivity extends AppCompatActivity
                 asd.setLayoutParams(x);
                 PlayerInterface.UpdateTrack(v, mService);
             }
-            NavigationView navigationView = findViewById(R.id.nav_view);
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
             mBound = false;
+            mService.setMediaPlayerServiceListener(null);
         }
 
     };

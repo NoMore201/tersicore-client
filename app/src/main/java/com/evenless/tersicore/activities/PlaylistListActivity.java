@@ -177,6 +177,7 @@ implements FileDownloadTaskListener{
         @Override
         public void onServiceDisconnected(ComponentName name) {
             mBound=false;
+            mService.setMediaPlayerServiceListener(null);
         }
 
     };
@@ -406,7 +407,7 @@ implements FileDownloadTaskListener{
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onBackPressed();
+                finish();
             }
         });
     }

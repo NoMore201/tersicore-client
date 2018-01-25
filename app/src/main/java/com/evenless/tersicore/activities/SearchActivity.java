@@ -128,6 +128,7 @@ public class SearchActivity extends AppCompatActivity
         @Override
         public void onServiceDisconnected(ComponentName name) {
             mBound=false;
+            mService.setMediaPlayerServiceListener(null);
         }
     };
 

@@ -144,7 +144,6 @@ implements ServerStatusTaskListener, ApiPostTaskListener, ApiRequestTaskListener
                     input.setError("There was an error in the login phase");
                 }
             });
-
         } else {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setMessage("Tersicore is not Running in " + originalUrl.toExternalForm());
