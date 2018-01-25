@@ -161,7 +161,7 @@ public class TracksActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
-        
+
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 

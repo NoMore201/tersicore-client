@@ -151,11 +151,11 @@ public class SendMail extends AppCompatActivity
                         build2.setPositiveButton("OK", (dialog1, which1) -> {
                             TextView asd = findViewById(R.id.songsnd);
                             if (suggestion != null) {
-                                asd.setText(R.string.AlbumSugg + " " + suggestion.toString());
+                                asd.setText(getResources().getString(R.string.AlbumSugg) + " " + suggestion);
                                 findViewById(R.id.addsong).setVisibility(View.GONE);
                                 findViewById(R.id.removesong).setVisibility(View.VISIBLE);
                             } else if (suggestionTrack != null) {
-                                asd.setText(R.string.TrackSugg + " " + suggestionTrack.toString());
+                                asd.setText(getResources().getString(R.string.TrackSugg) + " " + suggestionTrack);
                                 findViewById(R.id.addsong).setVisibility(View.GONE);
                                 findViewById(R.id.removesong).setVisibility(View.VISIBLE);
                             }

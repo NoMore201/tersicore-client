@@ -186,6 +186,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             if(mCurrentTimer!=null)
                 mCurrentTimer.cancel();
         }
+
+        //This SYNC call will permit the call to set the user to offline to complete before exiting the application
         for (String ss : PreferencesHandler.getServer(this))
             try {
                 TaskHandler.setUserSync(ss, null, new User(PreferencesHandler.getUsername(this), false));
@@ -285,29 +287,41 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         }
     }
 
+    //Select the best resource from the track, based from the Preferences
     public static TrackResources checkTrackResourceByPreference(Track tt, int w,
                                                                 boolean preferDownloaded,
                                                                 boolean isDataProt) {
+        //in the worst case, or if it's the only resources available, we get this
         TrackResources res = tt.resources.get(0);
         int which;
+        //This is the preference chosen when we have "Always Ask" preference (value 6)
+        //but we haven't manually selected the resource, so we have a replacement preference
         if(w==6 && replacementChoice!=-1)
             which=replacementChoice;
         else
             which=w;
+        //
         if(tt.resources.size()!=1 && which!=6) {
+            //We set this as the first preferred bitrate
             int bitr = tt.resources.get(0).bitrate;
             for (int i=1; i<tt.resources.size(); i++){
                 int currbit = tt.resources.get(i).bitrate;
-                if((!preferDownloaded || tt.resources.get(i).isDownloaded ||
-                        !tt.resources.get(0).isDownloaded) &&
-                        ((which==0 && currbit>bitr) || (which==3 && currbit<bitr) ||
-                                (which==1 && ((bitr>1411200 && currbit<bitr) || (bitr<1411200 && currbit<1411200 && currbit>bitr))) ||
-                                (which==2 && ((bitr>350000 && currbit<bitr) || (bitr<350000 && currbit<350000 && currbit>bitr))))) {
+
+
+                 //We check if we are preferring the downloaded ones
+            if(  (!preferDownloaded || tt.resources.get(i).isDownloaded || !tt.resources.get(0).isDownloaded) &&
+                 //else we are only checking the bitrate. we choose the interval of the bitrate accordingly to the preference
+                 ((which==0 && currbit>bitr) ||
+                   (which==3 && currbit<bitr) ||
+                    (which==1 && ((bitr>1411200 && currbit<bitr) || (bitr<1411200 && currbit<1411200 && currbit>bitr))) ||
+                    (which==2 && ((bitr>350000 && currbit<bitr) || (bitr<350000 && currbit<350000 && currbit>bitr))))) {
                     res = tt.resources.get(i);
                     bitr=currbit;
                 }
             }
         }
+        //This is the so called "Data Protection": if we still have an high bitrate with a low  quality
+        // preference (value 3), we send "null", and then we will simply skip it
         if(which==3 && res.bitrate>350000 && isDataProt && !res.isDownloaded && !checkIsCached(res))
             res=null;
         return res;
@@ -368,7 +382,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     private int getPreferredRes(Track tr, Context ctx) {
         Integer aa = resNumb.get(tr.uuid);
-
         if(tr.resources.size()==1 && aa!=null && aa!=-1)
             return 0;
         else if(aa!=null)
@@ -642,7 +655,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     public void callTimer(Handler h){
         final Handler mHandler = h;
         final MediaPlayer mediaPlayerInstance = mMediaPlayer;
-
         mCurrentTimer.cancel();
         mCurrentTimer = new Timer();
         mCurrentTimer.scheduleAtFixedRate(new TimerTask() {
@@ -712,6 +724,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     public void updateState() {
         currentprogress=0;
         if (mCurrentIndex >= getCurrentPlaylist().size()) {
+            //Reset the state of the service
             playlistCompleted();
         } else {
             Track current = getCurrentPlaylist().get(mCurrentIndex);
@@ -727,6 +740,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                 try {
                     mMediaPlayer.setDataSource(ccx, Uri.parse(url));
                 } catch (IOException e) {
+                    //If there is an exception when the track is set as downloaded it means that the
+                    //file isn't there anymore for some reason, so we update the database and
+                    //try to play the online version
                     if (trr.isDownloaded)
                         try {
                             DataBackend.removeOfflineTrack(current, trr.uuid);
@@ -802,7 +818,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                         this,
                         0,
                         new Intent(this, MainActivity.class),
-                        PendingIntent.FLAG_UPDATE_CURRENT
+                        PendingIntent.FLAG_CANCEL_CURRENT
                 ))
                 .setDeleteIntent(PendingIntent.getActivity(
                         this,

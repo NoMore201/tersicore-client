@@ -571,7 +571,7 @@ public class MainActivity extends AppCompatActivity
             View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.item_cover,null);
             SquareImageView imageView = view.findViewById(R.id.image_cover);
             imageView.setImageBitmap(getCover(mService.getCurrentPlaylist().get(position)));
-            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            imageView.setScaleType(ImageView.ScaleType.FIT_XY);
             container.addView(view);
             return view;
         }
