@@ -217,14 +217,16 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                 e.printStackTrace();
             }
         NotificationManager notificationManager = (NotificationManager) getSystemService( Context.NOTIFICATION_SERVICE );
-        notificationManager.cancel(9876);
+        if (notificationManager != null)
+            notificationManager.cancel(9876);
     }
 
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
         Log.d(TAG, "onPrepared: called");
         mediaPlayer.start();
-        mListener.onPreparedPlayback();
+        if (mListener != null)
+            mListener.onPreparedPlayback();
     }
 
     @Override
@@ -283,7 +285,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                     }
                 }
             }
-            mListener.onCoverFetched(updated, id);
+            if (mListener != null)
+                mListener.onCoverFetched(updated, id);
         }
     }
 
@@ -678,16 +681,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                 }
             }
         }, 0, 1000);
-    }
-
-    public void fetchCover(Track track, int id) {
-        TrackResources tr = track.resources.get(id);
-        if (tr.cover_data == null) {
-            TaskHandler.getCover(this, track, tr.server, id);
-        } else {
-            mListener.onCoverFetched(track, id);
-        }
-
     }
 
     private void sortPlaylist() {
