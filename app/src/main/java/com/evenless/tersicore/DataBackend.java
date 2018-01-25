@@ -347,40 +347,31 @@ public class DataBackend {
     }
 
     /**
-     * Get all Albums played lately
+     * Get all Albums played lately but OFFLINE
      * @return list of Track
      */
     public static ArrayList<Album> getLastTracks() {
         List<Track> result;
-
-        if(PreferencesHandler.offline) {
-            result = DataBackend.findAllOffline();
-            Collections.sort(result, (o1, o2) -> {
-                if (o1.playedIn!=null && o1.playedIn.after(o2.playedIn))
-                    return +1;
-                else
-                    return -1;
-            });
-        } else {
-            result = getInstance().where(Track.class).
+        result = getInstance().where(Track.class).
                     isNotNull("playedIn")
                     .findAllSorted("playedIn", Sort.DESCENDING);
-        }
 
         ArrayList<Album> toReturn = new ArrayList<>();
         for(Track t : result){
-            String temp;
-            if(t.album_artist==null)
-                temp=t.artist;
-            else
-                temp=t.album_artist;
+            if(offline.contains(t)) {
+                String temp;
+                if (t.album_artist == null)
+                    temp = t.artist;
+                else
+                    temp = t.album_artist;
 
-            Album a = new Album(t.album, temp);
-            if(!toReturn.contains(a))
-                toReturn.add(a);
+                Album a = new Album(t.album, temp);
+                if (!toReturn.contains(a))
+                    toReturn.add(a);
 
-            if(toReturn.size()>9)
-                break;
+                if (toReturn.size() > 9)
+                    break;
+            }
         }
         return toReturn;
     }

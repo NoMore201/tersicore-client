@@ -319,40 +319,49 @@ public class SearchActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        DataBackend.getInstance().executeTransactionAsync(realm -> {
-            List<Track> result;
-            result= realm.where(Track.class).
-                        isNotNull("playedIn")
-                        .findAllSorted("playedIn", Sort.DESCENDING);
-            ArrayList<Album> toReturn = new ArrayList<>();
-            for(Track t : result){
-               if(!PreferencesHandler.getOffline(ctx) || DataBackend.findAllOffline(realm).contains(t)) {
-                    String temp;
-                    if (t.album_artist == null)
-                        temp = t.artist;
+        if(PreferencesHandler.getOffline(ctx)){
+             listRecentAlbums=DataBackend.getLastTracks();
+             RecyclerView.LayoutManager mLayoutManagerAlbumRecent = new LinearLayoutManager(ctx,
+                            LinearLayoutManager.HORIZONTAL,
+                            false);
+             mRecyclerViewAlbumsRecent.setLayoutManager(mLayoutManagerAlbumRecent);
+             if(listRecentAlbums.size()<1)
+                 findViewById(R.id.textView2).setVisibility(View.GONE);
+             else
+                 mRecyclerViewAlbumsRecent.setAdapter(new MyListAdapter(listRecentAlbums, MyListAdapter.ALBUMS_STATE));
+        } else
+            DataBackend.getInstance().executeTransactionAsync(realm -> {
+                List<Track> result;
+                result= realm.where(Track.class).
+                            isNotNull("playedIn")
+                            .findAllSorted("playedIn", Sort.DESCENDING);
+                ArrayList<Album> toReturn = new ArrayList<>();
+                for(Track t : result){
+                        String temp;
+                        if (t.album_artist == null)
+                            temp = t.artist;
+                        else
+                            temp = t.album_artist;
+
+                        Album a = new Album(t.album, temp);
+                        if (!toReturn.contains(a))
+                            toReturn.add(a);
+
+                        if (toReturn.size() > 9)
+                            break;
+                    }
+                listRecentAlbums=toReturn;
+                SearchActivity.this.runOnUiThread(() -> {
+                    RecyclerView.LayoutManager mLayoutManagerAlbumRecent = new LinearLayoutManager(ctx,
+                            LinearLayoutManager.HORIZONTAL,
+                            false);
+                    mRecyclerViewAlbumsRecent.setLayoutManager(mLayoutManagerAlbumRecent);
+                    if(listRecentAlbums.size()<1)
+                        findViewById(R.id.textView2).setVisibility(View.GONE);
                     else
-                        temp = t.album_artist;
-
-                    Album a = new Album(t.album, temp);
-                    if (!toReturn.contains(a))
-                        toReturn.add(a);
-
-                    if (toReturn.size() > 9)
-                        break;
-                }
-            }
-            listRecentAlbums=toReturn;
-            SearchActivity.this.runOnUiThread(() -> {
-                RecyclerView.LayoutManager mLayoutManagerAlbumRecent = new LinearLayoutManager(ctx,
-                        LinearLayoutManager.HORIZONTAL,
-                        false);
-                mRecyclerViewAlbumsRecent.setLayoutManager(mLayoutManagerAlbumRecent);
-                if(listRecentAlbums.size()<1)
-                    findViewById(R.id.textView2).setVisibility(View.GONE);
-                else
-                    mRecyclerViewAlbumsRecent.setAdapter(new MyListAdapter(listRecentAlbums, MyListAdapter.ALBUMS_STATE));
+                        mRecyclerViewAlbumsRecent.setAdapter(new MyListAdapter(listRecentAlbums, MyListAdapter.ALBUMS_STATE));
+                });
             });
-        });
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setCheckedItem(R.id.nav_home);
         if(!PreferencesHandler.getOffline(this))
