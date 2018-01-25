@@ -164,6 +164,7 @@ implements FileDownloadTaskListener{
                         }
                         Intent dd = new Intent(ctx, MainActivity.class);
                         startActivity(dd);
+                        finish();
                     }
                 }
 

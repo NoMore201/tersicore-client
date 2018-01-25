@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity
                     alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "BACK",
                             (dialog, which) -> {
                                 dialog.dismiss();
-                                onBackPressed();
+                                finish();
                             });
                     alertDialog.show();
                 }
@@ -148,7 +148,7 @@ public class MainActivity extends AppCompatActivity
                 mService.callTimer(mHandler);
                 PagerContainer container = findViewById(R.id.pager_container);
                 final Toolbar toolbar = findViewById(R.id.toolbar2);
-                toolbar.setNavigationOnClickListener(v -> onBackPressed());
+                toolbar.setNavigationOnClickListener(v -> finish());
                 final ViewPager pager = container.getViewPager();
                 pager.setAdapter(new MainActivity.MyPagerAdapter());
                 pager.setClipChildren(false);
