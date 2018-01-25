@@ -122,6 +122,8 @@
         android:inputType="textLongMessage"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/songsnd"
+        android:gravity="top"
+        android:minHeight="100dp"
         android:hint="Body"/>
 
 </android.support.constraint.ConstraintLayout>

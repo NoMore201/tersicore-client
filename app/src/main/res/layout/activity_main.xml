@@ -93,10 +93,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/tv_song"
-        android:layout_below="@id/toolbar2"
-        android:layout_marginTop="60dp"
-        android:layout_alignBottom="@id/progressani2"
-        android:layout_alignTop="@id/toolbar2">
+        android:layout_below="@id/toolbar2">
 
         <android.support.v4.view.ViewPager
             android:id="@+id/overlap_pager"
