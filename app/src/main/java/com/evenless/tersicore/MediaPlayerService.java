@@ -164,7 +164,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         }
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            int importance = NotificationManager.IMPORTANCE_LOW;
+            int importance = NotificationManager.IMPORTANCE_HIGH;
             NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID,
                     NOTIFICATION_CHANNEL_NAME, importance);
             notificationChannel.enableLights(false);

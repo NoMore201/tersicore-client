@@ -96,6 +96,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
     private Context ctx = this;
     private static int choice = 0;
     private int downloadedCount = 0;
+    private boolean wasplayer = false;
     private ServiceConnection mConnection = new ServiceConnection() {
 
         @Override
@@ -111,6 +112,11 @@ public class SingleAlbumActivity  extends AppCompatActivity
                 View v = findViewById(R.id.asd2);
                 v.setVisibility(View.VISIBLE);
                 PlayerInterface.UpdateTrack(v, mService);
+                if(!wasplayer) {
+                    RelativeLayout asd = findViewById(R.id.albumListLayout);
+                    asd.setMinimumHeight(asd.getHeight() + 200);
+                    wasplayer=true;
+                }
             }
         }
 
@@ -138,15 +144,8 @@ public class SingleAlbumActivity  extends AppCompatActivity
     }
 
     @Override
-    public void onPostCreate(@Nullable Bundle savedInstanceState, @Nullable PersistableBundle persistentState) {
-        super.onPostCreate(savedInstanceState, persistentState);
-    }
-
-    @Override
     protected void onPostResume() {
         super.onPostResume();
-        RelativeLayout asd = findViewById(R.id.albumListLayout);
-        asd.setMinimumHeight(asd.getHeight() + findViewById(R.id.asd2).getHeight());
     }
 
     @Override
@@ -154,6 +153,7 @@ public class SingleAlbumActivity  extends AppCompatActivity
         super.onCreate(savedInstanceState);
         artist = getIntent().getStringExtra("EXTRA_ARTIST");
         albumName = getIntent().getStringExtra("EXTRA_ALBUM");
+        wasplayer=false;
 
         setContentView(R.layout.activity_album);
         Toolbar toolbar = findViewById(R.id.toolbar);

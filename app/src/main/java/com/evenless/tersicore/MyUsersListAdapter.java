@@ -95,8 +95,8 @@ public class MyUsersListAdapter extends ArrayAdapter<User> {
         }
 
     public static Bitmap getRoundedShape(Bitmap scaleBitmapImage) {
-        int targetWidth = 50;
-        int targetHeight = 50;
+        int targetWidth = scaleBitmapImage.getWidth();
+        int targetHeight = scaleBitmapImage.getHeight();
         Bitmap targetBitmap = Bitmap.createBitmap(targetWidth,
                 targetHeight,Bitmap.Config.ARGB_8888);
 
